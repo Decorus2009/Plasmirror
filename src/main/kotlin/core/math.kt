@@ -97,15 +97,12 @@ class Matrix_(private val matrix: FieldMatrix<Complex> = Array2DRowFieldMatrix(C
   }
 }
 
-object Interpolator {
-  fun interpolateComplex(x: List<Double>, y: List<Complex_>): Pair<PolynomialSplineFunction, PolynomialSplineFunction> {
-    with(LinearInterpolator()) {
-      val functionReal = interpolate(x.toDoubleArray(), y.map { it.real }.toDoubleArray())
-      val functionImag = interpolate(x.toDoubleArray(), y.map { it.imaginary }.toDoubleArray())
-      return functionReal to functionImag
-    }
+fun interpolateComplex(x: List<Double>, y: List<Complex_>) =
+  with(LinearInterpolator()) {
+    val functionReal = interpolate(x.toDoubleArray(), y.map { it.real }.toDoubleArray())
+    val functionImag = interpolate(x.toDoubleArray(), y.map { it.imaginary }.toDoubleArray())
+    functionReal to functionImag
   }
-}
 
 fun Double.round(): Double {
   val precision = 7.0

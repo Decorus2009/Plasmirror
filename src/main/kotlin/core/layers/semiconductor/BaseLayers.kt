@@ -20,8 +20,8 @@ interface Layer {
     get() = extinctionCoefficientOf(n, State.wavelengthCurrent)
 
   /**
-   * @return transfer matrix for layer without excitons
-   * * Polarization is unused
+   * @return transfer matrix for a layer without excitons
+   * polarization is unused
    */
   val matrix
     get() = Matrix_().apply {

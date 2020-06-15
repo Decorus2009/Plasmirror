@@ -8,12 +8,27 @@ import kotlin.math.sqrt
 
 enum class Polarization { S, P }
 
-enum class Medium { AIR, GAAS_ADACHI, GAAS_GAUSS, CUSTOM }
+enum class Medium {
+  AIR,
+  GAAS_ADACHI,
+  GAAS_GAUSS,
+  CUSTOM
+}
 
-enum class EpsType { ADACHI, GAUSS, GAUSS_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0 }
+enum class EpsType {
+  ADACHI,
+  GAUSS,
+  GAUSS_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0
+}
 
-enum class Regime {
-  REFLECTANCE, TRANSMITTANCE, ABSORBANCE, PERMITTIVITY, REFRACTIVE_INDEX, EXTINCTION_COEFFICIENT, SCATTERING_COEFFICIENT
+enum class Mode {
+  REFLECTANCE,
+  TRANSMITTANCE,
+  ABSORBANCE,
+  PERMITTIVITY,
+  REFRACTIVE_INDEX,
+  EXTINCTION_COEFFICIENT,
+  SCATTERING_COEFFICIENT
 }
 
 fun extinctionCoefficientOf(refractiveIndex: Complex_, wavelength: Double) =

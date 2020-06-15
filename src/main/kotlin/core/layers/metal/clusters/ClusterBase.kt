@@ -4,7 +4,7 @@ import core.Complex_
 import core.State
 import core.layers.semiconductor.AlGaAsLayer
 import core.optics.metal.clusters.DrudeModel
-import core.optics.metal.clusters.SbTabulated
+import core.optics.metal.clusters.SbAdachiCardona
 import core.optics.semiconductor.AlGaAsMatrix
 
 interface MetalClustersInAlGaAs : AlGaAsLayer {
@@ -23,5 +23,5 @@ interface DrudeMetalClustersInAlGaAs : MetalClustersInAlGaAs {
 
 interface SbClustersInAlGaAs : MetalClustersInAlGaAs {
   override val clusterPermittivity
-    get() = SbTabulated.permittivity(State.wavelengthCurrent)
+    get() = SbAdachiCardona.permittivity(State.wavelengthCurrent)
 }

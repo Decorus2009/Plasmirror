@@ -1,8 +1,8 @@
 package ui.controllers.chart
 
-import com.sun.javafx.charts.Legend
+import controllers.chart.LineChartState
 import core.State
-import core.optics.Regime
+import core.optics.Mode
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.fxml.FXML
@@ -23,10 +23,10 @@ import org.gillius.jfxutils.chart.ChartPanManager
 import org.gillius.jfxutils.chart.ChartZoomManager
 import ui.controllers.MainController
 import ui.controllers.chart.LineChartController.ComputationType.*
-import ui.controllers.chart.LineChartState.ExtendedSeries
-import ui.controllers.chart.LineChartState.allExtendedSeries
-import ui.controllers.chart.LineChartState.computed
-import ui.controllers.chart.LineChartState.imported
+import controllers.chart.LineChartState.ExtendedSeries
+import controllers.chart.LineChartState.allExtendedSeries
+import controllers.chart.LineChartState.computed
+import controllers.chart.LineChartState.imported
 import java.io.File
 import java.util.*
 
@@ -78,7 +78,8 @@ class LineChartController {
     setPanning()
     setZooming()
     setDoubleMouseClickRescaling()
-    updateLegendListener()
+    // TODO Legend is in internal API
+//    updateLegendListener()
   }
 
   fun updateLineChart() {
@@ -105,14 +106,14 @@ class LineChartController {
     }
 
     fun updateYAxisLabel() {
-      yAxis.label = when (State.regime) {
-        Regime.REFLECTANCE -> "Reflectance"
-        Regime.TRANSMITTANCE -> "Transmittance"
-        Regime.ABSORBANCE -> "Absorbance"
-        Regime.PERMITTIVITY -> "OpticalConstants"
-        Regime.REFRACTIVE_INDEX -> "Refractive Index"
-        Regime.EXTINCTION_COEFFICIENT -> "Extinction coefficient"
-        Regime.SCATTERING_COEFFICIENT -> "Scattering coefficient"
+      yAxis.label = when (State.mode) {
+        Mode.REFLECTANCE -> "Reflectance"
+        Mode.TRANSMITTANCE -> "Transmittance"
+        Mode.ABSORBANCE -> "Absorbance"
+        Mode.PERMITTIVITY -> "OpticalConstants"
+        Mode.REFRACTIVE_INDEX -> "Refractive Index"
+        Mode.EXTINCTION_COEFFICIENT -> "Extinction coefficient"
+        Mode.SCATTERING_COEFFICIENT -> "Scattering coefficient"
       }
     }
 
@@ -123,8 +124,8 @@ class LineChartController {
     /* regime == null is used during the first automatic call of rescale() method after initialization */
     fun updateRegimeAndRescale() = with(mainController.globalParametersController.regimeController) {
       /* if another regime */
-      if (regimeBefore == null || regimeBefore != State.regime) {
-        regimeBefore = State.regime
+      if (modeBefore == null || modeBefore != State.mode) {
+        modeBefore = State.mode
         /* deselect all series, labels and disable activated series manager */
         allExtendedSeries().forEach { deselect() }
         rescale()
@@ -134,7 +135,8 @@ class LineChartController {
 // TODO commented updateRegimeAndRescale !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
 //        updateRegimeAndRescale()
 
-    updateLegendListener()
+    // TODO Legend is in internal API
+//    updateLegendListener()
     updateStyleOfAll()
   }
 
@@ -147,18 +149,19 @@ class LineChartController {
       -fx-stroke: $color;
       -fx-stroke-width: $width;
     """
-    lineChart.labels().find { it.text == series.name }!!.style =
-      if (selected) {
-        """
-          -fx-stroke: $color;
-          -fx-background-insets: 0 0 -1 0, 0, 1, 2;
-          -fx-padding: 7px;
-          -fx-background-radius: 1px, 0px, 0px, 0px;
-          -fx-background-color: #cccccc;
-        """
-      } else {
-        ""
-      }
+    // TODO Legend is in internal API
+//    lineChart.labels().find { it.text == series.name }!!.style =
+//      if (selected) {
+//        """
+//          -fx-stroke: $color;
+//          -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+//          -fx-padding: 7px;
+//          -fx-background-radius: 1px, 0px, 0px, 0px;
+//          -fx-background-color: #cccccc;
+//        """
+//      } else {
+//        ""
+//      }
     /**
      * http://news.kynosarges.org/2017/05/14/javafx-chart-coloring/
      *
@@ -191,7 +194,8 @@ class LineChartController {
         }
       }
     }
-    updateLegendListener()
+    // TODO Legend is in internal API
+//    updateLegendListener()
     updateStyleOfAll()
   }
 
@@ -212,21 +216,22 @@ class LineChartController {
    * so this method is called at each 'updateLineChart' call to handle new legend items.
    * Otherwise mouse clicks after updates don't work.
    */
-  fun updateLegendListener() = Platform.runLater {
-    lineChart.labels().forEach { label ->
-      label.setOnMouseClicked {
-        val selected = allExtendedSeries().find { it.selected }
-        if (selected == null) {
-          selectBy(label)
-        } else {
-          deselect()
-          if (selected.series.name != label.text) {
-            selectBy(label)
-          }
-        }
-      }
-    }
-  }
+  // TODO Legend is in internal API
+//  fun updateLegendListener() = Platform.runLater {
+//    lineChart.labels().forEach { label ->
+//      label.setOnMouseClicked {
+//        val selected = allExtendedSeries().find { it.selected }
+//        if (selected == null) {
+//          selectBy(label)
+//        } else {
+//          deselect()
+//          if (selected.series.name != label.text) {
+//            selectBy(label)
+//          }
+//        }
+//      }
+//    }
+//  }
 
   private fun selectBy(label: Label) =
     allExtendedSeries().find { it.series.name == label.text }?.let {
@@ -261,25 +266,25 @@ class LineChartController {
       }
     }
     with(yAxis) {
-      when (State.regime) {
-        Regime.REFLECTANCE, Regime.ABSORBANCE, Regime.TRANSMITTANCE -> {
+      when (State.mode) {
+        Mode.REFLECTANCE, Mode.ABSORBANCE, Mode.TRANSMITTANCE -> {
           lowerBound = 0.0
           upperBound = 1.0
           tickUnit = 0.1
         }
-        Regime.PERMITTIVITY -> {
+        Mode.PERMITTIVITY -> {
           lowerBound = -10.0
           upperBound = 30.0
           tickUnit = 5.0
           isAutoRanging = false
         }
-        Regime.REFRACTIVE_INDEX -> {
+        Mode.REFRACTIVE_INDEX -> {
           lowerBound = -1.0
           upperBound = 4.5
           tickUnit = 0.5
           isAutoRanging = false
         }
-        Regime.EXTINCTION_COEFFICIENT, Regime.SCATTERING_COEFFICIENT -> {
+        Mode.EXTINCTION_COEFFICIENT, Mode.SCATTERING_COEFFICIENT -> {
           lowerBound = 0.0
           upperBound = 2E4
           tickUnit = 2E3
@@ -393,10 +398,10 @@ class LineChartController {
 //    .filter { it is Label }.map { it as Label }
 
 
-  private fun LineChart<Number, Number>.labels() = childrenUnmodifiable
-    .filter { it is Legend }.map { it as Legend }.flatMap { it.childrenUnmodifiable }
-    .filter { it is Label }.map { it as Label }
-
+  // TODO Legend is in internal API
+//  private fun LineChart<Number, Number>.labels() = childrenUnmodifiable
+//    .filter { it is Legend }.map { it as Legend }.flatMap { it.childrenUnmodifiable }
+//    .filter { it is Label }.map { it as Label }
 }
 
 

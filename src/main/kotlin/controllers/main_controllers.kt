@@ -81,14 +81,14 @@ class MainController {
         lineChartController.updateLineChart()*/
   }
 
-  fun saveToStorages() {
+  fun save() {
     globalParametersController.save()
     structureDescriptionController.save()
   }
 
-  fun saveToFiles() {
-    ComputationParametersStorage.saveToFile()
-    StructureDescriptionStorage.saveToFile()
+  fun saveState() {
+    ComputationParametersStorage.save()
+    StructureDescriptionStorage.save()
   }
 }
 
@@ -113,11 +113,11 @@ class ControlsController {
           State.compute()
           val stopTime = System.nanoTime()
           computationTimeLabel.text = "Computation time: " +
-            "${kotlin.String.format(Locale.US, "%.2f", (stopTime - startTime).toDouble() / 1E6)} ms"
+            "${String.format(Locale.US, "%.2f", (stopTime - startTime).toDouble() / 1E6)} ms"
 
           /* Save and write to file last successful computation parameters */
-          mainController.lineChartController.updateLineChart()
-          mainController.saveToFiles()
+          mainController.saveState()
+          mainController.lineChartController.updateLineChart() // TODO FIX: Exception in thread "JavaFX Application Thread" java.lang.IllegalAccessError: class ui.controllers.chart.LineChartController (in unnamed module @0x4e97cfa6) cannot access class com.sun.javafx.charts.Legend (in module javafx.controls) because module javafx.controls does not export com.sun.javafx.charts to unnamed module @0x4e97cfa6
         }
       }
     }

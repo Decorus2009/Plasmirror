@@ -18,7 +18,7 @@ import javafx.scene.control.Button
 import javafx.scene.control.Separator
 import javafx.scene.layout.VBox
 import org.apache.commons.math3.analysis.interpolation.SplineInterpolator
-import ui.controllers.chart.LineChartState
+import controllers.chart.LineChartState
 import kotlin.Double.Companion.MAX_VALUE
 
 object FitterState {

@@ -1,0 +1,30 @@
+{
+  "states": [
+    {
+      "id": "main",
+      "computationState": {
+        "data": {
+          "x": [400.0, 500.0, 600.0, 700.0, 800.0],
+          "yReal": [0.1, 0.2, 0.3, 0.4, 0.5],
+          "yImaginary": null
+        },
+        "range": {
+          "unit": "NM",
+          "start": 400.0,
+          "end": 800.0,
+          "step": 100.0
+        },
+        "opticalParams": {
+          "mode": "REFLECTANCE",
+          "leftMedium": "AIR",
+          "rightMedium": "GAAS_ADACHI",
+          "angle": 0.0,
+          "polarization": "P"
+        },
+        "structureDescription": "x1\\ntype = 1-2, d = 2\\ntype = 2-1, d = 45, k = 0.0, x = 0.6\\n\\nx18\\ntype = 9-2-2, d = 40, k = 0., x = 0.6, lattice_factor = 8.1\\ntype = 2-3, d = 92., k = 0.01, x = 0.6"
+      },
+      "externalDataState": null
+    },
+    {}
+  ]
+}

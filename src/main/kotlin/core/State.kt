@@ -2,21 +2,20 @@ package core
 
 import core.layers.semiconductor.Layer
 import core.optics.Polarization
-import core.optics.Regime
-import core.validators.StateValidator
-import core.validators.ValidationResult
+import core.optics.Mode
+import core.structure.Structure
+import core.validators.*
 import core.validators.ValidationResult.FAILURE
 import core.validators.ValidationResult.SUCCESS
 import rootController
 
 object State {
-//    lateinit var mainController: MainController
   var wavelengthStart: Double = 600.0
   var wavelengthEnd: Double = 1000.0
   var wavelengthStep: Double = 1.0
   var wavelengthCurrent = wavelengthStart
 
-  lateinit var regime: Regime
+  lateinit var mode: Mode
 
   lateinit var leftMediumLayer: Layer
   lateinit var rightMediumLayer: Layer
@@ -38,7 +37,7 @@ object State {
 
   fun init(): ValidationResult {
     saveToStorages()
-    return when (StateValidator.initState()) {
+    return when (initState()) {
       SUCCESS -> {
         clear()
         buildMirror()
@@ -52,18 +51,18 @@ object State {
     wavelengthCurrent = wavelength[it]
 
     with(mirror) {
-      when (regime) {
-        Regime.REFLECTANCE -> reflectance += reflectance()
-        Regime.TRANSMITTANCE -> transmittance += transmittance()
-        Regime.ABSORBANCE -> absorbance += absorbance()
-        Regime.PERMITTIVITY -> permittivity += permittivity()
-        Regime.REFRACTIVE_INDEX -> refractiveIndex += refractiveIndex()
-        Regime.EXTINCTION_COEFFICIENT -> {
+      when (mode) {
+        Mode.REFLECTANCE -> reflectance += reflectance()
+        Mode.TRANSMITTANCE -> transmittance += transmittance()
+        Mode.ABSORBANCE -> absorbance += absorbance()
+        Mode.PERMITTIVITY -> permittivity += permittivity()
+        Mode.REFRACTIVE_INDEX -> refractiveIndex += refractiveIndex()
+        Mode.EXTINCTION_COEFFICIENT -> {
           extinctionCoefficient += extinctionCoefficient()
 //          wavelength.forEach { print("$it\t") }
 //          println()
         }
-        Regime.SCATTERING_COEFFICIENT -> scatteringCoefficient += scatteringCoefficient()
+        Mode.SCATTERING_COEFFICIENT -> scatteringCoefficient += scatteringCoefficient()
       }
     }
   }
@@ -79,5 +78,5 @@ object State {
     mirror = Mirror(structure, leftMediumLayer, rightMediumLayer)
   }
 
-  private fun saveToStorages() = rootController.mainController.saveToStorages()
+  private fun saveToStorages() = rootController.mainController.save()
 }

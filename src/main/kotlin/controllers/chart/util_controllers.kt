@@ -1,12 +1,13 @@
 package ui.controllers.chart
 
+import controllers.chart.LineChartState
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.paint.Color
 import javafx.util.converter.NumberStringConverter
 import ui.controllers.MainController
-import ui.controllers.enable
+import controllers.enable
 import java.util.*
 
 class SeriesManagerController {
@@ -85,7 +86,8 @@ class SeriesManagerController {
         with(lineChartController) {
           removeByName(selectedSeries.series.name)
           updateStyleOfAll()
-          updateLegendListener()
+          // TODO Legend is in internal API
+//          updateLegendListener()
         }
         seriesManagerController.disable()
       }
@@ -105,9 +107,9 @@ class SeriesManagerController {
 
     with(selectedSeries) {
       if (type == LineChartState.SeriesType.COMPUTED) {
-        ui.controllers.disable(xAxisFactorLabel, yAxisFactorLabel)
-        ui.controllers.disable(xAxisFactorTextField, yAxisFactorTextField)
-        ui.controllers.disable(removeButton)
+        controllers.disable(xAxisFactorLabel, yAxisFactorLabel)
+        controllers.disable(xAxisFactorTextField, yAxisFactorTextField)
+        controllers.disable(removeButton)
       }
       xAxisFactorTextField.text = previousXAxisFactor.toString()
       yAxisFactorTextField.text = previousYAxisFactor.toString()
@@ -117,11 +119,11 @@ class SeriesManagerController {
   }
 
   fun disable() {
-    ui.controllers.disable(colorLabel, xAxisFactorLabel, yAxisFactorLabel)
-    ui.controllers.disable(xAxisFactorTextField, yAxisFactorTextField)
-    ui.controllers.disable(colorPicker)
-    ui.controllers.disable(visibleCheckBox)
-    ui.controllers.disable(removeButton)
+    controllers.disable(colorLabel, xAxisFactorLabel, yAxisFactorLabel)
+    controllers.disable(xAxisFactorTextField, yAxisFactorTextField)
+    controllers.disable(colorPicker)
+    controllers.disable(visibleCheckBox)
+    controllers.disable(removeButton)
   }
 }
 

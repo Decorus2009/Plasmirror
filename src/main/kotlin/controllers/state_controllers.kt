@@ -1,8 +1,10 @@
 package ui.controllers
 
+import controllers.disable
+import controllers.enable
 import core.ComputationParametersStorage
 import core.StructureDescriptionStorage
-import core.optics.Regime
+import core.optics.Mode
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.layout.AnchorPane
@@ -48,14 +50,14 @@ class RegimeController {
   @FXML
   private lateinit var regimeChoiceBox: ChoiceBox<String>
 
-  var regimeBefore: Regime? = null
+  var modeBefore: Mode? = null
 
   @FXML
   fun initialize() {
     println("Regime controller init")
 
     with(regimeChoiceBox) {
-      value = ComputationParametersStorage.regime
+      value = ComputationParametersStorage.mode
 
       selectionModel.selectedItemProperty().addListener { _, _, newValue ->
         with(globalParametersController) {
@@ -75,7 +77,7 @@ class RegimeController {
   }
 
   fun save() {
-    ComputationParametersStorage.regime = regimeChoiceBox.value
+    ComputationParametersStorage.mode = regimeChoiceBox.value
   }
 }
 
@@ -279,11 +281,11 @@ class StructureDescriptionController {
                 -fx-highlight-fill: #dbdddd;
                 -fx-highlight-text-fill: #dbdddd;
         """
-    replaceText(0, 0, StructureDescriptionStorage.description)
+    replaceText(0, 0, StructureDescriptionStorage.textDescription)
   }
 
   fun save() {
-    StructureDescriptionStorage.description = structureDescriptionCodeArea.text
+    StructureDescriptionStorage.textDescription = structureDescriptionCodeArea.text
   }
 
   /**

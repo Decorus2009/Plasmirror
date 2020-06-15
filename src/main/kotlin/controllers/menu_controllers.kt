@@ -2,6 +2,8 @@ package ui.controllers
 
 
 import MainApp
+import util.exportFileName
+import util.writeComputedDataTo
 import core.State
 import core.validators.MultipleExportDialogParametersValidator
 import core.validators.ValidationResult.FAILURE
@@ -17,11 +19,11 @@ import javafx.scene.input.KeyCombination.SHIFT_DOWN
 import javafx.scene.input.KeyCombination.SHORTCUT_DOWN
 import javafx.scene.layout.AnchorPane
 import javafx.stage.*
-import org.apache.commons.io.FileUtils
 import rootController
+import util.requireFile
+import util.sep
 import java.io.File
 import java.io.File.separator
-import java.nio.file.Paths
 
 
 class MenuController {
@@ -30,14 +32,19 @@ class MenuController {
 
   @FXML
   private lateinit var importMenuItem: MenuItem
+
   @FXML
   private lateinit var importMultipleMenuItem: MenuItem
+
   @FXML
   private lateinit var exportMenuItem: MenuItem
+
   @FXML
   private lateinit var exportMultipleMenuItem: MenuItem
+
   @FXML
   private lateinit var helpMenuItem: MenuItem
+
   @FXML
   private lateinit var fitterMenuItem: MenuItem
 
@@ -65,7 +72,7 @@ class MenuController {
 
     exportMenuItem.setOnAction {
       val file = initFileChooser(".").let {
-        it.initialFileName = buildExportFileName()
+        it.initialFileName = exportFileName()
         it.showSaveDialog(rootController.mainApp.primaryStage)
       }
       if (file != null) {
@@ -118,32 +125,26 @@ class MenuController {
 }
 
 class MultipleExportDialogController {
-
-//    lateinit var mainController: MainController
-//    lateinit var rootController: RootController
-
   @FXML
   private lateinit var polarizationChoiceBox: ChoiceBox<String>
 
   @FXML
   lateinit var angleFromTextField: TextField
+
   @FXML
   lateinit var angleToTextField: TextField
+
   @FXML
   lateinit var angleStepTextField: TextField
 
   @FXML
   private lateinit var directoryButton: Button
+
   @FXML
   private lateinit var exportButton: Button
-  //    @FXML
-//    private lateinit var statusLabel: Label
+
   @FXML
   private lateinit var chosenDirectoryLabel: Label
-
-//    var angleFrom: Double = 0.0
-//    var angleTo: Double = 0.0
-//    var angleStep: Double = 0.0
 
   var chosenDirectory: File? = null
 
@@ -166,9 +167,9 @@ class MultipleExportDialogController {
       with(DirectoryChooser()) {
         initialDirectory = File(".")
         /**
-        Need to pass Window or Stage. There's no access to any Stage object from this controller
-        Solution: any Node from fxml that has fx:id
-        http://stackoverflow.com/questions/25491732/how-do-i-open-the-javafx-filechooser-from-a-controller-class
+          Need to pass Window or Stage. There's no access to any Stage object from this controller
+          Solution: any Node from fxml that has fx:id
+          http://stackoverflow.com/questions/25491732/how-do-i-open-the-javafx-filechooser-from-a-controller-class
          */
         chosenDirectory = showDialog(directoryButton.scene.window)
       }
@@ -201,7 +202,7 @@ class MultipleExportDialogController {
               println("${angleTextField.text} ${State.angle}")
             }
           }
-          writeComputedDataTo(File("${chosenDirectory!!.canonicalPath}$separator${buildExportFileName()}.txt"))
+          writeComputedDataTo(File("${chosenDirectory!!.canonicalPath}$separator${exportFileName()}.txt"))
           currentAngle += angleStep
         }
       }
@@ -218,13 +219,12 @@ class MultipleExportDialogController {
 }
 
 class HelpInfoController {
-
   @FXML
   private lateinit var helpTextArea: TextArea
 
   @FXML
   fun initialize() {
-    helpTextArea.text = FileUtils.readFileToString(Paths.get("./data/inner/help.txt").toFile())
+    helpTextArea.text = requireFile("data${sep}help.txt").readText()
   }
 }
 

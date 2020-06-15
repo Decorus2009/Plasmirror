@@ -7,6 +7,7 @@ import core.optics.Polarization.P
 import core.optics.Polarization.S
 import core.optics.cosThetaInLayer
 import core.optics.cosThetaIncident
+import core.structure.Structure
 import org.apache.commons.math3.complex.Complex.NaN
 import kotlin.Double.Companion.POSITIVE_INFINITY
 

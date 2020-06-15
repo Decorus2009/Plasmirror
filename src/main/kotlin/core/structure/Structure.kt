@@ -1,5 +1,6 @@
-package core
+package core.structure
 
+import core.Complex_
 import core.layers.metal.clusters.*
 import core.layers.metal.clusters.mie.*
 import core.layers.semiconductor.*
@@ -9,19 +10,18 @@ import core.optics.EpsType.*
 
 class LayerDescription(val type: String, val description: List<String>)
 
+// TODO FIX: repeat as Int
 class BlockDescription(
   val repeat: String,
-  val layerDescriptions: MutableList<LayerDescription> = mutableListOf()
+  val layerDescriptions: List<LayerDescription> = mutableListOf()
 )
 
-class StructureDescription(val blockDescriptions: MutableList<BlockDescription> = mutableListOf())
+class StructureDescription(val blockDescriptions: List<BlockDescription> = mutableListOf())
 
 /**
- * Period is a sequence of layers
- * Block is the sequence of @code periods periods
+ * Block is a sequence of layers with repeat descriptor
  *
- * @param repeat number of periods
- * @param layers    list of layerDescriptions in a period
+ * [repeat] number of repetitions of a given sequence of layers
  */
 class Block(val repeat: Int, val layers: List<Layer>)
 
