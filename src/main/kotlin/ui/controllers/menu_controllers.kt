@@ -2,12 +2,11 @@ package ui.controllers
 
 
 import MainApp
-import util.exportFileName
-import util.writeComputedDataTo
-import core.State
+import core.state.activeState
+import core.util.exportFileName
+import core.util.writeComputedDataTo
 import core.validators.MultipleExportDialogParametersValidator
 import core.validators.ValidationResult.FAILURE
-import core.validators.ValidationResult.SUCCESS
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
@@ -20,8 +19,8 @@ import javafx.scene.input.KeyCombination.SHORTCUT_DOWN
 import javafx.scene.layout.AnchorPane
 import javafx.stage.*
 import rootController
-import util.requireFile
-import util.sep
+import core.util.requireFile
+import core.util.sep
 import java.io.File
 import java.io.File.separator
 
@@ -196,11 +195,9 @@ class MultipleExportDialogController {
 
         while (currentAngle < 90.0 && currentAngle <= angleTo) {
           angleTextField.text = currentAngle.toString()
-          with(State) {
-            if (init() == SUCCESS) {
-              compute()
-              println("${angleTextField.text} ${State.angle}")
-            }
+          with(activeState()) {
+            compute()
+            println("${angleTextField.text} ${activeState().angle()}")
           }
           writeComputedDataTo(File("${chosenDirectory!!.canonicalPath}$separator${exportFileName()}.txt"))
           currentAngle += angleStep

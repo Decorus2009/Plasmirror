@@ -1,4 +1,4 @@
-package controllers
+package ui.controllers
 
 import javafx.scene.control.*
 

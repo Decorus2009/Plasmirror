@@ -19,7 +19,7 @@
         <children>
             <AnchorPane prefHeight="200.0" prefWidth="200.0">
                 <children>
-                    <ChoiceBox fx:id="regimeChoiceBox" prefHeight="40.0" prefWidth="50.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+                    <ChoiceBox fx:id="modeChoiceBox" prefHeight="40.0" prefWidth="50.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                         <items>
                             <FXCollections fx:factory="observableArrayList">
                                 <String fx:value="Reflectance" />

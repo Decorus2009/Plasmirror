@@ -1,8 +1,8 @@
-package util
+package core.util
 
-import core.Complex_
-import core.State
+import core.Complex
 import core.optics.Mode
+import core.state.activeState
 import org.json.JSONObject
 import java.io.File
 import java.nio.file.Paths
@@ -31,42 +31,37 @@ fun readComplexDataFrom(path: String) = readFileWithThreeColumns(path)
     firstMapper = { x -> x },
     secondMapper = { y1, y2 ->
       require(y1.size == y2.size)
-      y1.zip(y2).map { Complex_(it.first, it.second) }
+      y1.zip(y2).map { Complex(it.first, it.second) }
     }
   )
 
-fun exportFileName() = StringBuilder().apply {
-  append("computation_${State.mode}_${State.wavelengthStart}_${State.wavelengthEnd}")
-  if (State.mode == Mode.REFLECTANCE || State.mode == Mode.TRANSMITTANCE || State.mode == Mode.ABSORBANCE) {
-    append("_${State.polarization}-POL_^${String.format(Locale.US, "%04.1f", State.angle)}_deg")
-  }
-}.toString()
+fun exportFileName() = with(activeState()) {
+  StringBuilder().apply {
+    val mode = computationState.opticalParams.mode
+    val start = computationState.data.range.start
+    val end = computationState.data.range.end
+
+    append("computation_${mode}_${start}_${end}")
+    if (mode == Mode.REFLECTANCE || mode == Mode.TRANSMITTANCE || mode == Mode.ABSORBANCE) {
+      append("_${polarization()}-POL_^${String.format(Locale.US, "%04.1f", angle())}_deg")
+    }
+  }.toString()
+}
 
 fun writeComputedDataTo(file: File) {
-  fun List<Complex_>.real() = map { it.real }
-  fun List<Complex_>.imaginary() = map { it.imaginary }
+  fun List<Complex>.real() = map { it.real }
+  fun List<Complex>.imaginary() = map { it.imaginary }
 
-  val computedReal = when (State.mode) {
-    Mode.REFLECTANCE -> State.reflectance
-    Mode.TRANSMITTANCE -> State.transmittance
-    Mode.ABSORBANCE -> State.absorbance
-    Mode.PERMITTIVITY -> State.permittivity.real()
-    Mode.REFRACTIVE_INDEX -> State.refractiveIndex.real()
-    Mode.EXTINCTION_COEFFICIENT -> State.extinctionCoefficient
-    Mode.SCATTERING_COEFFICIENT -> State.scatteringCoefficient
-  }
-
-  val computedImaginary = when (State.mode) {
-    Mode.PERMITTIVITY -> State.permittivity.imaginary()
-    Mode.REFRACTIVE_INDEX -> State.refractiveIndex.imaginary()
-    else -> emptyList()
-  }
+  val activeState = activeState()
+  val computedReal = activeState.computationState.data.yReal
+  val computedImaginary = activeState.computationState.data.yImaginary
 
   val columnSeparator = "\t"
 
+  val wavelengths = activeState.computationState.data.x.toList()
   StringBuilder().apply {
     computedReal.indices.forEach { idx ->
-      append(String.format(Locale.US, "%.8f", State.wavelength[idx]))
+      append(String.format(Locale.US, "%.8f", wavelengths[idx]))
       append(columnSeparator)
       append(String.format(Locale.US, "%.32f", computedReal[idx]))
 

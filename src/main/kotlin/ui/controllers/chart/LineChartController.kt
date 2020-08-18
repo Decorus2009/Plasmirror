@@ -1,8 +1,7 @@
 package ui.controllers.chart
 
-import controllers.chart.LineChartState
-import core.State
 import core.optics.Mode
+import core.state.activeState
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.fxml.FXML
@@ -23,10 +22,10 @@ import org.gillius.jfxutils.chart.ChartPanManager
 import org.gillius.jfxutils.chart.ChartZoomManager
 import ui.controllers.MainController
 import ui.controllers.chart.LineChartController.ComputationType.*
-import controllers.chart.LineChartState.ExtendedSeries
-import controllers.chart.LineChartState.allExtendedSeries
-import controllers.chart.LineChartState.computed
-import controllers.chart.LineChartState.imported
+import ui.controllers.chart.LineChartState.ExtendedSeries
+import ui.controllers.chart.LineChartState.allExtendedSeries
+import ui.controllers.chart.LineChartState.computed
+import ui.controllers.chart.LineChartState.imported
 import java.io.File
 import java.util.*
 
@@ -106,7 +105,7 @@ class LineChartController {
     }
 
     fun updateYAxisLabel() {
-      yAxis.label = when (State.mode) {
+      yAxis.label = when (activeState().mode()) {
         Mode.REFLECTANCE -> "Reflectance"
         Mode.TRANSMITTANCE -> "Transmittance"
         Mode.ABSORBANCE -> "Absorbance"
@@ -124,8 +123,8 @@ class LineChartController {
     /* regime == null is used during the first automatic call of rescale() method after initialization */
     fun updateRegimeAndRescale() = with(mainController.globalParametersController.regimeController) {
       /* if another regime */
-      if (modeBefore == null || modeBefore != State.mode) {
-        modeBefore = State.mode
+      if (modeBefore == null || modeBefore != activeState().mode()) {
+        modeBefore = activeState().mode()
         /* deselect all series, labels and disable activated series manager */
         allExtendedSeries().forEach { deselect() }
         rescale()
@@ -250,8 +249,8 @@ class LineChartController {
   /* TODO fix this */
   private fun rescale() = with(mainController.globalParametersController.regimeController) {
     with(xAxis) {
-      lowerBound = State.wavelengthStart
-      upperBound = State.wavelengthEnd
+      lowerBound = activeState().computationState.data.range.start
+      upperBound = activeState().computationState.data.range.end
       tickUnit = 50.0
       tickUnit = when {
         upperBound - lowerBound >= 4000.0 -> 500.0
@@ -266,7 +265,7 @@ class LineChartController {
       }
     }
     with(yAxis) {
-      when (State.mode) {
+      when (activeState().mode()) {
         Mode.REFLECTANCE, Mode.ABSORBANCE, Mode.TRANSMITTANCE -> {
           lowerBound = 0.0
           upperBound = 1.0

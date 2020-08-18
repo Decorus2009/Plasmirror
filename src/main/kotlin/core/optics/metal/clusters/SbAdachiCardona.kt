@@ -1,9 +1,9 @@
 package core.optics.metal.clusters
 
-import core.Complex_
+import core.Complex
 import core.interpolateComplex
-import util.readComplexDataFrom
-import util.sep
+import core.util.readComplexDataFrom
+import core.util.sep
 
 /**
  * Tabulated data for bulk Sb permittivity by Cardona[1] and Adachi[2]
@@ -17,13 +17,13 @@ object SbAdachiCardona {
   private val wavelengths = data.first
   private val epsSb = data.second
 
-  fun permittivity(wavelength: Double): Complex_ {
+  fun permittivity(wavelength: Double): Complex {
     if (wavelengths.isEmpty() || epsSb.isEmpty()) {
-      error("Empty array of Sb get")
+      error("Empty array of Sb")
     }
     val actualWavelength = actualWavelength(wavelength)
     val (xSpline, ySpline) = interpolateComplex(wavelengths, epsSb)
-    return Complex_(xSpline.value(actualWavelength), ySpline.value(actualWavelength))
+    return Complex(xSpline.value(actualWavelength), ySpline.value(actualWavelength))
   }
 
   private fun actualWavelength(wavelength: Double): Double {

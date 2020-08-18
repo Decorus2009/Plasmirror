@@ -3,50 +3,49 @@ package core.layers.semiconductor
 import core.*
 import core.optics.*
 import core.optics.semiconductor.AlGaAsMatrix
-import org.apache.commons.math3.complex.Complex
 import java.lang.Math.PI
 
 /**
  * Abstract layer without excitons
  *
- * @property d thickness
- * @property n refractive index
- * @property matrix transfer matrix
+ * [d] thickness
+ * [n] refractive index
+ * [matrix] transfer matrix
  */
 interface Layer {
   val d: Double
-  val n: Complex_
-  val extinctionCoefficient
-    get() = extinctionCoefficientOf(n, State.wavelengthCurrent)
+
+  fun n(wl: Double): Complex
+
+  fun extinctionCoefficient(wl: Double) = n(wl).toExtinctionCoefficientAt(wl)
 
   /**
    * @return transfer matrix for a layer without excitons
    * polarization is unused
    */
-  val matrix
-    get() = Matrix_().apply {
-      val cos = cosThetaInLayer(n)
-      var phi = Complex_(2.0 * PI * d / State.wavelengthCurrent) * n * cos
-      if (phi.imaginary < 0) {
-        phi *= -1.0
-      }
-      this[0, 0] = Complex_((phi * Complex.I).exp())
-      this[1, 1] = Complex_((phi * Complex.I * -1.0).exp())
-      setAntiDiagonal(Complex_(Complex.ZERO))
+  fun matrix(wl: Double, pol: Polarization, angle: Double) = TransferMatrix().apply {
+    val cos = cosThetaInLayer(n(wl), wl, angle)
+    var phi = Complex(2.0 * PI * d / wl) * n(wl) * cos
+    if (phi.imaginary < 0) {
+      phi *= -1.0
     }
+    this[0, 0] = Complex((phi * Complex.I).exp())
+    this[1, 1] = Complex((phi * Complex.I * -1.0).exp())
+    setAntiDiagonal(Complex(Complex.ZERO))
+  }
 }
 
 interface GaAsLayer : Layer {
   val epsType: EpsType
-  override val n
-    get() = AlGaAsMatrix.permittivity(State.wavelengthCurrent, 0.0, 0.0, epsType).toRefractiveIndex()
+
+  override fun n(wl: Double) = AlGaAsMatrix.permittivity(wl, 0.0, 0.0, epsType).toRefractiveIndex()
 }
 
 interface AlGaAsLayer : GaAsLayer {
   val k: Double
   val x: Double
-  override val n
-    get() = AlGaAsMatrix.permittivity(State.wavelengthCurrent, k, x, epsType).toRefractiveIndex()
+
+  override fun n(wl: Double) = AlGaAsMatrix.permittivity(wl, k, x, epsType).toRefractiveIndex()
 }
 
 open class GaAs(override val d: Double, override val epsType: EpsType) : GaAsLayer
@@ -61,4 +60,6 @@ open class AlGaAs(
   override val epsType: EpsType
 ) : AlGaAsLayer
 
-open class ConstRefractiveIndexLayer(override val d: Double, override val n: Complex_) : Layer
+open class ConstRefractiveIndexLayer(override val d: Double, val n: Complex) : Layer {
+  override fun n(wl: Double): Complex = n
+}

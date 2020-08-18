@@ -1,0 +1,10 @@
+run in Idea with following VM options
+
+--module-path ${PATH_TO_FX} --add-modules=javafx.controls,javafx.fxml
+
+(add PATH_TO_FX in Idea path variables)
+
+or
+
+run just in Idea with following VM options (change to actual path javafx-sdk: ...\Plasmirror\javafx-sdk\javafx-sdk-11.0.2\lib)
+--module-path C:\Users\Decorus\IdeaProjects\Plasmirror\javafx-sdk\javafx-sdk-11.0.2\lib --add-modules=javafx.controls,javafx.fxml

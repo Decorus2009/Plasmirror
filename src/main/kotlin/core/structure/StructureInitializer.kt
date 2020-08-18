@@ -1,26 +1,13 @@
 package core.structure
 
-import core.*
-import core.validators.*
-
+// TODO FIX: get rid of Validation result. Refactor then if yes?
+// TODO FIX: throw StructureDescriptionException up to [ControlsController.initialize]
 /**
  * Validates and builds structure description representation from the string
  */
-// TODO FIX: should I pass textDescription to unbound StructureInitializer from StructureDescriptionStorage?
-// TODO FIX: eliminate Validation result. Refactor then if yes?
-// TODO FIX: throw StructureDescriptionException up to [ControlsController.initialize]
-fun initStructure(): ValidationResult = try {
-  val tokenizedLines = StructureDescriptionStorage.textDescription.toLines().tokenize()
-  StructureValidator().validate(tokenizedLines)
-//  tokenizedLines.validate()
-  State.structure = tokenizedLines.toStructure()
-  ValidationResult.SUCCESS
-} catch (e: StructureDescriptionException) {
-  alert(
-    headerText = "Structure description error",
-    contentText = e.message ?: ""
-  )
-  ValidationResult.FAILURE
+fun String.toStructure() = with(toLines().tokenize()) {
+  validate()
+  toStructure()
 }
 
 /**

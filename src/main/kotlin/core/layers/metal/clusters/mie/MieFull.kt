@@ -1,6 +1,5 @@
 package core.layers.metal.clusters.mie
 
-import core.State
 import core.layers.metal.clusters.DrudeMetalClustersInAlGaAs
 import core.layers.metal.clusters.SbClustersInAlGaAs
 import core.layers.semiconductor.AlGaAs
@@ -17,10 +16,11 @@ abstract class MieFullLayerOfMetalClustersInAlGaAs(
 ) : MieLayerOfMetalClustersInAlGaAs, AlGaAs(d, k, x, epsType) {
   // value of AlGaAs refractive index is used as n-property here
   // Mie theory is for the computation of extinction and scattering, not for the computation of refractive index
-  override val extinctionCoefficient: Double
-    get() = MieFull.extinctionCoefficient(State.wavelengthCurrent, matrixPermittivity, clusterPermittivity, f, r)
-  override val scatteringCoefficient: Double
-    get() = MieFull.scatteringCoefficient(State.wavelengthCurrent, matrixPermittivity, clusterPermittivity, f, r)
+  override fun extinctionCoefficient(wl: Double): Double =
+    MieFull.extinctionCoefficient(wl, matrixPermittivity(wl), clusterPermittivity(wl), f, r)
+
+  override fun scatteringCoefficient(wl: Double): Double =
+    MieFull.scatteringCoefficient(wl, matrixPermittivity(wl), clusterPermittivity(wl), f, r)
 }
 
 class MieFullLayerOfDrudeMetalClustersInAlGaAs(

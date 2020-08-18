@@ -1,9 +1,9 @@
 package core.optics.metal.clusters.mie
 
-import core.Complex_
-import core.Complex_.Companion.I
-import core.Complex_.Companion.ONE
-import core.Complex_.Companion.ZERO
+import core.Complex
+import core.Complex.Companion.I
+import core.Complex.Companion.ONE
+import core.Complex.Companion.ZERO
 import core.optics.toRefractiveIndex
 import core.toCm
 import java.lang.Math.PI
@@ -11,19 +11,19 @@ import kotlin.math.pow
 
 interface MieSimple : Mie {
   override fun extinctionCoefficient(
-    wavelength: Double, epsSemiconductor: Complex_, epsMetal: Complex_, f: Double, r: Double
+    wavelength: Double, epsSemiconductor: Complex, epsMetal: Complex, f: Double, r: Double
   ) = alphaExtAlphaSca(wavelength, epsSemiconductor, epsMetal, f, r).first
 
   override fun scatteringCoefficient(
-    wavelength: Double, epsSemiconductor: Complex_, epsMetal: Complex_, f: Double, r: Double
+    wavelength: Double, epsSemiconductor: Complex, epsMetal: Complex, f: Double, r: Double
   ) = alphaExtAlphaSca(wavelength, epsSemiconductor, epsMetal, f, r).second
 
-  fun a(x: Double, mSq: Complex_) = listOf(a1(x, mSq), a2(x, mSq))
+  fun a(x: Double, mSq: Complex) = listOf(a1(x, mSq), a2(x, mSq))
 
-  fun b(x: Double, mSq: Complex_) = listOf(b1(x, mSq), b2())
+  fun b(x: Double, mSq: Complex) = listOf(b1(x, mSq), b2())
 
   private fun alphaExtAlphaSca(
-    wavelength: Double, epsSemiconductor: Complex_, epsMetal: Complex_, f: Double, r: Double
+    wavelength: Double, epsSemiconductor: Complex, epsMetal: Complex, f: Double, r: Double
   ): Pair<Double, Double> {
     val k = 2.0 * PI * epsSemiconductor.toRefractiveIndex().real / wavelength.toCm()
     val x = k * r.toCm()
@@ -42,7 +42,7 @@ interface MieSimple : Mie {
     return common2 * Cext to common2 * Csca
   }
 
-  private fun a1(x: Double, mSq: Complex_): Complex_ {
+  private fun a1(x: Double, mSq: Complex): Complex {
     val common1 = (mSq - 1.0) / (mSq + 2.0)
     val summand1 = -I * 2.0 / 3.0 * x.pow(3) * common1
     val summand2 = -I * 2.0 / 5.0 * x.pow(5) * (mSq - 2.0) / (mSq + 2.0) * common1
@@ -50,16 +50,16 @@ interface MieSimple : Mie {
     return summand1 + summand2 + summand3
   }
 
-  private fun a2(x: Double, mSq: Complex_) = -I / 15.0 * x.pow(5) * (mSq - 1.0) / (mSq * 2.0 + 3.0)
+  private fun a2(x: Double, mSq: Complex) = -I / 15.0 * x.pow(5) * (mSq - 1.0) / (mSq * 2.0 + 3.0)
 
-  private fun b1(x: Double, mSq: Complex_) = -I / 45.0 * x.pow(5) * (mSq - 1.0)
+  private fun b1(x: Double, mSq: Complex) = -I / 45.0 * x.pow(5) * (mSq - 1.0)
 
   private fun b2() = ZERO
 }
 
 object MieFirstOrder : MieSimple {
-  override fun a(x: Double, mSq: Complex_) = super.a(x, mSq).subList(0, 1)
-  override fun b(x: Double, mSq: Complex_) = super.b(x, mSq).subList(0, 1)
+  override fun a(x: Double, mSq: Complex) = super.a(x, mSq).subList(0, 1)
+  override fun b(x: Double, mSq: Complex) = super.b(x, mSq).subList(0, 1)
 }
 
 object MieFirstAndSecondOrder : MieSimple

@@ -7,7 +7,9 @@ import java.util.*
 
 enum class ValidationResult { SUCCESS, FAILURE }
 
-fun Double.isNotAllowed() = this !in 0.0..89.99999999
+fun Double.isAllowed() = this in 0.0..89.99999999
+
+fun Double.isNotAllowed() = !isAllowed()
 
 fun alert(title: String = "Error", headerText: String, contentText: String): Optional<ButtonType> = with(Alert(AlertType.ERROR)) {
   this.title = title

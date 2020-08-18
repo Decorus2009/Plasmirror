@@ -1,7 +1,9 @@
 package core
 
-import util.*
+import core.util.*
 
+
+// TODO FIX: get rid of
 /**
  * Storages should be initialized before GUI elements initialization
  */

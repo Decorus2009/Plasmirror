@@ -1,6 +1,6 @@
 package core.structure
 
-import core.Complex_
+import core.Complex
 import core.layers.metal.clusters.*
 import core.layers.metal.clusters.mie.*
 import core.layers.semiconductor.*
@@ -23,18 +23,19 @@ class StructureDescription(val blockDescriptions: List<BlockDescription> = mutab
  *
  * [repeat] number of repetitions of a given sequence of layers
  */
-class Block(val repeat: Int, val layers: List<Layer>)
+data class Block(val repeat: Int, val layers: List<Layer>)
 
 /**
  * Structure is a sequence of blocks
  */
-class Structure(var blocks: List<Block>)
+data class Structure(val blocks: List<Block>)
 
 object StructureBuilder {
   fun build(structureDescription: StructureDescription) = Structure(structureDescription.blockDescriptions.map {
     Block(it.repeat.toInt(), it.layerDescriptions.map { layerDescription -> layer(layerDescription) })
   })
 
+  // TODO receiver
   private fun layer(layerDescription: LayerDescription): Layer {
     val types = layerDescription.type
     with(layerDescription.description) {
@@ -300,8 +301,8 @@ object StructureBuilder {
 
   private fun List<String>.parseComplexAt(i: Int) = this[i].toComplex()
 
-  private fun String.toComplex(): Complex_ {
+  private fun String.toComplex(): Complex {
     val (real, imaginary) = replace(Regex("[()]"), "").split(";").map { it.toDouble() }
-    return Complex_(real, imaginary)
+    return Complex(real, imaginary)
   }
 }

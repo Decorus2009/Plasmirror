@@ -1,6 +1,5 @@
 package core.layers.metal.clusters.mie
 
-import core.State
 import core.layers.metal.clusters.DrudeMetalClustersInAlGaAs
 import core.layers.metal.clusters.SbClustersInAlGaAs
 import core.layers.semiconductor.AlGaAs
@@ -15,10 +14,11 @@ abstract class MieFirstAndSecondOrderLayerOfMetalClustersInAlGaAs(
   private val r: Double,
   epsType: EpsType
 ) : MieLayerOfMetalClustersInAlGaAs, AlGaAs(d, k, x, epsType) {
-  override val extinctionCoefficient: Double
-    get() = MieFirstAndSecondOrder.extinctionCoefficient(State.wavelengthCurrent, matrixPermittivity, clusterPermittivity, f, r)
-  override val scatteringCoefficient: Double
-    get() = MieFirstAndSecondOrder.scatteringCoefficient(State.wavelengthCurrent, matrixPermittivity, clusterPermittivity, f, r)
+  override fun extinctionCoefficient(wl: Double): Double =
+    MieFirstAndSecondOrder.extinctionCoefficient(wl, matrixPermittivity(wl), clusterPermittivity(wl), f, r)
+
+  override fun scatteringCoefficient(wl: Double): Double =
+    MieFirstAndSecondOrder.scatteringCoefficient(wl, matrixPermittivity(wl), clusterPermittivity(wl), f, r)
 }
 
 class MieFirstAndSecondOrderLayerOfDrudeMetalClustersInAlGaAs(

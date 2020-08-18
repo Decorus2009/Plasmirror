@@ -1,6 +1,6 @@
 package core.optics.semiconductor
 
-import core.Complex_
+import core.Complex
 import core.optics.*
 import core.optics.EpsType.*
 import core.round
@@ -13,13 +13,13 @@ object AlGaAsMatrix {
    * J. Appl. Phys., 86, pp.445 (1999) - approach with Gaussian broadening
    * J. Appl. Phys. 58, R1 (1985) - Adachi model
    */
-  fun permittivity(wavelength: Double, k: Double, x: Double, epsType: EpsType): Complex_ {
+  fun permittivity(wavelength: Double, k: Double, x: Double, epsType: EpsType): Complex {
     val w = wavelength.toEnergy()
     return when (epsType) {
-      ADACHI -> with(epsAdachi(w, x)) { Complex_(real, real * k) }
+      ADACHI -> with(epsAdachi(w, x)) { Complex(real, real * k) }
       GAUSS -> epsGauss(w, x)
       GAUSS_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0 -> with(epsGauss(w, x)) {
-        Complex_(real, if (w >= E0(x)) imaginary else real * k)
+        Complex(real, if (w >= E0(x)) imaginary else real * k)
       }
     }
   }
@@ -29,7 +29,7 @@ object AlGaAsMatrix {
    * OpticalConstants (Adachi)
    * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
    */
-  private fun epsAdachi(w: Double, x: Double): Complex_ {
+  private fun epsAdachi(w: Double, x: Double): Complex {
     var w_ = w
     val Eg = 1.425 + 1.155 * x + 0.37 * x * x
     // nonrecursive
@@ -42,7 +42,7 @@ object AlGaAsMatrix {
     val hi = w_ / Eg
     val hi_so = w_ / (Eg + delta)
     val f: (Double) -> Double = { (2.0 - sqrt(1 + it) - sqrt(1 - it)) / (it * it) }
-    return Complex_(A * (f(hi) + 0.5 * (Eg / (Eg + delta)).pow(1.5) * f(hi_so)) + B)
+    return Complex(A * (f(hi) + 0.5 * (Eg / (Eg + delta)).pow(1.5) * f(hi_so)) + B)
   }
 
 
@@ -59,7 +59,7 @@ object AlGaAsMatrix {
   /**
    * AlGaAs Gauss get components. Look at the paper
    */
-  private fun eps1(w: Double, x: Double): Complex_ {
+  private fun eps1(w: Double, x: Double): Complex {
     val A = A(x)
     val E0 = E0(x)
     val E0_plus_delta0 = E0_plus_delta0(x)
@@ -72,39 +72,39 @@ object AlGaAsMatrix {
     if (gamma0Gauss < precision) {
       gamma0Gauss = precision
     }
-    val hi0 = Complex_(w, gamma0Gauss) / E0
-    val hi0S = Complex_(w, gamma0Gauss) / E0_plus_delta0
+    val hi0 = Complex(w, gamma0Gauss) / E0
+    val hi0S = Complex(w, gamma0Gauss) / E0_plus_delta0
     val d1 = A * E0.pow(-1.5)
     val d2 = 0.5 * (E0 / E0_plus_delta0).pow(1.5)
-    val f = { y: Complex_ ->
-      val c1 = (Complex_.ONE + y).sqrt()
-      val c2 = (Complex_.ONE - y).sqrt()
-      (Complex_(2.0) - c1 - c2) / (y.pow(2.0))
+    val f = { y: Complex ->
+      val c1 = (Complex.ONE + y).sqrt()
+      val c2 = (Complex.ONE - y).sqrt()
+      (Complex(2.0) - c1 - c2) / (y.pow(2.0))
     }
     return (f(hi0) + (f(hi0S) * d2)) * d1
   }
 
-  private fun eps2(w: Double, x: Double): Complex_ {
+  private fun eps2(w: Double, x: Double): Complex {
     val B1 = B1(x)
     val B1S = B1S(x)
     val E1 = E1(x)
     val E1_plus_delta1 = E1_plus_delta1(x)
     val gamma1Gauss = gamma1Gauss(w, x)
-    val hi1_sq = (Complex_(w, gamma1Gauss) / E1).pow(2.0)
-    val hi1S_sq = (Complex_(w, gamma1Gauss) / E1_plus_delta1).pow(2.0)
-    val c1 = (B1 / hi1_sq) * ((Complex_.ONE - hi1_sq).log()) * -1.0
-    val c2 = (B1S / hi1S_sq) * ((Complex_.ONE - hi1S_sq).log()) * -1.0
+    val hi1_sq = (Complex(w, gamma1Gauss) / E1).pow(2.0)
+    val hi1S_sq = (Complex(w, gamma1Gauss) / E1_plus_delta1).pow(2.0)
+    val c1 = (B1 / hi1_sq) * ((Complex.ONE - hi1_sq).log()) * -1.0
+    val c2 = (B1S / hi1S_sq) * ((Complex.ONE - hi1S_sq).log()) * -1.0
     return c1 + c2
   }
 
-  private fun eps3(w: Double, x: Double): Complex_ {
+  private fun eps3(w: Double, x: Double): Complex {
     val B1X = B1X(x)
     val B2X = B2X(x)
     val gamma1Gauss = gamma1Gauss(w, x)
     val E1 = E1(x)
     val E1_plus_delta1 = E1_plus_delta1(x)
-    var accumulator = Complex_.ZERO
-    var summand = Complex_.ONE
+    var accumulator = Complex.ZERO
+    var summand = Complex.ONE
     val precision = 1E-4
     var n = 1
     /*
@@ -113,8 +113,8 @@ object AlGaAsMatrix {
      */
     while (summand.abs() >= precision) {
 
-      val c1 = B1X / Complex_(E1 - w, -gamma1Gauss)
-      val c2 = B2X / Complex_(E1_plus_delta1 - w, -gamma1Gauss)
+      val c1 = B1X / Complex(E1 - w, -gamma1Gauss)
+      val c2 = B2X / Complex(E1_plus_delta1 - w, -gamma1Gauss)
 
       summand = (c1 + c2) / (2.0 * n - 1.0).pow(3.0)
       accumulator += summand
@@ -123,14 +123,14 @@ object AlGaAsMatrix {
     return accumulator
   }
 
-  private fun eps4(w: Double, x: Double): Complex_ {
+  private fun eps4(w: Double, x: Double): Complex {
     val f = doubleArrayOf(f2(x), f3(x), f4(x))
     val E = doubleArrayOf(E2(x), E3(x), E4(x))
     val gammaGauss = doubleArrayOf(gamma2Gauss(w, x), gamma3Gauss(w, x), gamma4Gauss(w, x))
-    var accumulator = Complex_.ZERO
+    var accumulator = Complex.ZERO
     for (i in 0..2) {
-      val numerator = Complex_(f[i] * f[i])
-      val denominator = Complex_(E[i] * E[i] - w * w, -w * gammaGauss[i])
+      val numerator = Complex(f[i] * f[i])
+      val denominator = Complex(E[i] * E[i] - w * w, -w * gammaGauss[i])
       val summand = numerator / denominator
       accumulator += summand
     }
@@ -188,14 +188,14 @@ object AlGaAsMatrix {
     this * exp(-alpha4(x) * ((w - E4(x)) / this).pow(2.0))
   }
 
-  private fun epsInf(x: Double) = Complex_(cubic(x, doubleArrayOf(1.347, 0.02, -0.568, 4.210)))
+  private fun epsInf(x: Double) = Complex(cubic(x, doubleArrayOf(1.347, 0.02, -0.568, 4.210)))
   private fun A(x: Double) = cubic(x, doubleArrayOf(3.06, 14.210, -0.398, 4.763))
   private fun gamma0(x: Double) = cubic(x, doubleArrayOf(0.0001, 0.0107, -0.0187, 0.3057))
   private fun alpha0(x: Double) = cubic(x, doubleArrayOf(3.960, 1.617, 3.974, -5.413))
-  private fun B1(x: Double) = Complex_(cubic(x, doubleArrayOf(6.099, 4.381, -4.718, -2.510)))
-  private fun B1S(x: Double) = Complex_(cubic(x, doubleArrayOf(0.001, 0.103, 4.447, 0.208)))
-  private fun B1X(x: Double) = Complex_(cubic(x, doubleArrayOf(1.185, 0.639, 0.436, 0.426)))
-  private fun B2X(x: Double) = Complex_(cubic(x, doubleArrayOf(0.473, 0.770, -1.971, 3.384)))
+  private fun B1(x: Double) = Complex(cubic(x, doubleArrayOf(6.099, 4.381, -4.718, -2.510)))
+  private fun B1S(x: Double) = Complex(cubic(x, doubleArrayOf(0.001, 0.103, 4.447, 0.208)))
+  private fun B1X(x: Double) = Complex(cubic(x, doubleArrayOf(1.185, 0.639, 0.436, 0.426)))
+  private fun B2X(x: Double) = Complex(cubic(x, doubleArrayOf(0.473, 0.770, -1.971, 3.384)))
   private fun gamma1(x: Double) = cubic(x, doubleArrayOf(0.194, 0.125, -2.426, 8.601))
   private fun alpha1(x: Double) = cubic(x, doubleArrayOf(0.018, 0.012, 0.0035, 0.310))
   private fun f2(x: Double) = cubic(x, doubleArrayOf(4.318, 0.326, 4.201, 6.719))
@@ -247,10 +247,10 @@ object AlGaAsMatrix {
   private fun findIntersection(x: Double) {
     println("Finding intersection for $x")
     val w = arrayListOf<Double>()
-    val epsGauss = arrayListOf<Complex_>()
-    val nGauss = arrayListOf<Complex_>()
-    val epsAdachi = arrayListOf<Complex_>()
-    val nAdachi = arrayListOf<Complex_>()
+    val epsGauss = arrayListOf<Complex>()
+    val nGauss = arrayListOf<Complex>()
+    val epsAdachi = arrayListOf<Complex>()
+    val nAdachi = arrayListOf<Complex>()
 
     /* compute in range [from; to] */
     val from = 1.4
@@ -267,27 +267,30 @@ object AlGaAsMatrix {
       w_ += step
     }
     /**
-    Class to keep difference of nGauss.real and nAdachi at w
+     * Class to keep difference of nGauss.real and nAdachi at w
      */
     data class Diff(val w: Double, val diff: Double)
 
     /**
-    Energy range within which the only one closest to the E0 intersection is found
+     * Energy range within which the only one closest to the E0 intersection is found
      */
     val upperBound = E0(x)
     val nGaussReal = w.indices.map { nGauss[it].real }
     val nAdachiReal = w.indices.map { nAdachi[it].real }
-    GaussAdachiIntersections.putIfAbsent(x, w.indices
-      .map { Diff(w[it], diff = abs(nGaussReal[it] - nAdachiReal[it])) }
-      .filter { it.w > 1.4 && it.w < upperBound }.minBy { it.diff }!!.w)
+    GaussAdachiIntersections.putIfAbsent(
+      x,
+      w.indices
+        .map { Diff(w[it], diff = abs(nGaussReal[it] - nAdachiReal[it])) }
+        .filter { it.w > 1.4 && it.w < upperBound }.minBy { it.diff }!!.w
+    )
   }
 
-  private fun epsGaussAdachi(w: Double, x: Double): Complex_ {
+  private fun epsGaussAdachi(w: Double, x: Double): Complex {
     if (GaussAdachiIntersections[x] == null) {
       findIntersection(x)
     }
     return if (w < GaussAdachiIntersections[x]!!) {
-      Complex_(epsAdachi(w, x).real, epsGauss(w, x).imaginary)
+      Complex(epsAdachi(w, x).real, epsGauss(w, x).imaginary)
     } else {
       epsGauss(w, x)
     }

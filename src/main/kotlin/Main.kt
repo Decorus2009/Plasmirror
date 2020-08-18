@@ -1,3 +1,5 @@
+import core.state.StatesManager
+import core.state.activeState
 import javafx.application.Application
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
@@ -5,12 +7,11 @@ import javafx.scene.Scene
 import javafx.scene.layout.AnchorPane
 import javafx.stage.Stage
 import ui.controllers.RootController
-import java.io.File
-
-//lateinit var rootCntrllr: RootController
 
 @FXML
 lateinit var rootController: RootController
+
+val statesManager = StatesManager
 
 class MainApp : Application() {
   lateinit var primaryStage: Stage
@@ -19,8 +20,6 @@ class MainApp : Application() {
   companion object {
     @JvmStatic
     fun main(args: Array<String>) {
-      println("@@@" + File(".").absolutePath)
-
       launch(MainApp::class.java)
     }
   }
@@ -39,11 +38,11 @@ class MainApp : Application() {
     }
     /**
     TODO Let state initialization be here, before the opening of the app window,
-    but after the loading of all the controllers.
-    During the controllers loading some state parameters (such as polarization) are init.
+    but after the loading of all the ui.controllers.
+    During the ui.controllers loading some state parameters (such as polarization) are init.
     At the first call of a state parameter the "init" method from State is called (if present).
     In this method the main controller was init (for validation of state parameters)
-    whereas it was not fully initialized while the child controllers are loading. This is incorrect
+    whereas it was not fully initialized while the child ui.controllers are loading. This is incorrect
      */
     // TODO commented
 //        State.init()

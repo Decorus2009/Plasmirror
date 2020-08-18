@@ -1,11 +1,11 @@
-package controllers.chart
+package ui.controllers.chart
 
-import core.State
 import core.optics.Mode
 import core.optics.toEnergy
+import core.state.activeState
 import javafx.scene.chart.XYChart
-import controllers.chart.LineChartState.SeriesType.COMPUTED
-import controllers.chart.LineChartState.SeriesType.IMPORTED
+import ui.controllers.chart.LineChartState.SeriesType.COMPUTED
+import ui.controllers.chart.LineChartState.SeriesType.IMPORTED
 import java.io.File
 import java.nio.file.Files
 import java.util.*
@@ -66,22 +66,14 @@ object LineChartState {
     extendedSeriesReal.clear()
     extendedSeriesImaginary.clear()
 
-    with(State) {
-      with(extendedSeriesReal.series.data) {
-        when (mode) {
-          Mode.REFLECTANCE -> addAll(seriesData(wavelength, reflectance))
-          Mode.TRANSMITTANCE -> addAll(seriesData(wavelength, transmittance))
-          Mode.ABSORBANCE -> addAll(seriesData(wavelength, absorbance))
-          Mode.PERMITTIVITY -> addAll(seriesData(wavelength, permittivity.map { it.real }))
-          Mode.REFRACTIVE_INDEX -> addAll(seriesData(wavelength, refractiveIndex.map { it.real }))
-          Mode.EXTINCTION_COEFFICIENT -> addAll(seriesData(wavelength, extinctionCoefficient))
-          Mode.SCATTERING_COEFFICIENT -> addAll(seriesData(wavelength, scatteringCoefficient))
-        }
-      }
+    with(activeState()) {
+      val data = computationState.data
+      extendedSeriesReal.series.data.addAll(seriesData(data.x, data.yReal))
+
       with(extendedSeriesImaginary.series.data) {
-        when (mode) {
-          Mode.PERMITTIVITY -> addAll(seriesData(wavelength, permittivity.map { it.imaginary }))
-          Mode.REFRACTIVE_INDEX -> addAll(seriesData(wavelength, refractiveIndex.map { it.imaginary }))
+        when (mode()) {
+          Mode.PERMITTIVITY -> addAll(seriesData(data.x, data.yImaginary))
+          Mode.REFRACTIVE_INDEX -> addAll(seriesData(data.x, data.yImaginary))
           else -> {
           }
         }

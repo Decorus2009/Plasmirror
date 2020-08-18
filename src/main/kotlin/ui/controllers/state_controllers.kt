@@ -1,10 +1,10 @@
 package ui.controllers
 
-import controllers.disable
-import controllers.enable
 import core.ComputationParametersStorage
 import core.StructureDescriptionStorage
 import core.optics.Mode
+import core.state.Medium
+import core.state.activeState
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.layout.AnchorPane
@@ -14,16 +14,20 @@ import org.fxmisc.richtext.model.StyleSpansBuilder
 import java.util.regex.Pattern
 
 
+// TODO rename to OpticalParamsController
 class GlobalParametersController {
 
   lateinit var mainController: MainController
 
   @FXML
   lateinit var regimeController: RegimeController
+
   @FXML
   lateinit var mediumParametersController: MediumParametersController
+
   @FXML
   lateinit var lightParametersController: LightParametersController
+
   @FXML
   lateinit var computationRangeController: ComputationRangeController
 
@@ -43,12 +47,13 @@ class GlobalParametersController {
   }
 }
 
+// TODO rename to ModeController
 class RegimeController {
 
   lateinit var globalParametersController: GlobalParametersController
 
   @FXML
-  private lateinit var regimeChoiceBox: ChoiceBox<String>
+  private lateinit var modeChoiceBox: ChoiceBox<String>
 
   var modeBefore: Mode? = null
 
@@ -56,8 +61,8 @@ class RegimeController {
   fun initialize() {
     println("Regime controller init")
 
-    with(regimeChoiceBox) {
-      value = ComputationParametersStorage.mode
+    with(modeChoiceBox) {
+      value = activeState().mode().toString()
 
       selectionModel.selectedItemProperty().addListener { _, _, newValue ->
         with(globalParametersController) {
@@ -76,31 +81,41 @@ class RegimeController {
     }
   }
 
+  fun modeText(): String = modeChoiceBox.value
+
   fun save() {
-    ComputationParametersStorage.mode = regimeChoiceBox.value
+    ComputationParametersStorage.mode = modeChoiceBox.value
   }
 }
 
 class MediumParametersController {
-
   @FXML
   private lateinit var leftMediumLabel: Label
+
   @FXML
   private lateinit var rightMediumLabel: Label
+
   @FXML
   private lateinit var leftMediumRefractiveIndexLabel: Label
+
   @FXML
   private lateinit var rightMediumRefractiveIndexLabel: Label
+
   @FXML
   lateinit var leftMediumRefractiveIndexRealTextField: TextField
+
   @FXML
   lateinit var leftMediumRefractiveIndexImaginaryTextField: TextField
+
   @FXML
   lateinit var rightMediumRefractiveIndexRealTextField: TextField
+
   @FXML
   lateinit var rightMediumRefractiveIndexImaginaryTextField: TextField
+
   @FXML
   lateinit var leftMediumChoiceBox: ChoiceBox<String>
+
   @FXML
   lateinit var rightMediumChoiceBox: ChoiceBox<String>
 
@@ -108,48 +123,43 @@ class MediumParametersController {
   fun initialize() {
     println("Medium parameters controller init")
 
-    fun initFields(medium: String,
-                   mediumRefractiveIndexReal: String,
-                   mediumRefractiveIndexImaginary: String,
-                   mediumChoiceBox: ChoiceBox<String>,
-                   nRealTextField: TextField, nImagTextField: TextField) {
-
+    fun initFields(
+      medium: Medium,
+      mediumChoiceBox: ChoiceBox<String>,
+      nRealTextField: TextField,
+      nImaginaryTextField: TextField
+    ) {
       with(mediumChoiceBox) {
-        value = medium
+        value = medium.type.toString()
+        nRealTextField.text = medium.nReal.toString()
+        nImaginaryTextField.text = medium.nImaginary.toString()
 
-        if (medium == "Custom") {
-          nRealTextField.run {
-            enable(this)
-            text = mediumRefractiveIndexReal
-          }
-          nImagTextField.run {
-            enable(this)
-            text = mediumRefractiveIndexImaginary
-          }
+        if (value == "Custom") {
+          enable(nRealTextField)
+          enable(nImaginaryTextField)
         }
 
         selectionModel.selectedItemProperty().addListener { _, _, newValue ->
           when (newValue) {
-            "Custom" -> enable(nRealTextField, nImagTextField)
-            else -> disable(nRealTextField, nImagTextField)
+            "Custom" -> enable(nRealTextField, nImaginaryTextField)
+            else -> disable(nRealTextField, nImaginaryTextField)
           }
         }
       }
     }
 
+    val activeState = activeState()
     initFields(
-      ComputationParametersStorage.leftMedium,
-      ComputationParametersStorage.leftMediumRefractiveIndexReal,
-      ComputationParametersStorage.leftMediumRefractiveIndexImaginary,
+      activeState.leftMedium(),
       leftMediumChoiceBox,
-      leftMediumRefractiveIndexRealTextField, leftMediumRefractiveIndexImaginaryTextField
+      leftMediumRefractiveIndexRealTextField,
+      leftMediumRefractiveIndexImaginaryTextField
     )
     initFields(
-      ComputationParametersStorage.rightMedium,
-      ComputationParametersStorage.rightMediumRefractiveIndexReal,
-      ComputationParametersStorage.rightMediumRefractiveIndexImaginary,
+      activeState.rightMedium(),
       rightMediumChoiceBox,
-      rightMediumRefractiveIndexRealTextField, rightMediumRefractiveIndexImaginaryTextField
+      rightMediumRefractiveIndexRealTextField,
+      rightMediumRefractiveIndexImaginaryTextField
     )
   }
 
@@ -173,7 +183,6 @@ class MediumParametersController {
   }
 
   fun save() = with(ComputationParametersStorage) {
-
     leftMedium = leftMediumChoiceBox.value
     if (leftMedium == "Custom") {
       leftMediumRefractiveIndexReal = leftMediumRefractiveIndexRealTextField.text
@@ -192,16 +201,31 @@ class MediumParametersController {
       rightMediumRefractiveIndexImaginary = "0.0"
     }
   }
+
+  fun leftMediumText(): String = leftMediumChoiceBox.value
+
+  fun leftMediumRefractiveIndexRealText(): String = leftMediumRefractiveIndexRealTextField.text
+
+  fun leftMediumRefractiveIndexImaginaryText(): String = leftMediumRefractiveIndexImaginaryTextField.text
+
+  fun rightMediumText(): String = rightMediumChoiceBox.value
+
+  fun rightMediumRefractiveIndexRealText(): String = rightMediumRefractiveIndexRealTextField.text
+
+  fun rightMediumRefractiveIndexImaginaryText(): String = rightMediumRefractiveIndexImaginaryTextField.text
 }
 
 class LightParametersController {
 
   @FXML
   private lateinit var angleLabel: Label
+
   @FXML
   private lateinit var polarizationLabel: Label
+
   @FXML
   lateinit var polarizationChoiceBox: ChoiceBox<String>
+
   @FXML
   lateinit var angleTextField: TextField
 
@@ -229,6 +253,10 @@ class LightParametersController {
     polarization = polarizationChoiceBox.value
     angle = angleTextField.text
   }
+
+  fun angleText(): String = angleTextField.text
+
+  fun polarizationText(): String = polarizationChoiceBox.value
 }
 
 class ComputationRangeController {
@@ -237,8 +265,10 @@ class ComputationRangeController {
 
   @FXML
   lateinit var fromTextField: TextField
+
   @FXML
   lateinit var toTextField: TextField
+
   @FXML
   lateinit var stepTextField: TextField
 
@@ -258,6 +288,12 @@ class ComputationRangeController {
     wavelengthEnd = toTextField.text
     wavelengthStep = stepTextField.text
   }
+
+  fun startText(): String = fromTextField.text
+
+  fun endText(): String = toTextField.text
+
+  fun stepText(): String = stepTextField.text
 }
 
 class StructureDescriptionController {
