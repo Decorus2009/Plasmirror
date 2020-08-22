@@ -19,14 +19,14 @@ enum class MediumType {
   CUSTOM;
 
   override fun toString() = when (this) {
-    AIR ->"Air"
+    AIR -> "Air"
     GAAS_ADACHI -> "GaAs: Adachi"
     GAAS_GAUSS -> "GaAs: Gauss"
     CUSTOM -> "Custom"
   }
 }
 
-enum class EpsType {
+enum class PermittivityType {
   ADACHI,
   GAUSS,
   GAUSS_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0;
@@ -53,11 +53,9 @@ enum class Mode {
     EXTINCTION_COEFFICIENT -> "Extinction Coefficient"
     SCATTERING_COEFFICIENT -> "Scattering Coefficient"
   }
-
 }
 
-fun Complex.toExtinctionCoefficientAt(wavelength: Double) =
-  4.0 * PI * imaginary / (wavelength.toCm()) // cm^-1
+fun Complex.toExtinctionCoefficientAt(wavelength: Double) = 4.0 * PI * imaginary / (wavelength.toCm()) // cm^-1
 
 fun Complex.toRefractiveIndex() = Complex(sqrt((abs() + real) / 2.0), sqrt((abs() - real) / 2.0))
 

@@ -8,8 +8,8 @@
 //import core.State2.wavelengthEnd
 //import core.State2.wavelengthStart
 //import core.State2.wavelengthStep
-//import core.layers.metal.clusters.EffectiveMediumApproximationLayerOfDrudeMetalClustersInAlGaAs
-//import core.layers.metal.clusters.TwoDimensionalLayerOfDrudeMetalClustersInAlGaAs
+//import core.layers.metal.clusters.EffectiveMediumApproximationLayerOfDrudeMetalClustersAlGaAs
+//import core.layers.metal.clusters.TwoDimensionalLayerOfDrudeMetalClustersAlGaAs
 //import core.layers.semiconductor.*
 //import javafx.fxml.FXML
 //import javafx.fxml.FXMLLoader
@@ -101,9 +101,9 @@
 //        }
 //        is ConstRefractiveIndexLayerExcitonic -> {
 //        }
-//        is EffectiveMediumApproximationLayerOfDrudeMetalClustersInAlGaAs -> {
+//        is EffectiveMediumApproximationLayerOfDrudeMetalClustersAlGaAs -> {
 //        }
-//        is TwoDimensionalLayerOfDrudeMetalClustersInAlGaAs -> load<NanoparticlesLayerFitterController>(it, "fxml/fitter/NanoparticlesLayerFitter.fxml")
+//        is TwoDimensionalLayerOfDrudeMetalClustersAlGaAs -> load<NanoparticlesLayerFitterController>(it, "fxml/fitter/NanoparticlesLayerFitter.fxml")
 //      }
 //    }
 //

@@ -18,7 +18,7 @@ fun TokenizedLines.validate() {
   noConsecutiveRepeatDescriptors()
   repeatDescriptorFormat()
   atLeastOneLayer()
-  //onlyOneLayerForCertainComputationModes()
+//  onlyOneLayerForCertainComputationModes()
   numberOfParamsInLayer()
   numbersFormat()
 }

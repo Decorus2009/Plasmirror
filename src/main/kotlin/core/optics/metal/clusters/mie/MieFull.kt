@@ -20,19 +20,19 @@ object MieFull : Mie {
   private lateinit var mx: Complex
 
   override fun extinctionCoefficient(
-    wavelength: Double, epsSemiconductor: Complex, epsMetal: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wavelength, epsSemiconductor, epsMetal, f, r).first
+    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
+  ) = alphaExtAlphaSca(wavelength, mediumPermittivity, metalPermittivity, f, r).first
 
   override fun scatteringCoefficient(
-    wavelength: Double, epsSemiconductor: Complex, epsMetal: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wavelength, epsSemiconductor, epsMetal, f, r).second
+    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
+  ) = alphaExtAlphaSca(wavelength, mediumPermittivity, metalPermittivity, f, r).second
 
   private fun alphaExtAlphaSca(
-    wavelength: Double, epsSemiconductor: Complex, epsMetal: Complex, f: Double, r: Double
+    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
   ): Pair<Double, Double> {
     val numberOfAngles = 20
-    val nSemiconductor = epsSemiconductor.toRefractiveIndex()
-    val nMetal = epsMetal.toRefractiveIndex()
+    val nSemiconductor = mediumPermittivity.toRefractiveIndex()
+    val nMetal = metalPermittivity.toRefractiveIndex()
     m = nMetal / nSemiconductor
 
     x = nSemiconductor.real * 2.0 * PI * r / wavelength

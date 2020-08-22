@@ -8,7 +8,7 @@ import core.structure.toStructure
 import core.util.*
 import java.util.*
 
-fun initStates() = requireStatesNodes().map { it.toState() }
+fun requireStates() = requireStatesNodes().map { it.toState() }
 
 // TODO FIX: externalDataState null for now
 private fun JsonNode.toState() = State(

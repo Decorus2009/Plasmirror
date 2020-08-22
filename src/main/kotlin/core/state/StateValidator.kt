@@ -51,7 +51,6 @@ fun validateRange(start: String, end: String, step: String) {
 }
 
 
-
 // TODO leave for external data validation
 fun validate(data: Data) = with(data) {
   validate(range)

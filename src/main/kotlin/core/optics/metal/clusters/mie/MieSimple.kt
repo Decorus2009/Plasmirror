@@ -11,23 +11,23 @@ import kotlin.math.pow
 
 interface MieSimple : Mie {
   override fun extinctionCoefficient(
-    wavelength: Double, epsSemiconductor: Complex, epsMetal: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wavelength, epsSemiconductor, epsMetal, f, r).first
+    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
+  ) = alphaExtAlphaSca(wavelength, mediumPermittivity, metalPermittivity, f, r).first
 
   override fun scatteringCoefficient(
-    wavelength: Double, epsSemiconductor: Complex, epsMetal: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wavelength, epsSemiconductor, epsMetal, f, r).second
+    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
+  ) = alphaExtAlphaSca(wavelength, mediumPermittivity, metalPermittivity, f, r).second
 
   fun a(x: Double, mSq: Complex) = listOf(a1(x, mSq), a2(x, mSq))
 
   fun b(x: Double, mSq: Complex) = listOf(b1(x, mSq), b2())
 
   private fun alphaExtAlphaSca(
-    wavelength: Double, epsSemiconductor: Complex, epsMetal: Complex, f: Double, r: Double
+    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
   ): Pair<Double, Double> {
-    val k = 2.0 * PI * epsSemiconductor.toRefractiveIndex().real / wavelength.toCm()
+    val k = 2.0 * PI * mediumPermittivity.toRefractiveIndex().real / wavelength.toCm()
     val x = k * r.toCm()
-    val mSq = epsMetal / epsSemiconductor
+    val mSq = metalPermittivity / mediumPermittivity
     val common1 = 2.0 * PI / k.pow(2)
     val common2 = 3.0 / 4.0 * f / (PI * (r.toCm()).pow(3.0))
     val abCoefficients = a(x, mSq).zip(b(x, mSq))

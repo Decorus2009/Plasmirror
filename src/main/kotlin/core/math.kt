@@ -47,7 +47,6 @@ class Complex(real: Double, imaginary: Double) : ApacheComplex(real, imaginary) 
 class TransferMatrix(
   private val values: FieldMatrix<ApacheComplex> = Array2DRowFieldMatrix(ComplexField.getInstance(), 2, 2)
 ) {
-
   operator fun get(i: Int, j: Int): Complex = Complex(values.getEntry(i, j))
 
   operator fun set(i: Int, j: Int, value: Complex) = values.setEntry(i, j, value)

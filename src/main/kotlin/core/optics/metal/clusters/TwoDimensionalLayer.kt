@@ -8,23 +8,26 @@ import kotlin.math.pow
  * Phys. Rev. B, 28, PP. 4247 (1983) - Persson model
  */
 object TwoDimensionalLayer {
+  /**
+   * reflection and transmission magnitude coefficients at a given wavelength [wl]
+   */
   fun rt(
     wl: Double,
     pol: Polarization,
     angle: Double,
     d: Double,
     latticeFactor: Double,
-    epsMatrix: Complex,
-    epsMetal: Complex
+    mediumPermittivity: Complex,
+    metalPermittivity: Complex
   ): Pair<Complex, Complex> {
     val R = d / 2.0
     val a = latticeFactor * R
     val U0 = 9.03 / (a * a * a)
 
-    val (cos, sin) = cosSin(epsMatrix.toRefractiveIndex(), wl, angle)
+    val (cos, sin) = cosSin(mediumPermittivity.toRefractiveIndex(), wl, angle)
     val theta = Complex(cos.acos())
 
-    val (alphaParallel, alphaOrthogonal) = alphaParallelOrthogonal(alpha(epsMatrix, epsMetal, R), U0)
+    val (alphaParallel, alphaOrthogonal) = alphaParallelOrthogonal(alpha(mediumPermittivity, metalPermittivity, R), U0)
     val (A, B) = AB(wl, a, cos, sin)
 
     val common1 = cos * cos * alphaParallel
@@ -55,8 +58,8 @@ object TwoDimensionalLayer {
     this / (Complex.ONE - this * 0.5 * U0) to this / (Complex.ONE + this * U0)
   }
 
-  private fun alpha(epsMatrix: Complex, epsMetal: Complex, R: Double) =
-    (epsMetal - epsMatrix) / (epsMetal + epsMatrix * 2.0) * R.pow(3.0)
+  private fun alpha(mediumPermittivity: Complex, metalPermittivity: Complex, R: Double) =
+    (metalPermittivity - mediumPermittivity) / (metalPermittivity + mediumPermittivity * 2.0) * R.pow(3.0)
 
   private fun AB(wavelength: Double, a: Double, cos: Complex, sin: Complex) =
     with((2 * Math.PI / a).pow(2.0) / wavelength) {

@@ -2,20 +2,20 @@ package core.optics.semiconductor
 
 import core.Complex
 import core.optics.*
-import core.optics.EpsType.*
+import core.optics.PermittivityType.*
 import core.round
 import kotlin.math.*
 
 
 object AlGaAsMatrix {
   /**
-   * Computation of the AlGaAs get using
+   * Computation of the AlGaAs permittivity using
    * J. Appl. Phys., 86, pp.445 (1999) - approach with Gaussian broadening
-   * J. Appl. Phys. 58, R1 (1985) - Adachi model
+   * J. Appl. Phys. 58, R1 (1985) - simple Adachi model
    */
-  fun permittivity(wavelength: Double, k: Double, x: Double, epsType: EpsType): Complex {
-    val w = wavelength.toEnergy()
-    return when (epsType) {
+  fun permittivity(wl: Double, k: Double, x: Double, permittivityType: PermittivityType): Complex {
+    val w = wl.toEnergy()
+    return when (permittivityType) {
       ADACHI -> with(epsAdachi(w, x)) { Complex(real, real * k) }
       GAUSS -> epsGauss(w, x)
       GAUSS_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0 -> with(epsGauss(w, x)) {
@@ -24,49 +24,39 @@ object AlGaAsMatrix {
     }
   }
 
-  /** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
   /**
-   * OpticalConstants (Adachi)
-   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+   * J. Appl. Phys. 58, R1 (1985) - simple Adachi model
    */
   private fun epsAdachi(w: Double, x: Double): Complex {
-    var w_ = w
+    var wTmp = w
     val Eg = 1.425 + 1.155 * x + 0.37 * x * x
     // nonrecursive
-    if (w_ > Eg) {
-      w_ = Eg
+    if (wTmp > Eg) {
+      wTmp = Eg
     }
     val delta = 0.34 - 0.04 * x // eV
     val A = 6.3 + 19.0 * x
     val B = 9.4 - 10.2 * x
-    val hi = w_ / Eg
-    val hi_so = w_ / (Eg + delta)
+    val hi = wTmp / Eg
+    val hi_so = wTmp / (Eg + delta)
     val f: (Double) -> Double = { (2.0 - sqrt(1 + it) - sqrt(1 - it)) / (it * it) }
     return Complex(A * (f(hi) + 0.5 * (Eg / (Eg + delta)).pow(1.5) * f(hi_so)) + B)
   }
 
 
-  /** * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
   /**
-   * OpticalConstants (Gauss)
-   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+   * J. Appl. Phys., 86, pp.445 (1999) - approach with Gaussian broadening
    */
   private fun epsGauss(w: Double, x: Double) = epsInf(x) + eps1(w, x) + eps2(w, x) + eps3(w, x) + eps4(w, x)
-  /**
-   * OpticalConstants (Gauss) details
-   * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-   */
-  /**
-   * AlGaAs Gauss get components. Look at the paper
-   */
+
   private fun eps1(w: Double, x: Double): Complex {
     val A = A(x)
     val E0 = E0(x)
     val E0_plus_delta0 = E0_plus_delta0(x)
     var gamma0Gauss = gamma0Gauss(w, x)
-    /*
-    Precision is used to prevent errors when gamma0Gauss = 0.0.
-    Otherwise complex roots are calculated incorrectly and eps1 provides sharp sign change
+    /**
+     * Precision is used to prevent errors when gamma0Gauss = 0.0.
+     * Otherwise complex roots are calculated incorrectly and eps1 provides sharp sign change
      */
     val precision = 1E-6
     if (gamma0Gauss < precision) {
@@ -107,9 +97,9 @@ object AlGaAsMatrix {
     var summand = Complex.ONE
     val precision = 1E-4
     var n = 1
-    /*
-      Check the paper. The summation of the excitonic terms
-      is performed until the contribution of the next term is less than 10^-4 (precision)
+    /**
+     * Check the paper. The summation of the excitonic terms
+     * is performed until the contribution of the next term is less than 10^-4 (precision)
      */
     while (summand.abs() >= precision) {
 
@@ -152,11 +142,6 @@ object AlGaAsMatrix {
   private fun E0(x: Double) = 1.424 + 1.155 * x + 0.37 * x * x
 
   private fun E0_plus_delta0(x: Double) = E0(x) + 0.34 - 0.04 * x
-
-//    // cubic as in the paper
-//    private fun E0(x: Double) = Ei(x, Ei0 = 1.410, Ei1_minus_Ei0 = 1.583, c0 = 0.2242, c1 = -1.4235)
-//    // cubic as in the paper
-//    private fun E0_plus_delta0(x: Double) = Ei(x, Ei0 = 1.746, Ei1_minus_Ei0 = 1.455, c0 = 0.1931, c1 = -1.2160)
 
   private fun E1(x: Double) = Ei(x, Ei0 = 2.926, Ei1_minus_Ei0 = 0.962, c0 = -0.2124, c1 = -0.7850)
 
@@ -228,21 +213,22 @@ object AlGaAsMatrix {
   /**
    * If w < intersection energy, returns eps and n computed by the Adachi'85 approximation
    * (with imaginary part computed by the Gauss approximation)
-   * Else returns get computed using the Gauss approximation
-   */
-  /**
+   * Else returns eps computed using the Gauss approximation
+   *
    * Finds intersection point for both approaches
    * using appropriate small energy range (including E0) and a fixed energy precision
    *
    * For Re(eps):
-   * Adachi describes experimental data for real part (only) of get better (why?)
+   * Adachi describes experimental data for real part (only) of eps better (why?)
    * than full approach using Gaussian broadening below E0.
+   *
    * Lorentz broadening is even worse.
    * At the very critical point E0 Adachi approach is not applicable.
-   * The idea is to staple two curves for get below E0, Adachi and Gauss, at the point of their intersection (eV).
+   * The idea is to staple two curves for eps below E0, Adachi and Gauss, at the point of their intersection (eV).
+   *
    * It was found that the intersection point is located within the energy range (1.4 : 1.8) eV for x[0.0 : 0.5]
    * The intersection point is always lower than E0. But at the much lower energies there are another intersections.
-   * We don't need to consider them. There will be only Adachi, no Gauss.
+   * We don't need to consider them. There will be only Adachi-based computation of permittivity.
    */
   private fun findIntersection(x: Double) {
     println("Finding intersection for $x")
@@ -256,15 +242,15 @@ object AlGaAsMatrix {
     val from = 1.4
     val to = 1.8
     val step = 0.001
-    var w_ = from
-    while (w_ <= to) {
-      w_ = w_.round() // 12.000000000001 -> 12.0 && 13.99999999999 -> 14.0
-      w.add(w_)
-      epsGauss.add(epsGauss(w_, x))
-      nGauss.add(epsGauss(w_, x).toRefractiveIndex())
-      epsAdachi.add(epsAdachi(w_, x))
-      nAdachi.add(epsAdachi(w_, x).toRefractiveIndex())
-      w_ += step
+    var wTmp = from
+    while (wTmp <= to) {
+      wTmp = wTmp.round() // 12.000000000001 -> 12.0 && 13.99999999999 -> 14.0
+      w.add(wTmp)
+      epsGauss.add(epsGauss(wTmp, x))
+      nGauss.add(epsGauss(wTmp, x).toRefractiveIndex())
+      epsAdachi.add(epsAdachi(wTmp, x))
+      nAdachi.add(epsAdachi(wTmp, x).toRefractiveIndex())
+      wTmp += step
     }
     /**
      * Class to keep difference of nGauss.real and nAdachi at w

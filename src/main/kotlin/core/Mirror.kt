@@ -1,6 +1,6 @@
 package core
 
-import core.layers.metal.clusters.mie.MieLayerOfMetalClustersInAlGaAs
+import core.layers.metal.clusters.mie.MieLayerOfMetalClustersAlGaAs
 import core.layers.semiconductor.ConstRefractiveIndexLayer
 import core.layers.semiconductor.Layer
 import core.optics.*
@@ -17,7 +17,6 @@ import kotlin.Double.Companion.POSITIVE_INFINITY
 /**
  * Mirror: left medium layer + structure + right medium layer
  */
-
 // TODO all properties are vars? the can be changed on UI
 class Mirror(
   var structure: Structure,
@@ -57,7 +56,7 @@ class Mirror(
 
   fun extinctionCoefficient(wl: Double) = structure.firstLayer().extinctionCoefficient(wl)
 
-  fun scatteringCoefficient(wl: Double) = (structure.firstLayer() as MieLayerOfMetalClustersInAlGaAs).scatteringCoefficient(wl)
+  fun scatteringCoefficient(wl: Double) = (structure.firstLayer() as MieLayerOfMetalClustersAlGaAs).scatteringCoefficient(wl)
 
   private fun r(wl: Double, pol: Polarization, angle: Double) =
     with(matrix(wl, pol, angle)) { this[1, 0] / this[1, 1] * (-1.0) }

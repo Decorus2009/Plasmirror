@@ -1,19 +1,19 @@
 package core.state
 
+import statesManager
 import java.lang.IllegalStateException
 import java.util.*
 import kotlin.collections.HashMap
 
-
 object StatesManager {
-  private val states = HashMap<UUID, State>()
+  private val states = HashMap<StateId, State>()
 
   init {
-    initStates().forEachIndexed { index, state ->
-      if (index == 0) {
-        state.activate()
-      }
+    requireStates().forEachIndexed { index, state ->
       add(state)
+      if (index == 0) {
+        activate(state)
+      }
     }
   }
 
@@ -45,8 +45,12 @@ object StatesManager {
   fun activeState() = states.values.singleOrNull { it.isActive }
     ?: throw IllegalStateException("Exactly one active state is allowed")
 
-  private fun validate(stateId: UUID) =
+  private fun validate(stateId: StateId) =
     require(states.containsKey(stateId)) {
       "Only existing state with valid id can be updated, deleted, activated or deactivated"
     }
 }
+
+fun activeState() = statesManager.activeState()
+
+typealias StateId = UUID

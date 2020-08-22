@@ -98,7 +98,7 @@ private fun readFileWithThreeColumns(path: String): Triple<List<Double>, List<Do
 private fun <T> String.readAndMapEachLineTo(mapper: Scanner.() -> T) = requireFile(this)
   .readLines()
   .asSequence()
-  .filter { line -> !line.isBlankOrEmpty() && line.startsWithDigit() }
+  .filter { line -> !line.isBlank() && line.startsWithDigit() }
   .map { it.replaceCommas() }
   .map { Scanner(it).useLocale(Locale.ENGLISH).mapper() }
   .toList()

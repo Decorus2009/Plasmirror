@@ -11,10 +11,9 @@ import java.util.*
 
 
 data class State(
-  val id: UUID,
+  val id: StateId,
   val computationState: ComputationState,
   val externalDataState: ExternalDataState? = null,
-  var isInitialized: Boolean = false, // TODO need this?? set on first config read
   var isActive: Boolean = false
 ) {
   fun compute() {
@@ -40,6 +39,8 @@ data class State(
   }
 
   fun activate() {
+    // TODO change UI values (angle, media, range, etc)
+
     isActive = true
   }
 
@@ -107,8 +108,6 @@ data class State(
 
   private fun List<Double>.refractiveIndex() = computeComplex { wl -> mirror().refractiveIndex(wl) }
 }
-
-fun activeState() = statesManager.activeState()
 
 data class ComputationState(
   val data: Data,
@@ -234,10 +233,10 @@ data class Medium(
       ConstRefractiveIndexLayer(d = Double.POSITIVE_INFINITY, n = Complex.ONE)
     }
     MediumType.GAAS_ADACHI -> {
-      GaAs(d = Double.POSITIVE_INFINITY, epsType = EpsType.ADACHI)
+      GaAs(d = Double.POSITIVE_INFINITY, permittivityType = PermittivityType.ADACHI)
     }
     MediumType.GAAS_GAUSS -> {
-      GaAs(d = Double.POSITIVE_INFINITY, epsType = EpsType.GAUSS)
+      GaAs(d = Double.POSITIVE_INFINITY, permittivityType = PermittivityType.GAUSS)
     }
     MediumType.CUSTOM -> {
       ConstRefractiveIndexLayer(d = Double.POSITIVE_INFINITY, n = Complex(nReal, nImaginary))
