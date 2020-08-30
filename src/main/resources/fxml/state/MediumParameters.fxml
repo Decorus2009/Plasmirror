@@ -6,7 +6,7 @@
 <?import java.lang.*?>
 <GridPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="125.0"
           prefWidth="250.0" xmlns="http://javafx.com/javafx/8.0.65" xmlns:fx="http://javafx.com/fxml/1"
-          fx:controller="ui.controllers.MediumParametersController">
+          fx:controller="ui.controllers.state.MediumParametersController">
     <columnConstraints>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
         <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0"/>
@@ -56,11 +56,11 @@
                                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                                     </rowConstraints>
                                     <children>
-                                        <TextField fx:id="leftMediumRefractiveIndexRealTextField" alignment="CENTER"
+                                        <TextField fx:id="nRealLeftMediumTextField" alignment="CENTER"
                                                    disable="true" prefHeight="40.0" prefWidth="187.0"
                                                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                                                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-                                        <TextField fx:id="leftMediumRefractiveIndexImaginaryTextField"
+                                        <TextField fx:id="nImaginaryLeftMediumTextField"
                                                    alignment="CENTER" disable="true" GridPane.columnIndex="1"
                                                    prefHeight="40.0" prefWidth="187.0" AnchorPane.bottomAnchor="0.0"
                                                    AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
@@ -97,7 +97,7 @@
                                         <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                                     </rowConstraints>
                                     <children>
-                                        <TextField fx:id="rightMediumRefractiveIndexRealTextField"
+                                        <TextField fx:id="nRealRightMediumTextField"
                                                    alignment="CENTER"
                                                    disable="true"
                                                    prefHeight="40.0" prefWidth="187.0"
@@ -105,7 +105,7 @@
                                                    AnchorPane.leftAnchor="0.0"
                                                    AnchorPane.rightAnchor="0.0"
                                                    AnchorPane.topAnchor="0.0"/>
-                                        <TextField fx:id="rightMediumRefractiveIndexImaginaryTextField"
+                                        <TextField fx:id="nImaginaryRightMediumTextField"
                                                    alignment="CENTER"
                                                    disable="true"
                                                    GridPane.columnIndex="1"

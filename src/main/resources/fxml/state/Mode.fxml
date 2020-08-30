@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 
 
-    <GridPane alignment="CENTER" prefHeight="62.0" prefWidth="125.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controllers.RegimeController">
+    <GridPane alignment="CENTER" prefHeight="62.0" prefWidth="125.0" xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controllers.state.ModeController">
         <columnConstraints>
             <ColumnConstraints hgrow="SOMETIMES" percentWidth="80" />
         </columnConstraints>

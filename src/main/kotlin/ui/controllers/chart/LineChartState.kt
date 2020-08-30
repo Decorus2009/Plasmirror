@@ -2,14 +2,12 @@ package ui.controllers.chart
 
 import core.optics.Mode
 import core.optics.toEnergy
+import core.state.ExternalData
 import core.state.activeState
+import core.util.importComplexData
 import javafx.scene.chart.XYChart
 import ui.controllers.chart.LineChartState.SeriesType.COMPUTED
-import ui.controllers.chart.LineChartState.SeriesType.IMPORTED
 import java.io.File
-import java.nio.file.Files
-import java.util.*
-import kotlin.streams.toList
 
 object LineChartState {
 
@@ -49,7 +47,7 @@ object LineChartState {
   val computed = LineChartSeries(ExtendedSeries(color = colors[0]!!), ExtendedSeries(color = colors[1]!!))
   val imported = mutableListOf<LineChartSeries>()
 
-  // TODO
+  // TODO eV
   fun toEV() = (imported + computed)
     .map { listOf(it.extendedSeriesReal, it.extendedSeriesImaginary) }
     .flatten()
@@ -62,7 +60,6 @@ object LineChartState {
   fun allExtendedSeries() = (imported + computed).flatMap { listOf(it.extendedSeriesReal, it.extendedSeriesImaginary) }
 
   fun updateComputed() = with(computed) {
-
     extendedSeriesReal.clear()
     extendedSeriesImaginary.clear()
 
@@ -84,9 +81,10 @@ object LineChartState {
     extendedSeriesReal.series.name = "Computed Real"
     extendedSeriesImaginary.series.name = "Computed Imaginary"
 
-//        /* if regime changed */
-//        with(rootController.mainController.globalParametersController.regimeController) {
-//            if (regimeBefore == null || State.regime != regimeBefore) {
+
+//        /* if mode changed */
+//        with(rootController.mainController.globalParametersController.modeController) {
+//            if (modeBefore == null || State.mode != modeBefore) {
 //                /* init default colors */
 //                extendedSeriesReal.color = colors[0]!!
 //                extendedSeriesImaginary.color = colors[1]!!
@@ -97,53 +95,26 @@ object LineChartState {
 //        }
   }
 
+  fun File.importIntoChartState() = importComplexData().let {
+    activeState().addExternalData(it)
+    it.importIntoChartState()
+  }
 
-  // TODO use methods form FileUtil
-  fun importFrom(file: File) {
-    val x = mutableListOf<Double>()
-    val yReal = mutableListOf<Double>()
-    val yImaginary = mutableListOf<Double>()
-
-    Files.lines(file.toPath())
-      .toList()
-      .asSequence()
-      .filter { it[0].isDigit() }
-      .map { it.replace(Regex(","), ".") }
-      .forEach {
-        with(Scanner(it).useLocale(Locale.US)) {
-          if (hasNextDouble()) {
-            x += nextDouble()
-          } else {
-            throw IllegalStateException("Input file must contain 2 or 3 columns")
-          }
-          if (hasNextDouble()) {
-            yReal += nextDouble()
-          } else {
-            throw IllegalStateException("Input file must contain 2 or 3 columns")
-          }
-          /* check if file contains 3 columns for x, Re(y), Im(y) */
-          if (hasNextDouble()) {
-            yImaginary += nextDouble()
-          }
-        }
+  fun ExternalData.importIntoChartState() {
+    val seriesReal = XYChart.Series<Number, Number>().also {
+      it.name = "$name Real"
+      it.data.addAll(seriesData(x(), yReal()))
+    }
+    val seriesImaginary = XYChart.Series<Number, Number>().also {
+      it.name = "$name Imaginary"
+      if (yImaginary().isNotEmpty()) {
+        it.data.addAll(seriesData(x(), yImaginary()))
       }
-
-    val seriesReal = XYChart.Series<Number, Number>()
-    val seriesImaginary = XYChart.Series<Number, Number>()
-
-    seriesReal.data.addAll(seriesData(x, yReal))
-    if (yImaginary.isNotEmpty()) {
-      seriesImaginary.data.addAll(seriesData(x, yImaginary))
     }
 
-    /* init names */
-    with(file.name) {
-      seriesReal.name = "$this Real"
-      seriesImaginary.name = "$this Imaginary"
-    }
     imported += LineChartSeries(
-      ExtendedSeries(seriesReal, type = IMPORTED),
-      ExtendedSeries(seriesImaginary, type = IMPORTED)
+      ExtendedSeries(seriesReal, type = SeriesType.IMPORTED),
+      ExtendedSeries(seriesImaginary, type = SeriesType.IMPORTED)
     )
   }
 
@@ -154,7 +125,6 @@ object LineChartState {
     /* -=2 due to the 2 removed extended series (real and imaginary) in LineChartSeries */
     currentColorIndex -= 2
   }
-
   private fun seriesData(x: List<Double>, y: List<Double>) = x.indices.map { XYChart.Data<Number, Number>(x[it], y[it]) }
 
 

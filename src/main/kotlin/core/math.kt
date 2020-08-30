@@ -40,7 +40,6 @@ class Complex(real: Double, imaginary: Double) : ApacheComplex(real, imaginary) 
   operator fun unaryMinus() = Complex(-real, -imaginary)
 }
 
-
 /**
  * 2 x 2 matrix of complex numbers
  */
@@ -110,4 +109,4 @@ fun Double.round(): Double {
   return floor((this + 1E-8) * power) / power
 }
 
-fun Double.toCm() = this * 1E-7 // wavelength: nm -> cm^-1
+fun Double.toCm() = this * 1E-7 // wavelength: nm -> cm

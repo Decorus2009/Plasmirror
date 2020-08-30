@@ -2,8 +2,8 @@ package core.optics.metal.clusters
 
 import core.Complex
 import core.interpolateComplex
-import core.util.readComplexDataFrom
-import core.util.sep
+import core.util.KnownPaths
+import core.util.importComplexData
 
 /**
  * Tabulated data for bulk Sb permittivity by Cardona[1] and Adachi[2]
@@ -12,10 +12,9 @@ import core.util.sep
  * 2. Adachi, S. The Handbook on Optical Constants of Metals in Tables and Figures / S. Adachi – World Scientific, 2012.
  */
 object SbAdachiCardona {
-  private val path = "data${sep}internal${sep}interpolations${sep}eps_Sb_Cardona_Adachi.txt"
-  private val data = readComplexDataFrom(path)
-  private val wavelengths = data.first
-  private val permittivitySb = data.second
+  private val data = KnownPaths.permittivitySbCardonaAdachi.importComplexData()
+  private val wavelengths = data.x()
+  private val permittivitySb = data.y()
 
   fun permittivity(wl: Double): Complex {
     if (wavelengths.isEmpty() || permittivitySb.isEmpty()) {

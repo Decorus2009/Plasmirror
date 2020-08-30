@@ -1,5 +1,5 @@
 import core.state.StatesManager
-import core.state.activeState
+import core.state.saveStates
 import javafx.application.Application
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
@@ -44,12 +44,14 @@ class MainApp : Application() {
     In this method the main controller was init (for validation of state parameters)
     whereas it was not fully initialized while the child ui.controllers are loading. This is incorrect
      */
-    // TODO commented
-//        State.init()
     with(Scene(rootLayout)) {
       stylesheets.add("css/all.css")
       primaryStage.scene = this
       primaryStage.show()
     }
+
+
   }
+
+  override fun stop() = saveStates()
 }

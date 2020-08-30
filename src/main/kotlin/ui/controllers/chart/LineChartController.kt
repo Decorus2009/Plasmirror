@@ -25,31 +25,13 @@ import ui.controllers.chart.LineChartController.ComputationType.*
 import ui.controllers.chart.LineChartState.ExtendedSeries
 import ui.controllers.chart.LineChartState.allExtendedSeries
 import ui.controllers.chart.LineChartState.computed
+import ui.controllers.chart.LineChartState.importIntoChartState
 import ui.controllers.chart.LineChartState.imported
 import java.io.File
 import java.util.*
 
 
 class LineChartController {
-
-  lateinit var mainController: MainController
-
-  @FXML
-  lateinit var lineChart: LineChart<Number, Number>
-
-  @FXML
-  lateinit var xAxis: NumberAxis
-
-  @FXML
-  lateinit var yAxis: NumberAxis
-
-  @FXML
-  private lateinit var XYPositionLabel: Label
-
-  private enum class ComputationType { REAL, COMPLEX, NONE }
-
-  private var previousComputationDataType = NONE
-
   @FXML
   fun initialize() {
     println("Line chart controller init")
@@ -79,6 +61,8 @@ class LineChartController {
     setDoubleMouseClickRescaling()
     // TODO Legend is in internal API
 //    updateLegendListener()
+
+    importActiveStateExternalData()
   }
 
   fun updateLineChart() {
@@ -120,9 +104,9 @@ class LineChartController {
     updateYAxisLabel()
 
     // TODO commented
-    /* regime == null is used during the first automatic call of rescale() method after initialization */
-    fun updateRegimeAndRescale() = with(mainController.globalParametersController.regimeController) {
-      /* if another regime */
+    /* mode == null is used during the first automatic call of rescale() method after initialization */
+    fun updateModeAndRescale() = with(mainController.opticalParamsController.modeController) {
+      /* if another mode */
       if (modeBefore == null || modeBefore != activeState().mode()) {
         modeBefore = activeState().mode()
         /* deselect all series, labels and disable activated series manager */
@@ -131,8 +115,8 @@ class LineChartController {
       }
     }
 
-// TODO commented updateRegimeAndRescale !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-//        updateRegimeAndRescale()
+// TODO commented updateModeAndRescale !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
+//        updateModeAndRescale()
 
     // TODO Legend is in internal API
 //    updateLegendListener()
@@ -171,7 +155,7 @@ class LineChartController {
       lineChart.lookupAll(".chart-legend-item-symbol").forEach { node ->
         node.styleClass.filter { it.startsWith("series") }.forEach {
           val i = it.substring("series".length).toInt()
-          val color = allExtendedSeries().find { it.series.name == lineChart.data[i].name }!!.color
+          val color = allExtendedSeries().find { it.series.name == chartData()[i].name }!!.color
           node.style = "-fx-background-color: $color;"
         }
       }
@@ -180,25 +164,13 @@ class LineChartController {
 
   fun updateStyleOfAll() = allExtendedSeries().forEach { updateStyleOf(it) }
 
-
   /* TODO vertical scaling works separately for re_y and im_y of the imported complex data */
   fun importFrom(file: File) {
-    LineChartState.importFrom(file)
-    lineChart.run {
-      with(imported[imported.lastIndex]) {
-        data.add(extendedSeriesReal.series)
-        /* if imported file contained 3 columns */
-        if (extendedSeriesImaginary.series.data.isNotEmpty()) {
-          data.add(extendedSeriesImaginary.series)
-        }
-      }
-    }
-    // TODO Legend is in internal API
-//    updateLegendListener()
-    updateStyleOfAll()
+    file.importIntoChartState()
+    addLastImportedToChart()
   }
 
-  fun importMultiple(files: List<File>) = files.forEach { importFrom(it) }
+  fun importFromMultiple(files: List<File>) = files.forEach { importFrom(it) }
 
   fun removeByName(name: String) = with(lineChart) { data.remove(data.find { it.name == name }) }
 
@@ -206,12 +178,12 @@ class LineChartController {
    * Sets the visibility for the line chart series corresponding to the extendedSeries
    */
   fun setVisibilityBy(extendedSeries: ExtendedSeries) {
-    lineChart.data.find { it.name == extendedSeries.series.name }!!.node.visibleProperty().value = extendedSeries.visible
+    chartData().find { it.name == extendedSeries.series.name }!!.node.visibleProperty().value = extendedSeries.visible
   }
 
   /**
    * Legend is initialized after the line chart is added to the scene, so 'Platform.runLater'
-   * Legend items are dynamically changed (added and removed when changing regimes),
+   * Legend items are dynamically changed (added and removed when changing modes),
    * so this method is called at each 'updateLineChart' call to handle new legend items.
    * Otherwise mouse clicks after updates don't work.
    */
@@ -232,6 +204,35 @@ class LineChartController {
 //    }
 //  }
 
+  /**
+   * adds all the external data (taken from previously imported files in previous sessions) to chart on controller init
+   */
+  // TODO call on state change
+  private fun importActiveStateExternalData() = activeState().externalData.forEach {
+    it.importIntoChartState()
+    addLastImportedToChart()
+  }
+
+  /**
+   * adds last imported data from chart state to line chart
+   */
+  private fun addLastImportedToChart() {
+    val real = imported.last().extendedSeriesReal
+    val imaginary = imported.last().extendedSeriesImaginary
+    chartData().add(real.series)
+    imaginary.series.let {
+      if (it.data.isNotEmpty()) {
+        chartData().add(it)
+      }
+    }
+
+    // TODO Legend is in internal API
+//    updateLegendListener()
+    updateStyleOfAll()
+  }
+
+  private fun chartData() = lineChart.data
+
   private fun selectBy(label: Label) =
     allExtendedSeries().find { it.series.name == label.text }?.let {
       it.select()
@@ -247,10 +248,10 @@ class LineChartController {
     }
 
   /* TODO fix this */
-  private fun rescale() = with(mainController.globalParametersController.regimeController) {
+  private fun rescale() = with(mainController.opticalParamsController.modeController) {
     with(xAxis) {
-      lowerBound = activeState().computationState.data.range.start
-      upperBound = activeState().computationState.data.range.end
+      lowerBound = activeState().computationState.range.start
+      upperBound = activeState().computationState.range.end
       tickUnit = 50.0
       tickUnit = when {
         upperBound - lowerBound >= 4000.0 -> 500.0
@@ -401,6 +402,25 @@ class LineChartController {
 //  private fun LineChart<Number, Number>.labels() = childrenUnmodifiable
 //    .filter { it is Legend }.map { it as Legend }.flatMap { it.childrenUnmodifiable }
 //    .filter { it is Label }.map { it as Label }
+
+
+  lateinit var mainController: MainController
+
+  @FXML
+  lateinit var lineChart: LineChart<Number, Number>
+
+  @FXML
+  lateinit var xAxis: NumberAxis
+
+  @FXML
+  lateinit var yAxis: NumberAxis
+
+  @FXML
+  private lateinit var XYPositionLabel: Label
+
+  private enum class ComputationType { REAL, COMPLEX, NONE }
+
+  private var previousComputationDataType = NONE
 }
 
 

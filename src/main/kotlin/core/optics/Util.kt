@@ -1,8 +1,9 @@
 package core.optics
 
-import core.*
+import core.Complex
 import core.Complex.Companion.ONE
 import core.state.activeState
+import core.toCm
 import java.lang.Math.PI
 import kotlin.math.cos
 import kotlin.math.sqrt
@@ -19,11 +20,18 @@ enum class MediumType {
   CUSTOM;
 
   override fun toString() = when (this) {
-    AIR -> "Air"
-    GAAS_ADACHI -> "GaAs: Adachi"
-    GAAS_GAUSS -> "GaAs: Gauss"
-    CUSTOM -> "Custom"
+    AIR -> MediumTypes.air
+    GAAS_ADACHI -> MediumTypes.GaAsAdachi
+    GAAS_GAUSS -> MediumTypes.GaAsGauss
+    CUSTOM -> MediumTypes.custom
   }
+}
+
+object MediumTypes {
+  const val air = "Air"
+  const val GaAsAdachi = "GaAs: Adachi"
+  const val GaAsGauss = "GaAs: Gauss"
+  const val custom = "Custom"
 }
 
 enum class PermittivityType {
@@ -45,14 +53,24 @@ enum class Mode {
    * Used in [ModeController] during choice box value initialization
    */
   override fun toString() = when (this) {
-    REFLECTANCE -> "Reflectance"
-    TRANSMITTANCE -> "Transmittance"
-    ABSORBANCE -> "Absorbance"
-    PERMITTIVITY -> "Permittivity"
-    REFRACTIVE_INDEX -> "Refractive Index"
-    EXTINCTION_COEFFICIENT -> "Extinction Coefficient"
-    SCATTERING_COEFFICIENT -> "Scattering Coefficient"
+    REFLECTANCE -> Modes.reflectance
+    TRANSMITTANCE -> Modes.transmittance
+    ABSORBANCE -> Modes.absorbance
+    PERMITTIVITY -> Modes.permittivity
+    REFRACTIVE_INDEX -> Modes.refractiveIndex
+    EXTINCTION_COEFFICIENT -> Modes.extinctionCoefficient
+    SCATTERING_COEFFICIENT -> Modes.scatteringCoefficient
   }
+}
+
+object Modes {
+  const val reflectance = "Reflectance"
+  const val transmittance = "Transmittance"
+  const val absorbance = "Absorbance"
+  const val permittivity = "Permittivity"
+  const val refractiveIndex = "Refractive Index"
+  const val extinctionCoefficient = "Extinction Coefficient"
+  const val scatteringCoefficient = "Scattering Coefficient"
 }
 
 fun Complex.toExtinctionCoefficientAt(wavelength: Double) = 4.0 * PI * imaginary / (wavelength.toCm()) // cm^-1

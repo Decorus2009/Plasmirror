@@ -1,7 +1,8 @@
 package core.state
 
+import core.util.KnownPaths
+import core.util.writeTo
 import statesManager
-import java.lang.IllegalStateException
 import java.util.*
 import kotlin.collections.HashMap
 
@@ -42,8 +43,13 @@ object StatesManager {
     states[state.id]!!.deactivate()
   }
 
-  fun activeState() = states.values.singleOrNull { it.isActive }
+  fun activeState() = states.values.singleOrNull { it.active }
     ?: throw IllegalStateException("Exactly one active state is allowed")
+
+  /**
+   * Saves all the states to config
+   */
+  fun saveStates() = mapper.writeValueAsString(states.values.toList()).writeTo(KnownPaths.config)
 
   private fun validate(stateId: StateId) =
     require(states.containsKey(stateId)) {
@@ -52,5 +58,7 @@ object StatesManager {
 }
 
 fun activeState() = statesManager.activeState()
+
+fun saveStates() = statesManager.saveStates()
 
 typealias StateId = UUID

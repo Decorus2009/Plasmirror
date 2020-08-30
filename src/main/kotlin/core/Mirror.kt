@@ -10,7 +10,6 @@ import core.state.OpticalParams
 import core.structure.Structure
 import core.structure.toStructure
 import org.apache.commons.math3.complex.Complex.NaN
-import rootController
 import statesManager
 import kotlin.Double.Companion.POSITIVE_INFINITY
 
@@ -23,9 +22,8 @@ class Mirror(
   var leftMediumLayer: Layer,
   var rightMediumLayer: Layer
 ) {
-  fun updateUsing(opticalParams: OpticalParams) {
-    structure = rootController.mainController.structureDescriptionController.structureDescriptionCodeArea.text.toStructure()
-
+  fun updateVia(opticalParams: OpticalParams, textDescription: String) {
+    structure = textDescription.toStructure()
     leftMediumLayer = opticalParams.leftMedium.toLayer()
     rightMediumLayer = opticalParams.rightMedium.toLayer()
   }

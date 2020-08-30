@@ -3,43 +3,40 @@ package core.state
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import core.Mirror
-import core.state.config.*
 import core.structure.toStructure
-import core.util.*
-import java.util.*
 
 fun requireStates() = requireStatesNodes().map { it.toState() }
 
-// TODO FIX: externalDataState null for now
 private fun JsonNode.toState() = State(
-  id = UUID.randomUUID(),
-  computationState = requireComputationStateNode().toComputationState()
+  id = requireNode("id").parse(),
+  computationState = requireNode("computationState").toComputationState(),
+  externalData = requireNode("externalData").parse(),
+  active = requireNode("active").parse()
 )
 
 private fun JsonNode.toComputationState(): ComputationState {
-  val opticalParams = requireOpticalParamsNode().parse<OpticalParams>().also { validate(it) }
+  val opticalParams = requireNode("opticalParams").parse<OpticalParams>().also { validate(it) }
+  val textDescription = requireNode("textDescription").parse<String>()
   return ComputationState(
-    Data(range = requireRangeNode().parse<Range>().also { validate(it) }),
+    requireNode("range").parse<Range>().also { validate(it) },
+    Data(),
     opticalParams,
     Mirror(
-      structure = requireTextDescriptionNode().parse<String>().toStructure(),
+      structure = textDescription.toStructure(),
       leftMediumLayer = opticalParams.leftMedium.toLayer(),
       rightMediumLayer = opticalParams.rightMedium.toLayer()
-    )
+    ),
+    textDescription
   )
-}
-
-private fun JsonNode.toExternalDataState(): ExternalDataState {
-  TODO("Not implemented yet")
 }
 
 inline fun <reified T> JsonNode.parse(): T {
   if (isNullOrMissing()) {
-    throw ConfigParserException("Null or missing node in the config")
+    throw IllegalStateException("Null or missing node in the config")
   }
   return runCatching {
     mapper.readValue<T>(toString())
   }.getOrElse {
-    throw ConfigParserException("Problem while parsing node: ${it.message}")
+    throw IllegalStateException("Problem while parsing node: ${it.message}")
   }
 }
