@@ -1,29 +1,32 @@
 package core.layers.metal.clusters.mie
 
-import core.State
-import core.layers.metal.clusters.DrudeMetalClustersInAlGaAs
-import core.layers.metal.clusters.SbClustersInAlGaAs
+import core.layers.metal.clusters.DrudeMetalClustersAlGaAs
+import core.layers.metal.clusters.SbClustersAlGaAs
 import core.layers.semiconductor.AlGaAs
-import core.optics.EpsType
+import core.optics.PermittivityType
 import core.optics.metal.clusters.mie.MieFull
+import core.structure.StructureBuilder.parseAt
 
-abstract class MieFullLayerOfMetalClustersInAlGaAs(
+abstract class MieFullLayerOfMetalClustersAlGaAs(
   d: Double,
   k: Double,
   x: Double,
   private val f: Double,
   private val r: Double,
-  epsType: EpsType
-) : MieLayerOfMetalClustersInAlGaAs, AlGaAs(d, k, x, epsType) {
-  // value of AlGaAs refractive index is used as n-property here
-  // Mie theory is for the computation of extinction and scattering, not for the computation of refractive index
-  override val extinctionCoefficient: Double
-    get() = MieFull.extinctionCoefficient(State.wavelengthCurrent, matrixPermittivity, clusterPermittivity, f, r)
-  override val scatteringCoefficient: Double
-    get() = MieFull.scatteringCoefficient(State.wavelengthCurrent, matrixPermittivity, clusterPermittivity, f, r)
+  permittivityType: PermittivityType
+) : MieLayerOfMetalClustersAlGaAs, AlGaAs(d, k, x, permittivityType) {
+  /**
+   * value of AlGaAs refractive index is used as n-property here
+   * Mie theory is for the computation of extinction and scattering, not for the computation of refractive index
+   * */
+  override fun extinctionCoefficient(wl: Double): Double =
+    MieFull.extinctionCoefficient(wl, matrixPermittivity(wl), clusterPermittivity(wl), f, r)
+
+  override fun scatteringCoefficient(wl: Double): Double =
+    MieFull.scatteringCoefficient(wl, matrixPermittivity(wl), clusterPermittivity(wl), f, r)
 }
 
-class MieFullLayerOfDrudeMetalClustersInAlGaAs(
+class MieFullLayerOfDrudeMetalClustersAlGaAs(
   d: Double,
   k: Double,
   x: Double,
@@ -32,14 +35,43 @@ class MieFullLayerOfDrudeMetalClustersInAlGaAs(
   override val epsInf: Double,
   f: Double,
   r: Double,
-  epsType: EpsType
-) : DrudeMetalClustersInAlGaAs, MieFullLayerOfMetalClustersInAlGaAs(d, k, x, f, r, epsType)
+  permittivityType: PermittivityType
+) : DrudeMetalClustersAlGaAs, MieFullLayerOfMetalClustersAlGaAs(d, k, x, f, r, permittivityType)
 
-class MieFullLayerOfSbClustersInAlGaAs(
+class MieFullLayerOfSbClustersAlGaAs(
   d: Double,
   k: Double,
   x: Double,
   f: Double,
   r: Double,
-  epsType: EpsType
-) : SbClustersInAlGaAs, MieFullLayerOfMetalClustersInAlGaAs(d, k, x, f, r, epsType)
+  permittivityType: PermittivityType
+) : SbClustersAlGaAs, MieFullLayerOfMetalClustersAlGaAs(d, k, x, f, r, permittivityType)
+
+// type = 8[all]-1-1, type = 8[all]-2-1, type = 8[all]-3-1
+fun mieFullLayerOfDrudeMetalClustersAlGaAs(description: List<String>, permittivityType: PermittivityType) =
+  with(description) {
+    MieFullLayerOfDrudeMetalClustersAlGaAs(
+      d = parseAt(i = 0),
+      k = parseAt(i = 1),
+      x = parseAt(i = 2),
+      wPlasma = parseAt(i = 3),
+      gammaPlasma = parseAt(i = 4),
+      epsInf = parseAt(i = 5),
+      f = parseAt(i = 6),
+      r = parseAt(i = 7),
+      permittivityType = permittivityType
+    )
+  }
+
+// type = 8[all]-1-2, type = 8[all]-2-2, type = 8[all]-3-2
+fun mieFullLayerOfSbClustersAlGaAs(description: List<String>, permittivityType: PermittivityType) =
+  with(description) {
+    MieFullLayerOfSbClustersAlGaAs(
+      d = parseAt(i = 0),
+      k = parseAt(i = 1),
+      x = parseAt(i = 2),
+      f = parseAt(i = 3),
+      r = parseAt(i = 4),
+      permittivityType = permittivityType
+    )
+  }

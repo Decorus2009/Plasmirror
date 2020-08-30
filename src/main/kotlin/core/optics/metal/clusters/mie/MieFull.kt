@@ -1,38 +1,38 @@
 package core.optics.metal.clusters.mie
 
-import core.Complex_
+import core.Complex
 import core.optics.toRefractiveIndex
 import core.toCm
 import java.lang.Math.*
 import kotlin.math.pow
 
 object MieFull : Mie {
-  private lateinit var D: MutableList<Complex_>
+  private lateinit var D: MutableList<Complex>
   private lateinit var psi: MutableList<Double>
-  private lateinit var xi: List<Complex_>
-  private lateinit var a: MutableList<Complex_>
-  private lateinit var b: MutableList<Complex_>
+  private lateinit var xi: List<Complex>
+  private lateinit var a: MutableList<Complex>
+  private lateinit var b: MutableList<Complex>
 
   private var x = 0.0
   private var nStop = 0
   private var xStop = 0.0
-  private lateinit var m: Complex_
-  private lateinit var mx: Complex_
+  private lateinit var m: Complex
+  private lateinit var mx: Complex
 
   override fun extinctionCoefficient(
-    wavelength: Double, epsSemiconductor: Complex_, epsMetal: Complex_, f: Double, r: Double
-  ) = alphaExtAlphaSca(wavelength, epsSemiconductor, epsMetal, f, r).first
+    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
+  ) = alphaExtAlphaSca(wavelength, mediumPermittivity, metalPermittivity, f, r).first
 
   override fun scatteringCoefficient(
-    wavelength: Double, epsSemiconductor: Complex_, epsMetal: Complex_, f: Double, r: Double
-  ) = alphaExtAlphaSca(wavelength, epsSemiconductor, epsMetal, f, r).second
+    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
+  ) = alphaExtAlphaSca(wavelength, mediumPermittivity, metalPermittivity, f, r).second
 
   private fun alphaExtAlphaSca(
-    wavelength: Double, epsSemiconductor: Complex_, epsMetal: Complex_, f: Double, r: Double
+    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
   ): Pair<Double, Double> {
     val numberOfAngles = 20
-    val nSemiconductor = epsSemiconductor.toRefractiveIndex()
-    val nMetal = epsMetal.toRefractiveIndex()
+    val nSemiconductor = mediumPermittivity.toRefractiveIndex()
+    val nMetal = metalPermittivity.toRefractiveIndex()
     m = nMetal / nSemiconductor
 
     x = nSemiconductor.real * 2.0 * PI * r / wavelength
@@ -78,8 +78,8 @@ object MieFull : Mie {
     val pi1 = DoubleArray(numberOfAngles + 1) { 1.0 }
 
     val NN = 2 * numberOfAngles - 1
-    val S1 = DoubleArray(NN + 1).map { Complex_.ZERO }.toMutableList()
-    val S2 = DoubleArray(NN + 1).map { Complex_.ZERO }.toMutableList()
+    val S1 = DoubleArray(NN + 1).map { Complex.ZERO }.toMutableList()
+    val S2 = DoubleArray(NN + 1).map { Complex.ZERO }.toMutableList()
 
     /*
     Logarithmic derivative D(J) calculated by downward recurrence
@@ -98,29 +98,29 @@ object MieFull : Mie {
     var psiPrev = sin(x)
     var chiPrevPrev = -sin(x)
     var chiPrev = cos(x)
-    var xiPrev = Complex_(psiPrev, -chiPrev)
+    var xiPrev = Complex(psiPrev, -chiPrev)
 
     for (ind in 1 until nStop.toInt() + 1) {
       val psi = (2.0 * ind - 1.0) * psiPrev / x - psiPrevPrev
       val chi = (2.0 * ind - 1.0) * chiPrev / x - chiPrevPrev
-      val xi = Complex_(psi, -chi)
+      val xi = Complex(psi, -chi)
       /*
       Store previous values of a and b for use in computation of g=<cos(theta)>
       */
-      var aPrev = Complex_.ZERO
-      var bPrev = Complex_.ZERO
-      var a = Complex_.ZERO
-      var b = Complex_.ZERO
+      var aPrev = Complex.ZERO
+      var bPrev = Complex.ZERO
+      var a = Complex.ZERO
+      var b = Complex.ZERO
 
       if (ind > 1) {
         aPrev = a
         bPrev = b
       }
 
-      val aCommon = D[ind] / m + Complex_(ind / x)
+      val aCommon = D[ind] / m + Complex(ind / x)
       a = (aCommon * psi - psiPrev) / (aCommon * xi - xiPrev)
 
-      val bCommon = D[ind] * m + Complex_(ind / x)
+      val bCommon = D[ind] * m + Complex(ind / x)
       b = (bCommon * psi - psiPrev) / (bCommon * xi - xiPrev)
 
       //*** Augment sums for Qsca and g=<cos(theta)>
@@ -145,8 +145,8 @@ object MieFull : Mie {
         // Борен-Хаффман, стр. 152
         tau[i] = ind * mu[i] * pi[i] - (ind + 1.0) * pi0[i]
 
-        S1[i] = S1[i] + a * Complex_(SCommon * pi[i]) + b * Complex_(SCommon * tau[i])
-        S2[i] = S2[i] + a * Complex_(SCommon * tau[i]) + b * Complex_(SCommon * pi[i])
+        S1[i] = S1[i] + a * Complex(SCommon * pi[i]) + b * Complex(SCommon * tau[i])
+        S2[i] = S2[i] + a * Complex(SCommon * tau[i]) + b * Complex(SCommon * pi[i])
       }
 
       /*
@@ -158,15 +158,15 @@ object MieFull : Mie {
       for (i in 1 until numberOfAngles) {
         val ii = 2 * numberOfAngles - i
 
-        S1[ii] += a * Complex_(SCommon * P * pi[i]) - b * Complex_(SCommon * P * tau[i])
-        S2[ii] += a * Complex_(SCommon * P * tau[i]) - b * Complex_(SCommon * P * pi[i])
+        S1[ii] += a * Complex(SCommon * P * pi[i]) - b * Complex(SCommon * P * tau[i])
+        S2[ii] += a * Complex(SCommon * P * tau[i]) - b * Complex(SCommon * P * pi[i])
       }
 
       psiPrevPrev = psiPrev
       psiPrev = psi
       chiPrevPrev = chiPrev
       chiPrev = chi
-      xiPrev = Complex_(psiPrev, -chiPrev)
+      xiPrev = Complex(psiPrev, -chiPrev)
 
       /*
       Compute pi_n for next value of n
@@ -199,11 +199,11 @@ object MieFull : Mie {
       throw IllegalArgumentException("Error: nMax > NMXX=' + NMXX + ' for |m|x=' + YMOD")
     }
 
-    D = IntArray(nMax + 1).map { Complex_(0.0) }.toMutableList()
-    D[nMax] = Complex_.ZERO
+    D = IntArray(nMax + 1).map { Complex(0.0) }.toMutableList()
+    D[nMax] = Complex.ZERO
     for (i in nMax - 1 downTo 1) {
-      val c = Complex_(i + 1.0) / mx
-      D[i] = c - Complex_.ONE / (D[i + 1] + c)
+      val c = Complex(i + 1.0) / mx
+      D[i] = c - Complex.ONE / (D[i + 1] + c)
     }
   }
 
@@ -221,18 +221,18 @@ object MieFull : Mie {
       chi[i] = (2.0 * i - 1.0) / x * chi[i - 1] - chi[i - 2]
     }
 
-    xi = psi.indices.map { Complex_(psi[it], -chi[it]) }
+    xi = psi.indices.map { Complex(psi[it], -chi[it]) }
   }
 
   private fun computeAB() {
-    a = DoubleArray(nStop).map { Complex_.ZERO }.toMutableList()
-    b = DoubleArray(nStop).map { Complex_.ZERO }.toMutableList()
+    a = DoubleArray(nStop).map { Complex.ZERO }.toMutableList()
+    b = DoubleArray(nStop).map { Complex.ZERO }.toMutableList()
 
     for (i in 1 until nStop) {
-      val aCommon = D[i] / m + Complex_(i / x)
+      val aCommon = D[i] / m + Complex(i / x)
       a[i] = (aCommon * psi[i] - psi[i - 1]) / (aCommon * xi[i] - xi[i - 1])
 
-      val bCommon = D[i] * m + Complex_(i / x)
+      val bCommon = D[i] * m + Complex(i / x)
       b[i] = (bCommon * psi[i] - psi[i - 1]) / (bCommon * xi[i] - xi[i - 1])
     }
   }

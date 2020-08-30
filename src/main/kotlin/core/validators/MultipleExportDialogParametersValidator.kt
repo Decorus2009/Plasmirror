@@ -4,6 +4,8 @@ import core.validators.ValidationResult.FAILURE
 import core.validators.ValidationResult.SUCCESS
 import java.io.File
 
+
+// TODO get rid of ValidationResult
 object MultipleExportDialogParametersValidator {
   fun validateAngles(angleFromStr: String, angleToStr: String, angleStepStr: String): ValidationResult {
     try {
