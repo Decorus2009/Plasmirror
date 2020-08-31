@@ -77,7 +77,7 @@ data class OpticalParams(
 
   private fun modeController() = opticalParamsController().modeController
 
-  private fun lightParamsController() = opticalParamsController().lightParametersController
+  private fun lightParamsController() = opticalParamsController().lightParamsController
 
-  private fun mediumParamsController() = opticalParamsController().mediumParametersController
+  private fun mediumParamsController() = opticalParamsController().mediumParamsController
 }

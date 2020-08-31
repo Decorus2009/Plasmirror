@@ -1,5 +1,6 @@
 package ui.controllers.chart
 
+import core.state.activeState
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.scene.paint.Color
@@ -20,7 +21,7 @@ class SeriesManagerController {
     xAxisFactorTextField.textProperty().addListener { _, _, newValue ->
       try {
         val newFactor = newValue.toDouble()
-        /* 0.0 as the value of the previous newFactor will be remembered an will break the scaling */
+        /* 0.0 as the value of the previous newFactor will be remembered and will break the scaling */
         if (newFactor != 0.0) {
           with(selectedSeries) {
             series.data.forEach { it.xValue = it.xValue.toDouble() / previousXAxisFactor * newFactor }
@@ -34,7 +35,7 @@ class SeriesManagerController {
     yAxisFactorTextField.textProperty().addListener { _, _, newValue ->
       try {
         val newFactor = newValue.toDouble()
-        /* 0.0 as the value of the previous newFactor will be remembered an will break the scaling */
+        /* 0.0 as the value of the previous newFactor will be remembered and will break the scaling */
         if (newFactor != 0.0) {
           with(selectedSeries) {
             series.data.forEach { it.yValue = it.yValue.toDouble() / previousYAxisFactor * newFactor }
@@ -54,22 +55,21 @@ class SeriesManagerController {
     }
 
     removeButton.setOnMouseClicked {
-      LineChartState.removeByName(selectedSeries.series.name)
-      with(mainController) {
-        with(lineChartController) {
-          removeByName(selectedSeries.series.name)
-          updateStyleOfAll()
-          // TODO Legend is in internal API
-//          updateLegendListener()
-        }
-        seriesManagerController.disable()
+      val name = selectedSeries.series.name
+      LineChartState.removeBy(name)
+      lineChartController().run {
+        removeByName(name)
+        updateStyleOfAll()
+        updateLegendListener()
+        activeState().removeExternalDataWith(name)
       }
+      disable()
     }
 
     disable()
   }
 
-  fun enableUsing(selectedSeries: LineChartState.ExtendedSeries) {
+  fun enableUsing(selectedSeries: ExtendedSeries) {
     this.selectedSeries = selectedSeries
 
     enable(colorLabel, xAxisFactorLabel, yAxisFactorLabel)
@@ -80,9 +80,9 @@ class SeriesManagerController {
 
     with(selectedSeries) {
       if (type == LineChartState.SeriesType.COMPUTED) {
-        ui.controllers.disable(xAxisFactorLabel, yAxisFactorLabel)
-        ui.controllers.disable(xAxisFactorTextField, yAxisFactorTextField)
-        ui.controllers.disable(removeButton)
+        disable(xAxisFactorLabel, yAxisFactorLabel)
+        disable(xAxisFactorTextField, yAxisFactorTextField)
+        disable(removeButton)
       }
       xAxisFactorTextField.text = previousXAxisFactor.toString()
       yAxisFactorTextField.text = previousYAxisFactor.toString()
@@ -92,11 +92,11 @@ class SeriesManagerController {
   }
 
   fun disable() {
-    ui.controllers.disable(colorLabel, xAxisFactorLabel, yAxisFactorLabel)
-    ui.controllers.disable(xAxisFactorTextField, yAxisFactorTextField)
-    ui.controllers.disable(colorPicker)
-    ui.controllers.disable(visibleCheckBox)
-    ui.controllers.disable(removeButton)
+    disable(colorLabel, xAxisFactorLabel, yAxisFactorLabel)
+    disable(xAxisFactorTextField, yAxisFactorTextField)
+    disable(colorPicker)
+    disable(visibleCheckBox)
+    disable(removeButton)
   }
 
   lateinit var mainController: MainController
@@ -125,5 +125,5 @@ class SeriesManagerController {
   @FXML
   private lateinit var removeButton: Button
 
-  private lateinit var selectedSeries: LineChartState.ExtendedSeries
+  private lateinit var selectedSeries: ExtendedSeries
 }

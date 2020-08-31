@@ -16,12 +16,12 @@ class ModeController {
         with(opticalParamsController) {
           when (newValue) {
             Modes.reflectance, Modes.transmittance, Modes.absorbance -> {
-              mediumParametersController.enableAll()
-              lightParametersController.enableAll()
+              mediumParamsController.enableAll()
+              lightParamsController.enableAll()
             }
             Modes.permittivity, Modes.refractiveIndex, Modes.extinctionCoefficient, Modes.scatteringCoefficient -> {
-              mediumParametersController.disableAll()
-              lightParametersController.disableAll()
+              mediumParamsController.disableAll()
+              lightParamsController.disableAll()
             }
           }
         }

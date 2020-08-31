@@ -49,6 +49,10 @@ enum class Mode {
   EXTINCTION_COEFFICIENT,
   SCATTERING_COEFFICIENT;
 
+  fun isComplex() = this in listOf(PERMITTIVITY, REFRACTIVE_INDEX, EXTINCTION_COEFFICIENT, SCATTERING_COEFFICIENT)
+
+  fun isReal() = !isComplex()
+
   /**
    * Used in [ModeController] during choice box value initialization
    */
