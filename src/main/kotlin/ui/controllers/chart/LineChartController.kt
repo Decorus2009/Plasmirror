@@ -1,17 +1,18 @@
 package ui.controllers.chart
 
 import core.optics.Mode
+import core.state.ComputationUnit
 import core.state.activeState
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.geometry.Pos
-import javafx.scene.chart.*
+import javafx.scene.chart.LineChart
+import javafx.scene.chart.NumberAxis
 import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
 import javafx.scene.input.MouseEvent
-import javafx.scene.layout.Region
 import javafx.scene.layout.StackPane
 import javafx.scene.paint.Color
 import javafx.scene.shape.Rectangle
@@ -21,15 +22,11 @@ import org.gillius.jfxutils.JFXUtil
 import org.gillius.jfxutils.chart.ChartPanManager
 import org.gillius.jfxutils.chart.ChartZoomManager
 import ui.controllers.MainController
-import ui.controllers.chart.LineChartController.ComputationType.*
-import ui.controllers.chart.LineChartState.ExtendedSeries
 import ui.controllers.chart.LineChartState.allExtendedSeries
-import ui.controllers.chart.LineChartState.computed
 import ui.controllers.chart.LineChartState.importIntoChartState
 import ui.controllers.chart.LineChartState.imported
 import java.io.File
 import java.util.*
-
 
 class LineChartController {
   @FXML
@@ -46,105 +43,54 @@ class LineChartController {
       override fun fromString(string: String) = 0
     }
 
-    lineChart.let {
+    chart.let {
       it.createSymbols = false
       it.animated = false
       it.isLegendVisible = true
       /* force a css layout pass to ensure that subsequent lookup calls work */
       it.applyCss()
     }
-    xAxis.label = "Wavelength, nm"
+    xAxis.label = when (activeState().computationUnit()) {
+      ComputationUnit.NM -> "Wavelength, nm"
+      ComputationUnit.EV -> TODO()
+    }
 
     setCursorTracing()
     setPanning()
     setZooming()
     setDoubleMouseClickRescaling()
-    // TODO Legend is in internal API
-//    updateLegendListener()
-
-    importActiveStateExternalData()
   }
 
-  fun updateLineChart() {
-    fun updateComputedSeries() {
-      LineChartState.updateComputed()
-      lineChart.run {
-        if (previousComputationDataType != NONE) {
-          /* remove real series */
-          data.removeAt(0)
-          if (previousComputationDataType == COMPLEX) {
-            /* remove remained imaginary series */
-            data.removeAt(0)
-          }
-        }
-        with(computed) {
-          data.add(0, extendedSeriesReal.series)
-          previousComputationDataType = REAL
-          if (extendedSeriesImaginary.series.data.isNotEmpty()) {
-            data.add(1, extendedSeriesImaginary.series)
-            previousComputationDataType = COMPLEX
-          }
-        }
-      }
-    }
-
-    fun updateYAxisLabel() {
-      yAxis.label = when (activeState().mode()) {
-        Mode.REFLECTANCE -> "Reflectance"
-        Mode.TRANSMITTANCE -> "Transmittance"
-        Mode.ABSORBANCE -> "Absorbance"
-        Mode.PERMITTIVITY -> "OpticalConstants"
-        Mode.REFRACTIVE_INDEX -> "Refractive Index"
-        Mode.EXTINCTION_COEFFICIENT -> "Extinction coefficient"
-        Mode.SCATTERING_COEFFICIENT -> "Scattering coefficient"
-      }
-    }
-
-    updateComputedSeries()
+  fun updateChart() {
+    updateComputed()
     updateYAxisLabel()
-
-    // TODO commented
-    /* mode == null is used during the first automatic call of rescale() method after initialization */
-    fun updateModeAndRescale() = with(mainController.opticalParamsController.modeController) {
-      /* if another mode */
-      if (modeBefore == null || modeBefore != activeState().mode()) {
-        modeBefore = activeState().mode()
-        /* deselect all series, labels and disable activated series manager */
-        allExtendedSeries().forEach { deselect() }
-        rescale()
-      }
-    }
-
-// TODO commented updateModeAndRescale !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1
-//        updateModeAndRescale()
-
-    // TODO Legend is in internal API
-//    updateLegendListener()
+    updateLegendListener()
     updateStyleOfAll()
+
+//    updateModeAndRescale()  TODO fix rescaling problem
   }
 
   fun updateStyleOf(extendedSeries: ExtendedSeries) = with(extendedSeries) {
     /* if series.data.isEmpty(), series.node == null. No need to init styles (NPE) */
-    if (series.data.isEmpty()) {
+    if (isEmpty()) {
       return@with
     }
     series.node.style = """
       -fx-stroke: $color;
       -fx-stroke-width: $width;
     """
-    // TODO Legend is in internal API
-//    lineChart.labels().find { it.text == series.name }!!.style =
-//      if (selected) {
-//        """
-//          -fx-stroke: $color;
-//          -fx-background-insets: 0 0 -1 0, 0, 1, 2;
-//          -fx-padding: 7px;
-//          -fx-background-radius: 1px, 0px, 0px, 0px;
-//          -fx-background-color: #cccccc;
-//        """
-//      } else {
-//        ""
-//      }
+    labels().find { it.text == series.name }!!.style =
+      if (selected) {
+        """
+          -fx-stroke: $color;
+          -fx-background-insets: 0 0 -1 0, 0, 1, 2;
+          -fx-padding: 7px;
+          -fx-background-radius: 1px, 0px, 0px, 0px;
+          -fx-background-color: #cccccc;
+        """
+      } else {
+        ""
+      }
     /**
      * http://news.kynosarges.org/2017/05/14/javafx-chart-coloring/
      *
@@ -152,7 +98,7 @@ class LineChartController {
      * a bug?
      */
     Platform.runLater {
-      lineChart.lookupAll(".chart-legend-item-symbol").forEach { node ->
+      chart.lookupAll(".chart-legend-item-symbol").forEach { node ->
         node.styleClass.filter { it.startsWith("series") }.forEach {
           val i = it.substring("series".length).toInt()
           val color = allExtendedSeries().find { it.series.name == chartData()[i].name }!!.color
@@ -172,7 +118,7 @@ class LineChartController {
 
   fun importFromMultiple(files: List<File>) = files.forEach { importFrom(it) }
 
-  fun removeByName(name: String) = with(lineChart) { data.remove(data.find { it.name == name }) }
+  fun removeByName(name: String) = with(chartData()) { remove(find { it.name == name }) }
 
   /**
    * Sets the visibility for the line chart series corresponding to the extendedSeries
@@ -181,40 +127,90 @@ class LineChartController {
     chartData().find { it.name == extendedSeries.series.name }!!.node.visibleProperty().value = extendedSeries.visible
   }
 
+  private fun updateComputed() {
+    LineChartState.updateComputed()
+    removePreviouslyComputed()
+    addComputed()
+  }
+
+  private fun removePreviouslyComputed() {
+    if (prevComputationDataType != ComputationType.NONE) {
+      /* remove real series */
+      chartData().removeAt(0)
+      if (prevComputationDataType == ComputationType.COMPLEX) {
+        /* remove imaginary series */
+        chartData().removeAt(0)
+      }
+    }
+  }
+
+  private fun addComputed() = with(LineChartState.computed) {
+    chartData().add(0, extendedSeriesReal.series)
+    prevComputationDataType = ComputationType.REAL
+    if (extendedSeriesImaginary.isNotEmpty()) {
+      chartData().add(1, extendedSeriesImaginary.series)
+      prevComputationDataType = ComputationType.COMPLEX
+    }
+  }
+
+  private fun updateYAxisLabel() {
+    yAxis.label = when (activeState().mode()) {
+      Mode.REFLECTANCE -> "Reflectance"
+      Mode.TRANSMITTANCE -> "Transmittance"
+      Mode.ABSORBANCE -> "Absorbance"
+      Mode.PERMITTIVITY -> "OpticalConstants"
+      Mode.REFRACTIVE_INDEX -> "Refractive Index"
+      Mode.EXTINCTION_COEFFICIENT -> "Extinction coefficient"
+      Mode.SCATTERING_COEFFICIENT -> "Scattering coefficient"
+    }
+  }
+
+  /**
+   * mode == null is used during the first automatic call of rescale() method after initialization
+   * */
+  private fun updateModeAndRescale() = with(mainController.opticalParamsController.modeController) {
+    /* if another mode */
+    if (modeBefore == null || modeBefore != activeState().mode()) {
+      modeBefore = activeState().mode()
+      /* deselect all series, labels and disable activated series manager */
+      allExtendedSeries().forEach { deselect() }
+      rescale()
+    }
+  }
+
   /**
    * Legend is initialized after the line chart is added to the scene, so 'Platform.runLater'
    * Legend items are dynamically changed (added and removed when changing modes),
    * so this method is called at each 'updateLineChart' call to handle new legend items.
    * Otherwise mouse clicks after updates don't work.
    */
-  // TODO Legend is in internal API
-//  fun updateLegendListener() = Platform.runLater {
-//    lineChart.labels().forEach { label ->
-//      label.setOnMouseClicked {
-//        val selected = allExtendedSeries().find { it.selected }
-//        if (selected == null) {
-//          selectBy(label)
-//        } else {
-//          deselect()
-//          if (selected.series.name != label.text) {
-//            selectBy(label)
-//          }
-//        }
-//      }
-//    }
-//  }
+  fun updateLegendListener() = Platform.runLater {
+    labels().forEach { label ->
+      label.setOnMouseClicked {
+        val selected = allExtendedSeries().find { it.selected }
+        if (selected == null) {
+          selectBy(label)
+        } else {
+          deselect()
+          if (selected.series.name != label.text) {
+            selectBy(label)
+          }
+        }
+      }
+    }
+  }
 
   /**
-   * adds all the external data (taken from previously imported files in previous sessions) to chart on controller init
+   * Adds all the external data (taken from previously imported files in previous sessions) to chart
    */
   // TODO call on state change
-  private fun importActiveStateExternalData() = activeState().externalData.forEach {
+  fun importActiveStateExternalData() = activeState().externalData.forEach {
     it.importIntoChartState()
     addLastImportedToChart()
   }
 
   /**
-   * adds last imported data from chart state to line chart
+   * Adds last imported data from chart state to line chart
    */
   private fun addLastImportedToChart() {
     val real = imported.last().extendedSeriesReal
@@ -227,27 +223,25 @@ class LineChartController {
     }
 
     // TODO Legend is in internal API
-//    updateLegendListener()
+    updateLegendListener()
     updateStyleOfAll()
   }
 
-  private fun chartData() = lineChart.data
+  private fun chartData() = chart.data
 
-  private fun selectBy(label: Label) =
-    allExtendedSeries().find { it.series.name == label.text }?.let {
-      it.select()
-      updateStyleOf(it)
-      mainController.seriesManagerController.enableUsing(it)
-    }
+  private fun selectBy(label: Label) = allExtendedSeries().find { it.series.name == label.text }?.let {
+    it.select()
+    updateStyleOf(it)
+    mainController.seriesManagerController.enableUsing(it)
+  }
 
-  private fun deselect() =
-    allExtendedSeries().find { it.selected }?.let {
-      it.deselect()
-      updateStyleOf(it)
-      mainController.seriesManagerController.disable()
-    }
+  private fun deselect() = allExtendedSeries().find { it.selected }?.let {
+    it.deselect()
+    updateStyleOf(it)
+    mainController.seriesManagerController.disable()
+  }
 
-  /* TODO fix this */
+  // TODO fix this
   private fun rescale() = with(mainController.opticalParamsController.modeController) {
     with(xAxis) {
       lowerBound = activeState().computationState.range.start
@@ -298,62 +292,72 @@ class LineChartController {
    * http://stackoverflow.com/questions/16473078/javafx-2-x-translate-mouse-click-coordinate-into-xychart-axis-value
    */
   private fun setCursorTracing() {
-
-    val chartBackground = lineChart.lookup(".chart-plot-background")
-
-    with(chartBackground) {
-      parent.childrenUnmodifiable
-        .filter { it !== chartBackground && it !== xAxis && it !== yAxis }
+    chart.lookup(".chart-plot-background").let { background ->
+      background.parent.childrenUnmodifiable
+        .filter { it !== background && it !== xAxis && it !== yAxis }
         .forEach { it.isMouseTransparent = true }
 
-      setOnMouseEntered { XYPositionLabel.isVisible = true }
-      setOnMouseMoved {
-        XYPositionLabel.text = String.format(Locale.US, "x = %.2f, y = %.3f",
-          xAxis.getValueForDisplay(it.x).toDouble(),
-          yAxis.getValueForDisplay(it.y).toDouble())
+      background.setOnMouseEntered { labelVisible() }
+      background.setOnMouseMoved {
+        labelText(
+          String.format(
+            Locale.US,
+            "${format("x")}, ${format("y")}",
+            xAxis.getValueForDisplay(it.x).toDouble(),
+            yAxis.getValueForDisplay(it.y).toDouble()
+          )
+        )
       }
-      setOnMouseExited { XYPositionLabel.isVisible = false }
+      background.setOnMouseExited { labelInvisible() }
     }
     with(xAxis) {
-      setOnMouseEntered { XYPositionLabel.isVisible = true }
-      setOnMouseMoved { mouseEvent ->
-        XYPositionLabel.text = String.format(Locale.US, "x = %.2f", getValueForDisplay(mouseEvent.x).toDouble())
-      }
-      setOnMouseExited { XYPositionLabel.isVisible = false }
+      setOnMouseMoved { labelText(String.format(Locale.US, format("x"), getValueForDisplay(it.x).toDouble())) }
+      setOnMouseEntered { labelVisible() }
+      setOnMouseExited { labelInvisible() }
     }
     with(yAxis) {
-      setOnMouseEntered { XYPositionLabel.isVisible = true }
-      setOnMouseMoved { mouseEvent ->
-        XYPositionLabel.text = String.format(Locale.US, "y = %.3f", getValueForDisplay(mouseEvent.y).toDouble())
-      }
-      setOnMouseExited { XYPositionLabel.isVisible = false }
+      setOnMouseMoved { labelText(String.format(Locale.US, format("y"), getValueForDisplay(it.y).toDouble())) }
+      setOnMouseEntered { labelVisible() }
+      setOnMouseExited { labelInvisible() }
     }
   }
 
+  private fun labelVisible() {
+    XYPositionLabel.isVisible = true
+  }
+
+  private fun labelInvisible() {
+    XYPositionLabel.isVisible = false
+  }
+
+  private fun labelText(text: String) {
+    XYPositionLabel.text = text
+  }
+
+  private fun format(axis: String) = "$axis = %.3f"
+
   /**
-   * from gillius zoomable and panning chart sample
+   * From gillius zoomable and panning chart sample
    */
   private fun setPanning() {
-    //Panning works via either secondary (right) mouse or primary with ctrl held down
-    val panner = ChartPanManager(lineChart)
-    panner.setMouseFilter { mouseEvent ->
-      if (mouseEvent.button === SECONDARY || mouseEvent.button === PRIMARY && mouseEvent.isShortcutDown) {
+    // panning works via either secondary (right) mouse or primary with ctrl held down
+    val panner = ChartPanManager(chart)
+    panner.setMouseFilter { event ->
+      if (event.button === SECONDARY || event.button === PRIMARY && event.isShortcutDown) {
         // let it through
       } else {
-        mouseEvent.consume()
+        event.consume()
       }
     }
     panner.start()
   }
 
   /**
-   * from gillius zoomable and panning chart sample
+   * From gillius zoomable and panning chart sample.
+   * Redefined method from JFXChartUtil for customization
    */
   private fun setZooming() {
-    /**
-     * Redefined method from JFXChartUtil for customization
-     */
-    fun setupZooming(chart: XYChart<*, *>, mouseFilter: EventHandler<in MouseEvent>): Region = StackPane().apply {
+    StackPane().apply {
       if (chart.parent != null) {
         JFXUtil.replaceComponent(chart, this)
       }
@@ -372,42 +376,28 @@ class LineChartController {
       children.addAll(chart, selectRect)
 
       with(ChartZoomManager(this@apply, selectRect, chart)) {
-        this.mouseFilter = mouseFilter
+        mouseFilter = EventHandler<MouseEvent> { mouseEvent ->
+          if (mouseEvent.button !== PRIMARY || mouseEvent.isShortcutDown) {
+            mouseEvent.consume()
+          }
+        }
         start()
       }
     }
-
-    setupZooming(lineChart, EventHandler<MouseEvent> { mouseEvent ->
-      if (mouseEvent.button !== PRIMARY || mouseEvent.isShortcutDown) {
-        mouseEvent.consume()
-      }
-    })
   }
 
-  private fun setDoubleMouseClickRescaling() {
-    val chartBackground = lineChart.lookup(".chart-plot-background")
-    chartBackground.setOnMouseClicked { mouseEvent ->
-      if (mouseEvent.button == PRIMARY && mouseEvent.clickCount == 2) {
-        rescale()
-      }
+  private fun setDoubleMouseClickRescaling() = chart.lookup(".chart-plot-background").setOnMouseClicked { event ->
+    if (event.button == PRIMARY && event.clickCount == 2) {
+      rescale()
     }
   }
 
-//  private fun LineChart<Number, Number>.labels() = childrenUnmodifiable
-//    .flatMap { it.ch it . childrenUnmodifiable }
-//    .filter { it is Label }.map { it as Label }
-
-
-  // TODO Legend is in internal API
-//  private fun LineChart<Number, Number>.labels() = childrenUnmodifiable
-//    .filter { it is Legend }.map { it as Legend }.flatMap { it.childrenUnmodifiable }
-//    .filter { it is Label }.map { it as Label }
-
+  private fun labels() = chart.lookupAll(".chart-legend-item").filterIsInstance<Label>()
 
   lateinit var mainController: MainController
 
   @FXML
-  lateinit var lineChart: LineChart<Number, Number>
+  lateinit var chart: LineChart<Number, Number>
 
   @FXML
   lateinit var xAxis: NumberAxis
@@ -420,7 +410,7 @@ class LineChartController {
 
   private enum class ComputationType { REAL, COMPLEX, NONE }
 
-  private var previousComputationDataType = NONE
+  private var prevComputationDataType = ComputationType.NONE
 }
 
 

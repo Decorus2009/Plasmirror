@@ -17,10 +17,10 @@ class OpticalParamsController {
   lateinit var modeController: ModeController
 
   @FXML
-  lateinit var mediumParametersController: MediumParametersController
+  lateinit var mediumParamsController: MediumParamsController
 
   @FXML
-  lateinit var lightParametersController: LightParametersController
+  lateinit var lightParamsController: LightParamsController
 
   @FXML
   lateinit var computationRangeController: ComputationRangeController

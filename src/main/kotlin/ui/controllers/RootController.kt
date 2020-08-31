@@ -1,6 +1,8 @@
 package ui.controllers
 
 import MainApp
+import core.state.activeState
+import javafx.application.Platform
 import javafx.fxml.FXML
 import rootController
 
@@ -13,6 +15,21 @@ class RootController {
      * before the root controller initialization
      */
     menuController.rootController = this
+
+
+    /**
+     * A number of routines needed to be run a bit later after the application is initialized
+     * (e.g. compute button key shortcut setting, line chart legend listener, first compute of an active state)
+     *
+     * There is a need to minimize a number of calls of [Platform.runLater] (see its docs).
+     */
+    Platform.runLater {
+      activeState().compute()
+      lineChartController().updateChart()
+      lineChartController().importActiveStateExternalData()
+      computeButton().setShortcut()
+    }
+
   }
 
   @FXML
@@ -25,3 +42,5 @@ class RootController {
 }
 
 fun lineChartController() = rootController.mainController.lineChartController
+
+fun computeButton() = rootController.mainController.controlsController.computeButton

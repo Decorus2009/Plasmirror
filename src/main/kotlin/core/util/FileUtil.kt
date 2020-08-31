@@ -15,8 +15,6 @@ object KnownPaths {
 
 private val sep: String = File.separator
 
-private const val indentFactor = 2
-
 fun String.requireFile(): File = Paths.get(this).toFile().also {
   if (!it.exists()) {
     error("Missing or inaccessible file $this")
@@ -26,9 +24,6 @@ fun String.requireFile(): File = Paths.get(this).toFile().also {
 fun String.writeTo(path: String) = writeTo(path.requireFile())
 
 fun String.writeTo(file: File) = file.writeText(this)
-
-// TODO get rid of?
-//fun readRealDataFrom(path: String) = readFileWithTwoColumns(path)
 
 fun String.importComplexData() = requireFile().importComplexData()
 
@@ -49,12 +44,12 @@ fun exportFileName() = with(activeState()) {
 
 fun writeComputedDataTo(file: File) {
   val activeState = activeState()
-  val computedReal = activeState.computationState.data.yReal
-  val computedImaginary = activeState.computationState.data.yImaginary
+  val computedReal = activeState.computationData().yReal
+  val computedImaginary = activeState.computationData().yImaginary
 
   val columnSeparator = "\t"
 
-  val wavelengths = activeState.computationState.data.x.toList()
+  val wavelengths = activeState.computationData().x.toList()
   StringBuilder().apply {
     computedReal.indices.forEach { idx ->
       append(String.format(Locale.US, "%.8f", wavelengths[idx]))
@@ -107,18 +102,13 @@ private fun String.startsWithDigit() = first().isDigit()
 private fun String.replaceCommas() = replace(',', '.')
 private fun Scanner.safeDouble() = if (hasNextDouble()) nextDouble() else Double.NaN
 
-class ImportedComplexData(val name: String, val data: Pair<List<Double>, List<Complex>>) {
-  fun x() = data.first
-
-  fun y() = data.second
-
-  fun yReal() = y().map { it.real }
-
-  fun yImaginary() = y().map { it.imaginary }.let { values ->
-    when {
-      values.all { it.isNaN() } -> emptyList()
-      else -> values
-    }
+fun String.normalized(): String {
+  val realSuffixPosition = indexOf(" Real")
+  val imaginarySuffixPosition = indexOf(" Imaginary")
+  return when {
+    realSuffixPosition != -1 -> substring(0, realSuffixPosition)
+    imaginarySuffixPosition != -1 -> substring(0, imaginarySuffixPosition)
+    else -> this
   }
 }
 

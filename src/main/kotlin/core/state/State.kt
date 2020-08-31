@@ -2,7 +2,9 @@ package core.state
 
 import core.Complex
 import core.optics.Mode
+import core.util.normalized
 import rootController
+import java.lang.IllegalStateException
 
 data class State(
   val id: StateId,
@@ -37,6 +39,8 @@ data class State(
     active = false
   }
 
+  fun computationData() = computationState.data
+
   fun mode() = computationState.opticalParams.mode
 
   fun polarization() = computationState.opticalParams.polarization
@@ -47,10 +51,14 @@ data class State(
 
   fun rightMedium() = opticalParams().rightMedium
 
+  fun computationUnit() = computationState.range.unit
+
   fun addExternalData(data: ExternalData) = externalData.add(data)
 
-  fun removeExternalData(data: ExternalData) {
-    TODO()
+  fun removeExternalDataWith(seriesName: String) {
+    val data = externalData.find { it.name == seriesName.normalized() }
+      ?: throw IllegalStateException("Cannot remove external data with name $seriesName. Data not found")
+    externalData.remove(data)
   }
 
   private fun opticalParams() = computationState.opticalParams
@@ -74,19 +82,19 @@ data class State(
         next <= end -> next
         else -> null
       }
-    }.toList().also { computationState.data.x.addAll(it) }
+    }.toList().also { computationData().x.addAll(it) }
   }
 
-  private fun clearData() = computationState.data.clear()
+  private fun clearData() = computationData().clear()
 
   private fun List<Double>.computeReal(computation: (wl: Double) -> Double) {
-    computationState.data.yReal.addAll(map { computation(it) })
+    computationData().yReal.addAll(map { computation(it) })
   }
 
   private fun List<Double>.computeComplex(computation: (wl: Double) -> Complex) {
     val values = map { computation(it) }
-    computationState.data.yReal.addAll(values.map { it.real })
-    computationState.data.yImaginary.addAll(values.map { it.imaginary })
+    computationData().yReal.addAll(values.map { it.real })
+    computationData().yImaginary.addAll(values.map { it.imaginary })
   }
 
   private fun List<Double>.reflectance() = computeReal { wl -> mirror().reflectance(wl, polarization(), angle()) }

@@ -12,7 +12,7 @@ class MultipleExportDialogController {
   @FXML
   fun initialize() {
     println("multiple export dialog controller init")
-    with(rootController.mainController.opticalParamsController.lightParametersController) {
+    with(rootController.mainController.opticalParamsController.lightParamsController) {
       this@MultipleExportDialogController.polarizationChoiceBox.selectionModel.selectedItemProperty()
         .addListener { _, _, newValue ->
           polarizationChoiceBox.value = newValue
@@ -47,7 +47,7 @@ class MultipleExportDialogController {
         }
       }
 
-      with(rootController.mainController.opticalParamsController.lightParametersController) {
+      with(rootController.mainController.opticalParamsController.lightParamsController) {
         polarizationChoiceBox.value = this@MultipleExportDialogController.polarizationChoiceBox.value
 
         var currentAngle = angleFromTextField.text.toDouble()

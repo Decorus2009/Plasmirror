@@ -37,7 +37,7 @@ object LineChartState {
   )
   private var currentColorIndex = 2
 
-  private fun nextColor(offset: Int = 0): String {
+  fun nextColor(offset: Int = 0): String {
     if (currentColorIndex + offset > colors.size) {
       currentColorIndex = offset + 2
     }
@@ -60,39 +60,31 @@ object LineChartState {
   fun allExtendedSeries() = (imported + computed).flatMap { listOf(it.extendedSeriesReal, it.extendedSeriesImaginary) }
 
   fun updateComputed() = with(computed) {
-    extendedSeriesReal.clear()
-    extendedSeriesImaginary.clear()
+    clear()
+    setDefaultNames()
 
-    with(activeState()) {
-      val data = computationState.data
-      extendedSeriesReal.series.data.addAll(seriesData(data.x, data.yReal))
+    activeState().let { state ->
+      val data = state.computationData()
+      extendedSeriesReal.add(data.x, data.yReal)
 
-      with(extendedSeriesImaginary.series.data) {
-        when (mode()) {
-          Mode.PERMITTIVITY -> addAll(seriesData(data.x, data.yImaginary))
-          Mode.REFRACTIVE_INDEX -> addAll(seriesData(data.x, data.yImaginary))
-          else -> {
-          }
-        }
+      if (state.mode().isComplex()) {
+        extendedSeriesImaginary.add(data.x, data.yImaginary)
       }
     }
 
-    /* init default names */
-    extendedSeriesReal.series.name = "Computed Real"
-    extendedSeriesImaginary.series.name = "Computed Imaginary"
+// TODO get rid of if useless
 
-
-//        /* if mode changed */
-//        with(rootController.mainController.globalParametersController.modeController) {
-//            if (modeBefore == null || State.mode != modeBefore) {
-//                /* init default colors */
-//                extendedSeriesReal.color = colors[0]!!
-//                extendedSeriesImaginary.color = colors[1]!!
-//                /* init default widths */
-//                extendedSeriesReal.width = "2px"
-//                extendedSeriesImaginary.width = "2px"
-//            }
-//        }
+//  /* if mode changed */
+//  with(rootController.mainController.globalParametersController.modeController) {
+//      if (modeBefore == null || State.mode != modeBefore) {
+//          /* init default colors */
+//          extendedSeriesReal.color = colors[0]!!
+//          extendedSeriesImaginary.color = colors[1]!!
+//          /* init default widths */
+//          extendedSeriesReal.width = "2px"
+//          extendedSeriesImaginary.width = "2px"
+//      }
+//  }
   }
 
   fun File.importIntoChartState() = importComplexData().let {
@@ -118,44 +110,63 @@ object LineChartState {
     )
   }
 
-  fun removeByName(name: String) {
-    with(imported) {
+  fun removeBy(name: String) {
+    imported.run {
       remove(find { it.extendedSeriesReal.series.name == name || it.extendedSeriesImaginary.series.name == name })
     }
     /* -=2 due to the 2 removed extended series (real and imaginary) in LineChartSeries */
     currentColorIndex -= 2
   }
-  private fun seriesData(x: List<Double>, y: List<Double>) = x.indices.map { XYChart.Data<Number, Number>(x[it], y[it]) }
 
-
-  class LineChartSeries(
-    val extendedSeriesReal: ExtendedSeries = ExtendedSeries(),
-    val extendedSeriesImaginary: ExtendedSeries = ExtendedSeries(color = nextColor(offset = 50))
-  )
-
-  data class ExtendedSeries(
-    val series: XYChart.Series<Number, Number> = XYChart.Series<Number, Number>(),
-    var visible: Boolean = true,
-    var selected: Boolean = false,
-    var color: String = nextColor(),
-    var width: String = "2px",
-    var type: SeriesType = COMPUTED,
-    var previousXAxisFactor: Double = 1.0,
-    var previousYAxisFactor: Double = 1.0
-  ) {
-
-    fun select() {
-      selected = true
-      width = "3px"
-    }
-
-    fun deselect() {
-      selected = false
-      width = "2px"
-    }
-
-    fun clear() = series.data.clear()
-  }
 
   enum class SeriesType { COMPUTED, IMPORTED }
 }
+
+data class ExtendedSeries(
+  val series: XYChart.Series<Number, Number> = XYChart.Series<Number, Number>(),
+  var visible: Boolean = true,
+  var selected: Boolean = false,
+  var color: String = LineChartState.nextColor(),
+  var width: String = "2px",
+  var type: LineChartState.SeriesType = COMPUTED,
+  var previousXAxisFactor: Double = 1.0,
+  var previousYAxisFactor: Double = 1.0
+) {
+  fun add(x: List<Double>, y: List<Double>) {
+    series.data.addAll(seriesData(x, y))
+  }
+
+  fun select() {
+    selected = true
+    width = "3px"
+  }
+
+  fun deselect() {
+    selected = false
+    width = "2px"
+  }
+
+  fun clear() = series.data.clear()
+
+  fun isEmpty() = series.data.isEmpty()
+
+  fun isNotEmpty() = !isEmpty()
+}
+
+class LineChartSeries(
+  val extendedSeriesReal: ExtendedSeries = ExtendedSeries(),
+  val extendedSeriesImaginary: ExtendedSeries = ExtendedSeries(color = LineChartState.nextColor(offset = 50))
+) {
+  fun clear() {
+    extendedSeriesReal.clear()
+    extendedSeriesImaginary.clear()
+  }
+
+  fun setDefaultNames() {
+    extendedSeriesReal.series.name = "Computed Real"
+    extendedSeriesImaginary.series.name = "Computed Imaginary"
+  }
+}
+
+private fun seriesData(x: List<Double>, y: List<Double>) = x.indices.map { XYChart.Data<Number, Number>(x[it], y[it]) }
+
