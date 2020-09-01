@@ -11,9 +11,9 @@ class MediumParamsController {
   @FXML
   fun initialize() {
     println("Medium parameters controller init")
-    activeState().let {
-      setLeftMedium(it.leftMedium())
-      setRightMedium(it.rightMedium())
+    activeState().run {
+      setLeftMedium(leftMedium())
+      setRightMedium(rightMedium())
     }
     leftMediumChoiceBox.setListener(nRealLeftMediumTextField, nImaginaryLeftMediumTextField)
     rightMediumChoiceBox.setListener(nRealRightMediumTextField, nImaginaryRightMediumTextField)

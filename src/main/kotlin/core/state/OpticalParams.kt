@@ -4,14 +4,15 @@ import core.optics.*
 
 data class OpticalParams(
   var mode: Mode,
+  var temperature: Double,
   var angle: Double,
   var polarization: Polarization,
   var leftMedium: Medium,
   var rightMedium: Medium
-// val T: Double TODO Temperature
 ) {
   fun updateFromUI() {
     updateModeFromUI()
+    updateTemperatureFromUI()
     updateAngleFromUI()
     updatePolarizationFromUI()
     updateLeftMediumFromUI()
@@ -20,6 +21,7 @@ data class OpticalParams(
 
   fun updateUI() {
     updateUIMode()
+    updateUITemperature()
     updateUIAngle()
     updateUIPolarization()
     updateUILeftMedium()
@@ -31,6 +33,13 @@ data class OpticalParams(
   }
 
   private fun updateUIMode() = modeController().setMode(mode.toString())
+
+  private fun updateTemperatureFromUI() = temperatureController().temperatureText().let { text ->
+    validateTemperature(text)
+    temperature = text.toDouble()
+  }
+
+  private fun updateUITemperature() = temperatureController().setTemperature(temperature.toString())
 
   private fun updateAngleFromUI() = lightParamsController().angleText().let { text ->
     validateAngle(text)
@@ -76,6 +85,8 @@ data class OpticalParams(
   }
 
   private fun modeController() = opticalParamsController().modeController
+
+  private fun temperatureController() = opticalParamsController().temperatureController
 
   private fun lightParamsController() = opticalParamsController().lightParamsController
 

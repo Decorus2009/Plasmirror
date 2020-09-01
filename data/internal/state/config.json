@@ -1,1 +1,32 @@
-[{"id":"f1821be2-4f81-44c5-84e6-78ce429264a1","computationState":{"range":{"unit":"NM","start":300.0,"end":800.0,"step":2.0},"opticalParams":{"mode":"REFLECTANCE","angle":0.0,"polarization":"S","leftMedium":{"type":"AIR","nReal":1.0,"nImaginary":0.0},"rightMedium":{"type":"GAAS_ADACHI","nReal":3.6,"nImaginary":0.0}},"textDescription":"x1\ntype = 1-2, d = 2\ntype = 2-1, d = 45, k = 0.0, x = 0.6\n\nx18\ntype = 9-2-2, d = 40, k = 0., x = 0.6, lattice_factor = 8.1\ntype = 2-3, d = 92., k = 0.01, x = 0.6"},"externalData":[],"active":true}]
+[
+  {
+    "id": "f1821be2-4f81-44c5-84e6-78ce429264a1",
+    "computationState": {
+      "range": {
+        "unit": "NM",
+        "start": 300.0,
+        "end": 800.0,
+        "step": 2.0
+      },
+      "opticalParams": {
+        "mode": "REFLECTANCE",
+        "temperature": 77.4,
+        "angle": 0.0,
+        "polarization": "S",
+        "leftMedium": {
+          "type": "AIR",
+          "nReal": 1.0,
+          "nImaginary": 0.0
+        },
+        "rightMedium": {
+          "type": "GAAS_ADACHI",
+          "nReal": 3.6,
+          "nImaginary": 0.0
+        }
+      },
+      "textDescription": "x10\ntype = 1-2, d = 2\ntype = 2-1, d = 45, k = 0.0, x = 0.6\n\nx18\ntype = 9-2-2, d = 40, k = 0., x = 0.6, lattice_factor = 8.1\ntype = 2-3, d = 92., k = 0.01, x = 0.6"
+    },
+    "externalData": [],
+    "active": true
+  }
+]

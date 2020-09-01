@@ -1,7 +1,6 @@
 package core.state
 
-import core.validators.alert
-import core.validators.isAllowed
+import core.validators.*
 
 fun validate(range: Range) = with(range) {
   runCatching {
@@ -21,19 +20,27 @@ fun validate(unit: ComputationUnit, start: String, end: String, step: String) =
   validate(Range(unit, start.toDouble(), end.toDouble(), step.toDouble()))
 
 fun validate(opticalParams: OpticalParams) {
-  require(opticalParams.angle.isAllowed()) { "Incorrect light incidence angle value. Allowed range: 0..90 (exclusive)" }
-  // TODO FIX: validate T
+  require(opticalParams.angle.isAllowedAngle()) { "Incorrect light incidence angle value. Allowed range: 0..90 (exclusive)" }
+  require(opticalParams.temperature.isAllowedTemperature()) { "Incorrect temperature value. Allowed value should be > 0" }
 }
+
+/**
+ * Checks the temperature value set on UI in text field
+ */
+fun validateTemperature(value: String) = runCatching {
+  require(value.toDouble().isAllowedTemperature()) { "Incorrect temperature value. Allowed value should be > 0" }
+}.getOrElse {
+  alert(headerText = "Temperature value error", contentText = "Provide correct and allowed temperature")
+}
+
 
 /**
  * Checks the angle value set on UI in text field
  */
-fun validateAngle(value: String) {
-  runCatching {
-    require(value.toDouble().isAllowed()) { "Incorrect light incidence angle value. Allowed range: 0..90 (exclusive)" }
-  }.getOrElse {
-    alert(headerText = "Angle value error", contentText = "Provide correct and allowed angle")
-  }
+fun validateAngle(value: String) = runCatching {
+  require(value.toDouble().isAllowedAngle()) { "Incorrect light incidence angle value. Allowed range: 0..90 (exclusive)" }
+}.getOrElse {
+  alert(headerText = "Angle value error", contentText = "Provide correct and allowed angle")
 }
 
 /**

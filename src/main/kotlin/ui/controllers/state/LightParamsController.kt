@@ -10,9 +10,9 @@ class LightParamsController {
   @FXML
   fun initialize() {
     println("Light parameters controller init")
-    activeState().let {
-      polarizationChoiceBox.value = it.polarization().toString()
-      angleTextField.text = it.angle().toString()
+    activeState().run {
+      polarizationChoiceBox.value = polarization().toString()
+      angleTextField.text = angle().toString()
     }
   }
 

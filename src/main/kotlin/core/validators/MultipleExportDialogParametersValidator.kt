@@ -14,7 +14,7 @@ object MultipleExportDialogParametersValidator {
       val angleStep = angleStepStr.toDouble()
 
       if (
-        angleFrom.isNotAllowed() or angleTo.isNotAllowed() or angleStep.isNotAllowed() or
+        angleFrom.isNotAllowedAngle() or angleTo.isNotAllowedAngle() or angleStep.isNotAllowedAngle() or
         (angleFrom > angleTo) or (angleStep > angleTo) or (angleStep == 0.0)
       ) {
         alert(headerText = "Angle range error", contentText = "Provide correct angle range")

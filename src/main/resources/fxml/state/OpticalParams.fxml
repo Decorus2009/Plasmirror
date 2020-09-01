@@ -8,7 +8,7 @@
 <?import javafx.scene.layout.RowConstraints?>
 
 <TitledPane animated="false" collapsible="false" prefHeight="450.0" prefWidth="350.0" text="Optical Parameters"
-            xmlns="http://javafx.com/javafx/8.0.60" xmlns:fx="http://javafx.com/fxml/1"
+            xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="ui.controllers.state.OpticalParamsController">
   <content>
     <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
@@ -40,13 +40,18 @@
                   <children>
                     <AnchorPane prefHeight="200.0" prefWidth="126.0">
                       <children>
-                        <Label alignment="CENTER" layoutX="61.0" layoutY="15.0"
-                               prefHeight="51.0" prefWidth="157.0" text="Mode"
-                               AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
-                               AnchorPane.topAnchor="0.0"/>
+                        <Label alignment="CENTER" layoutX="61.0" layoutY="15.0" prefHeight="51.0" prefWidth="157.0"
+                               text="Mode" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                               AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
                       </children>
                     </AnchorPane>
-                    <AnchorPane GridPane.columnIndex="1"/>
+                    <AnchorPane GridPane.columnIndex="1">
+                      <children>
+                        <Label alignment="CENTER" layoutX="61.0" layoutY="15.0" prefHeight="51.0" prefWidth="157.0"
+                               text="Temperature, K" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                               AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                      </children>
+                    </AnchorPane>
                   </children>
                 </GridPane>
               </children>
@@ -65,9 +70,16 @@
                   <children>
                     <AnchorPane prefHeight="200.0" prefWidth="126.0">
                       <children>
-                        <fx:include fx:id="mode" source="Mode.fxml"
-                                    AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-                                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                        <fx:include fx:id="mode" source="Mode.fxml" AnchorPane.bottomAnchor="0.0"
+                                    AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                    AnchorPane.topAnchor="0.0"/>
+                      </children>
+                    </AnchorPane>
+                    <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
+                      <children>
+                        <fx:include fx:id="temperature" source="Temperature.fxml" AnchorPane.bottomAnchor="0.0"
+                                    AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                                    AnchorPane.topAnchor="0.0"/>
                       </children>
                     </AnchorPane>
                   </children>
