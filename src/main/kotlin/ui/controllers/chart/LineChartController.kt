@@ -35,20 +35,20 @@ class LineChartController {
 
     /* init number formatters for axises' values */
     xAxis.tickLabelFormatter = object : StringConverter<Number>() {
-      override fun toString(`object`: Number) = String.format(Locale.ROOT, "%.1f", `object`.toDouble())
+      override fun toString(number: Number) = String.format(Locale.ROOT, "%.1f", number.toDouble())
       override fun fromString(string: String) = 0
     }
     yAxis.tickLabelFormatter = object : StringConverter<Number>() {
-      override fun toString(`object`: Number) = String.format(Locale.ROOT, "%.2f", `object`.toDouble())
+      override fun toString(number: Number) = String.format(Locale.ROOT, "%.2f", number.toDouble())
       override fun fromString(string: String) = 0
     }
 
-    chart.let {
-      it.createSymbols = false
-      it.animated = false
-      it.isLegendVisible = true
+    with(chart) {
+      createSymbols = false
+      animated = false
+      isLegendVisible = true
       /* force a css layout pass to ensure that subsequent lookup calls work */
-      it.applyCss()
+      applyCss()
     }
     xAxis.label = when (activeState().computationUnit()) {
       ComputationUnit.NM -> "Wavelength, nm"
@@ -212,17 +212,12 @@ class LineChartController {
   /**
    * Adds last imported data from chart state to line chart
    */
-  private fun addLastImportedToChart() {
-    val real = imported.last().extendedSeriesReal
-    val imaginary = imported.last().extendedSeriesImaginary
-    chartData().add(real.series)
-    imaginary.series.let {
-      if (it.data.isNotEmpty()) {
-        chartData().add(it)
-      }
+  private fun addLastImportedToChart() = with(imported.last()) {
+    chartData().add(extendedSeriesReal.series)
+    if (extendedSeriesImaginary.isNotEmpty()) {
+      chartData().add(extendedSeriesImaginary.series)
     }
 
-    // TODO Legend is in internal API
     updateLegendListener()
     updateStyleOfAll()
   }

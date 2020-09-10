@@ -25,9 +25,12 @@ class RootController {
      */
     Platform.runLater {
       activeState().compute()
-      lineChartController().updateChart()
-      lineChartController().importActiveStateExternalData()
+      chartController().importActiveStateExternalData()
+      chartController().updateChart()
       computeButton().setShortcut()
+
+      chartController().updateLegendListener()
+
     }
 
   }
@@ -41,6 +44,6 @@ class RootController {
   lateinit var mainApp: MainApp
 }
 
-fun lineChartController() = rootController.mainController.lineChartController
+fun chartController() = rootController.mainController.lineChartController
 
 fun computeButton() = rootController.mainController.controlsController.computeButton

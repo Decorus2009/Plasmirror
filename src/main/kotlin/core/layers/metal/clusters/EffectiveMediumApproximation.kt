@@ -18,8 +18,8 @@ abstract class EffectiveMediumApproximationLayerOfMetalClustersAlGaAs(
   private val f: Double,
   permittivityType: PermittivityType
 ) : MetalClustersAlGaAs, AlGaAs(d, k, x, permittivityType) {
-  override fun n(wl: Double) =
-    EffectiveMediumApproximation.permittivity(matrixPermittivity(wl), clusterPermittivity(wl), f).toRefractiveIndex()
+  override fun n(wl: Double, temperature: Double) =
+    EffectiveMediumApproximation.permittivity(matrixPermittivity(wl, temperature), clusterPermittivity(wl), f).toRefractiveIndex()
 }
 
 class EffectiveMediumApproximationLayerOfDrudeMetalClustersAlGaAs(

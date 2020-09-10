@@ -20,13 +20,13 @@ interface LayerExcitonic : Layer {
   val gamma0: Double
   val gamma: Double
 
-  override fun matrix(wl: Double, pol: Polarization, angle: Double) = TransferMatrix().apply {
-    val cos = cosThetaInLayer(n(wl), wl, angle)
+  override fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {
+    val cos = cosThetaInLayer(n(wl, temperature), wl, angle, temperature)
     val gamma0e = when (pol) {
       P -> gamma0 * cos.real
       else -> gamma0 * (cos.pow(-1.0)).real
     }
-    val phi = Complex(2.0 * PI * d / wl) * n(wl) * cos
+    val phi = Complex(2.0 * PI * d / wl) * n(wl, temperature) * cos
     val S = Complex(gamma0e) / Complex(wl.toEnergy() - w0, gamma)
 
     this[0, 0] = Complex((phi * I).exp()) * Complex(1.0 + S.imaginary, -S.real)

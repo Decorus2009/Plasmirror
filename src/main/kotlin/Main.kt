@@ -28,7 +28,7 @@ class MainApp : Application() {
   override fun start(primaryStage: Stage) {
     this.primaryStage = primaryStage
     with(FXMLLoader()) {
-      location = MainApp::class.java.getResource("fxml/root.fxml")
+      location = MainApp::class.java.getResource("fxml/Root.fxml")
       rootLayout = load<AnchorPane>()
       rootController = getController()
       rootController.mainApp = this@MainApp
@@ -47,6 +47,7 @@ class MainApp : Application() {
     with(Scene(rootLayout)) {
       stylesheets.add("css/all.css")
       primaryStage.scene = this
+      primaryStage.isMaximized = true
       primaryStage.show()
     }
 

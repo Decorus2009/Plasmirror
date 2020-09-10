@@ -15,7 +15,7 @@ class SeriesManagerController {
         "#" + Integer.toHexString((red * 255).toInt()) + Integer.toHexString((green * 255).toInt()) + Integer.toHexString((blue * 255).toInt())
       }
       selectedSeries.color = hexColor
-      lineChartController().updateStyleOf(selectedSeries)
+      chartController().updateStyleOf(selectedSeries)
     }
 
     xAxisFactorTextField.textProperty().addListener { _, _, newValue ->
@@ -57,7 +57,7 @@ class SeriesManagerController {
     removeButton.setOnMouseClicked {
       val name = selectedSeries.series.name
       LineChartState.removeBy(name)
-      lineChartController().run {
+      chartController().run {
         removeByName(name)
         updateStyleOfAll()
         updateLegendListener()

@@ -24,13 +24,13 @@ class MenuController {
 
     importMenuItem.setOnAction {
       initFileChooser(".").showOpenDialog(rootController.mainApp.primaryStage)?.let { file ->
-        lineChartController().importFrom(file)
+        chartController().importFrom(file)
       }
     }
 
     importMultipleMenuItem.setOnAction {
       initFileChooser(".").showOpenMultipleDialog(rootController.mainApp.primaryStage)?.let { files ->
-        lineChartController().importFromMultiple(files)
+        chartController().importFromMultiple(files)
       }
     }
 

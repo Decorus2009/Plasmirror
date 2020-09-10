@@ -53,6 +53,8 @@ data class State(
 
   fun rightMedium() = opticalParams().rightMedium
 
+  fun mirror() = computationState.mirror
+
   fun computationUnit() = computationState.range.unit
 
   fun addExternalData(data: ExternalData) = externalData.add(data)
@@ -71,8 +73,6 @@ data class State(
   private fun updateFromUI() = computationState.updateFromUI()
 
   private fun updateUI() = computationState.updateUI()
-
-  private fun mirror() = computationState.mirror
 
   /**
    * Generates a sequence of computation wavelengths
@@ -99,21 +99,19 @@ data class State(
     computationData().yImaginary.addAll(values.map { it.imaginary })
   }
 
-  private fun List<Double>.reflectance() = computeReal {
-    mirror().reflectance(it, polarization(), angle(), temperature())
-  }
+  private fun List<Double>.reflectance() = computeReal { mirror().reflectance(it, polarization(), angle(), temperature()) }
 
-  private fun List<Double>.transmittance() = computeReal { mirror().transmittance(it, polarization(), angle()) }
+  private fun List<Double>.transmittance() = computeReal { mirror().transmittance(it, polarization(), angle(), temperature()) }
 
-  private fun List<Double>.absorbance() = computeReal { mirror().absorbance(it, polarization(), angle()) }
+  private fun List<Double>.absorbance() = computeReal { mirror().absorbance(it, polarization(), angle(), temperature()) }
 
-  private fun List<Double>.extinctionCoefficient() = computeReal { mirror().extinctionCoefficient(it) }
+  private fun List<Double>.extinctionCoefficient() = computeReal { mirror().extinctionCoefficient(it, temperature()) }
 
-  private fun List<Double>.scatteringCoefficient() = computeReal { mirror().scatteringCoefficient(it) }
+  private fun List<Double>.scatteringCoefficient() = computeReal { mirror().scatteringCoefficient(it, temperature()) }
 
-  private fun List<Double>.permittivity() = computeComplex { mirror().permittivity(it) }
+  private fun List<Double>.permittivity() = computeComplex { mirror().permittivity(it, temperature()) }
 
-  private fun List<Double>.refractiveIndex() = computeComplex { mirror().refractiveIndex(it) }
+  private fun List<Double>.refractiveIndex() = computeComplex { mirror().refractiveIndex(it, temperature()) }
 }
 
 enum class ComputationUnit { NM, EV }

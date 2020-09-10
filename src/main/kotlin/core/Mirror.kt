@@ -28,16 +28,17 @@ class Mirror(
     rightMediumLayer = opticalParams.rightMedium.toLayer()
   }
 
-  fun reflectance(wl: Double, pol: Polarization, angle: Double) = with(r(wl, pol, angle).abs()) { this * this }
+  fun reflectance(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
+    r(wl, pol, angle, temperature).abs().let { it * it }
 
-  fun transmittance(wl: Double, pol: Polarization, angle: Double): Double {
-    val t = t(wl, pol, angle).abs()
+  fun transmittance(wl: Double, pol: Polarization, angle: Double, temperature: Double): Double {
+    val t = t(wl, pol, angle, temperature).abs()
 
-    val n1 = leftMediumLayer.n(wl)
-    val n2 = rightMediumLayer.n(wl)
+    val n1 = leftMediumLayer.n(wl, temperature)
+    val n2 = rightMediumLayer.n(wl, temperature)
 
     val cos1 = cosThetaIncident(angle)
-    val cos2 = cosThetaInLayer(rightMediumLayer.n(wl), wl, angle)
+    val cos2 = cosThetaInLayer(rightMediumLayer.n(wl, temperature), wl, angle, temperature)
 
     return when (pol) {
       P -> ((n2 * cos1) / (n1 * cos2)).abs() * t * t
@@ -45,22 +46,24 @@ class Mirror(
     }
   }
 
-  fun absorbance(wl: Double, pol: Polarization, angle: Double) =
-    1.0 - reflectance(wl, pol, angle) - transmittance(wl, pol, angle)
+  fun absorbance(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
+    1.0 - reflectance(wl, pol, angle, temperature) - transmittance(wl, pol, angle, temperature)
 
-  fun refractiveIndex(wl: Double) = structure.firstLayer().n(wl)
+  fun refractiveIndex(wl: Double, temperature: Double) = structure.firstLayer().n(wl, temperature)
 
-  fun permittivity(wl: Double) = with(refractiveIndex(wl)) { this * this }
+  fun permittivity(wl: Double, temperature: Double) = refractiveIndex(wl, temperature).let { it * it }
 
-  fun extinctionCoefficient(wl: Double) = structure.firstLayer().extinctionCoefficient(wl)
+  fun extinctionCoefficient(wl: Double, temperature: Double) =
+    structure.firstLayer().extinctionCoefficient(wl, temperature)
 
-  fun scatteringCoefficient(wl: Double) = (structure.firstLayer() as MieLayerOfMetalClustersAlGaAs).scatteringCoefficient(wl)
+  fun scatteringCoefficient(wl: Double, temperature: Double) =
+    (structure.firstLayer() as MieLayerOfMetalClustersAlGaAs).scatteringCoefficient(wl, temperature)
 
-  private fun r(wl: Double, pol: Polarization, angle: Double) =
-    with(matrix(wl, pol, angle)) { this[1, 0] / this[1, 1] * (-1.0) }
+  private fun r(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
+    matrix(wl, pol, angle, temperature).let { it[1, 0] / it[1, 1] * (-1.0) }
 
-  private fun t(wl: Double, pol: Polarization, angle: Double) =
-    with(matrix(wl, pol, angle)) { det() / this[1, 1] }
+  private fun t(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
+    matrix(wl, pol, angle, temperature).let { it.det() / it[1, 1] }
 
   /**
    * Странный алгоритм перемножения матриц. Оно происходит не последовательно.
@@ -82,7 +85,7 @@ class Mirror(
    * *
    * @return transfer matrix for mirror
    */
-  private fun matrix(wl: Double, pol: Polarization, angle: Double): TransferMatrix {
+  private fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double): TransferMatrix {
     var prev = leftMediumLayer
     /* blank layer (for formal initialization) */
     var first: Layer = ConstRefractiveIndexLayer(d = POSITIVE_INFINITY, n = Complex(NaN))
@@ -113,25 +116,25 @@ class Mirror(
             tempMatrix = TransferMatrix.unaryMatrix()
 
           } else {
-            tempMatrix = interfaceMatrix(prev, cur, wl, angle)
+            tempMatrix = interfaceMatrix(prev, cur, wl, angle, temperature)
           }
 
-          tempMatrix = cur.matrix(wl, pol, angle) * tempMatrix
+          tempMatrix = cur.matrix(wl, pol, angle, temperature) * tempMatrix
           periodMatrix = tempMatrix * periodMatrix
           prev = cur
         }
 
         if (repeat > 1) {
-          tempMatrix = interfaceMatrix(cur, first, wl, angle) * periodMatrix
+          tempMatrix = interfaceMatrix(cur, first, wl, angle, temperature) * periodMatrix
           tempMatrix = tempMatrix.pow(repeat - 1)
           periodMatrix *= tempMatrix
         }
 
-        periodMatrix *= interfaceMatrix(beforeFirst, first, wl, angle)
+        periodMatrix *= interfaceMatrix(beforeFirst, first, wl, angle, temperature)
         mirrorMatrix = periodMatrix * mirrorMatrix
       }
     }
-    mirrorMatrix = interfaceMatrix(prev, rightMediumLayer, wl, angle) * mirrorMatrix
+    mirrorMatrix = interfaceMatrix(prev, rightMediumLayer, wl, angle, temperature) * mirrorMatrix
     return mirrorMatrix
   }
 
@@ -140,28 +143,29 @@ class Mirror(
    * @param rightLayer layer on the right side of the interface
    * @return interface matrix
    */
-  private fun interfaceMatrix(leftLayer: Layer, rightLayer: Layer, wl: Double, angle: Double) = TransferMatrix().apply {
-    val n1 = leftLayer.n(wl)
-    val n2 = rightLayer.n(wl)
+  private fun interfaceMatrix(leftLayer: Layer, rightLayer: Layer, wl: Double, angle: Double, temperature: Double) =
+    TransferMatrix().apply {
+      val n1 = leftLayer.n(wl, temperature)
+      val n2 = rightLayer.n(wl, temperature)
 
-    /**
-     * cos theta in left and right layers are computed using the Snell law.
-     * Left and right layers are considered to be next to the left medium (AIR, CUSTOM, etc.)
-     */
-    val cos1 = cosThetaInLayer(leftLayer.n(wl), wl, angle)
-    val cos2 = cosThetaInLayer(rightLayer.n(wl), wl, angle)
+      /**
+       * cos theta in left and right layers are computed using the Snell law.
+       * Left and right layers are considered to be next to the left medium (AIR, CUSTOM, etc.)
+       */
+      val cos1 = cosThetaInLayer(leftLayer.n(wl, temperature), wl, angle, temperature)
+      val cos2 = cosThetaInLayer(rightLayer.n(wl, temperature), wl, angle, temperature)
 
-    val n1e = when (statesManager.activeState().polarization()) {
-      S -> n1 * cos1
-      else -> n1 / cos1
+      val n1e = when (statesManager.activeState().polarization()) {
+        S -> n1 * cos1
+        else -> n1 / cos1
+      }
+      val n2e = when (statesManager.activeState().polarization()) {
+        S -> n2 * cos2
+        else -> n2 / cos2
+      }
+      setDiagonal((n2e + n1e) / (n2e * 2.0))
+      setAntiDiagonal((n2e - n1e) / (n2e * 2.0))
     }
-    val n2e = when (statesManager.activeState().polarization()) {
-      S -> n2 * cos2
-      else -> n2 / cos2
-    }
-    setDiagonal((n2e + n1e) / (n2e * 2.0))
-    setAntiDiagonal((n2e - n1e) / (n2e * 2.0))
-  }
 
   private fun Structure.firstLayer() = blocks.first().layers.first()
 }

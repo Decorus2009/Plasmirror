@@ -9,7 +9,8 @@ import core.optics.semiconductor.AlGaAsMatrix
 interface MetalClustersAlGaAs : AlGaAsLayer {
   fun clusterPermittivity(wl: Double): Complex
 
-  fun matrixPermittivity(wl: Double) = AlGaAsMatrix.permittivity(wl, k, x, permittivityType)
+  fun matrixPermittivity(wl: Double, temperature: Double) =
+    AlGaAsMatrix.permittivity(wl, k, x, permittivityType, temperature)
 }
 
 interface DrudeMetalClustersAlGaAs : MetalClustersAlGaAs {

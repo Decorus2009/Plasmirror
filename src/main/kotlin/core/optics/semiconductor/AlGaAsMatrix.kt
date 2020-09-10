@@ -13,13 +13,16 @@ object AlGaAsMatrix {
    * J. Appl. Phys., 86, pp.445 (1999) - approach with Gaussian broadening
    * J. Appl. Phys. 58, R1 (1985) - simple Adachi model
    */
-  fun permittivity(wl: Double, k: Double, x: Double, permittivityType: PermittivityType): Complex {
+  fun permittivity(wl: Double, k: Double, x: Double, permittivityType: PermittivityType, temperature: Double): Complex {
     val w = wl.toEnergy()
     return when (permittivityType) {
-      ADACHI -> with(epsAdachi(w, x)) { Complex(real, real * k) }
+      ADACHI -> epsAdachi(w, x).let { Complex(it.real, it.real * k) }
       GAUSS -> epsGauss(w, x)
-      GAUSS_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0 -> with(epsGauss(w, x)) {
-        Complex(real, if (w >= E0(x)) imaginary else real * k)
+      GAUSS_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0 -> epsGauss(w, x).let { eps ->
+        Complex(
+          eps.real,
+          if (w >= E0(x)) eps.imaginary else eps.real * k
+        )
       }
     }
   }
@@ -28,26 +31,27 @@ object AlGaAsMatrix {
    * J. Appl. Phys. 58, R1 (1985) - simple Adachi model
    */
   private fun epsAdachi(w: Double, x: Double): Complex {
-    var wTmp = w
+    var energy = w
     val Eg = 1.425 + 1.155 * x + 0.37 * x * x
     // nonrecursive
-    if (wTmp > Eg) {
-      wTmp = Eg
+    if (energy > Eg) {
+      energy = Eg
     }
     val delta = 0.34 - 0.04 * x // eV
     val A = 6.3 + 19.0 * x
     val B = 9.4 - 10.2 * x
-    val hi = wTmp / Eg
-    val hi_so = wTmp / (Eg + delta)
+    val hi = energy / Eg
+    val hiSo = energy / (Eg + delta)
     val f: (Double) -> Double = { (2.0 - sqrt(1 + it) - sqrt(1 - it)) / (it * it) }
-    return Complex(A * (f(hi) + 0.5 * (Eg / (Eg + delta)).pow(1.5) * f(hi_so)) + B)
+    return Complex(A * (f(hi) + 0.5 * (Eg / (Eg + delta)).pow(1.5) * f(hiSo)) + B)
   }
 
 
   /**
    * J. Appl. Phys., 86, pp.445 (1999) - approach with Gaussian broadening
    */
-  private fun epsGauss(w: Double, x: Double) = epsInf(x) + eps1(w, x) + eps2(w, x) + eps3(w, x) + eps4(w, x)
+  private fun epsGauss(w: Double, x: Double) =
+    epsInf(x) + eps1(w, x) + eps2(w, x) + eps3(w, x) + eps4(w, x)
 
   private fun eps1(w: Double, x: Double): Complex {
     val A = A(x)
@@ -153,24 +157,24 @@ object AlGaAsMatrix {
   /**
    * Lorentz shapes modified by the exponential decay (Gaussian-like shapes)
    */
-  private fun gamma0Gauss(w: Double, x: Double) = with(gamma0(x)) {
-    this * exp(-alpha0(x) * ((w - E0(x)) / this).pow(2.0))
+  private fun gamma0Gauss(w: Double, x: Double) = gamma0(x).let {
+    it * exp(-alpha0(x) * ((w - E0(x)) / it).pow(2.0))
   }
 
-  private fun gamma1Gauss(w: Double, x: Double) = with(gamma1(x)) {
-    this * exp(-alpha1(x) * ((w - E1(x)) / this).pow(2.0))
+  private fun gamma1Gauss(w: Double, x: Double) = gamma1(x).let {
+    it * exp(-alpha1(x) * ((w - E1(x)) / it).pow(2.0))
   }
 
-  private fun gamma2Gauss(w: Double, x: Double) = with(gamma2(x)) {
-    this * exp(-alpha2(x) * ((w - E2(x)) / this).pow(2.0))
+  private fun gamma2Gauss(w: Double, x: Double) = gamma2(x).let {
+    it * exp(-alpha2(x) * ((w - E2(x)) / it).pow(2.0))
   }
 
-  private fun gamma3Gauss(w: Double, x: Double) = with(gamma3(x)) {
-    this * exp(-alpha3(x) * ((w - E3(x)) / this).pow(2.0))
+  private fun gamma3Gauss(w: Double, x: Double) = gamma3(x).let {
+    it * exp(-alpha3(x) * ((w - E3(x)) / it).pow(2.0))
   }
 
-  private fun gamma4Gauss(w: Double, x: Double) = with(gamma4(x)) {
-    this * exp(-alpha4(x) * ((w - E4(x)) / this).pow(2.0))
+  private fun gamma4Gauss(w: Double, x: Double) = gamma4(x).let {
+    it * exp(-alpha4(x) * ((w - E4(x)) / it).pow(2.0))
   }
 
   private fun epsInf(x: Double) = Complex(cubic(x, doubleArrayOf(1.347, 0.02, -0.568, 4.210)))

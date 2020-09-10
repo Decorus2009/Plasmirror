@@ -17,17 +17,17 @@ import java.lang.Math.PI
 interface Layer {
   val d: Double
 
-  fun n(wl: Double): Complex
+  fun n(wl: Double, temperature: Double): Complex
 
-  fun extinctionCoefficient(wl: Double) = n(wl).toExtinctionCoefficientAt(wl)
+  fun extinctionCoefficient(wl: Double, temperature: Double) = n(wl, temperature).toExtinctionCoefficientAt(wl)
 
   /**
    * @return transfer matrix for a layer without excitons
    * polarization is unused
    */
-  fun matrix(wl: Double, pol: Polarization, angle: Double) = TransferMatrix().apply {
-    val cos = cosThetaInLayer(n(wl), wl, angle)
-    var phi = Complex(2.0 * PI * d / wl) * n(wl) * cos
+  fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {
+    val cos = cosThetaInLayer(n(wl, temperature), wl, angle, temperature)
+    var phi = Complex(2.0 * PI * d / wl) * n(wl, temperature) * cos
     if (phi.imaginary < 0) {
       phi *= -1.0
     }
@@ -40,20 +40,28 @@ interface Layer {
 interface GaAsLayer : Layer {
   val permittivityType: PermittivityType
 
-  override fun n(wl: Double) = AlGaAsMatrix.permittivity(wl, 0.0, 0.0, permittivityType).toRefractiveIndex()
+  override fun n(wl: Double, temperature: Double) =
+    AlGaAsMatrix.permittivity(
+      wl = wl,
+      k = 0.0,
+      x = 0.0,
+      permittivityType = permittivityType,
+      temperature = temperature
+    ).toRefractiveIndex()
 }
 
 interface AlGaAsLayer : GaAsLayer {
   val k: Double
   val x: Double
 
-  override fun n(wl: Double) = AlGaAsMatrix.permittivity(wl, k, x, permittivityType).toRefractiveIndex()
+  override fun n(wl: Double, temperature: Double) =
+    AlGaAsMatrix.permittivity(wl, k, x, permittivityType, temperature).toRefractiveIndex()
 }
 
 open class GaAs(override val d: Double, override val permittivityType: PermittivityType) : GaAsLayer
 
 /**
- * @param k for Adachi computation n = (Re(n); Im(n) = k * Re(n))
+ * [k] for Adachi computation n = (Re(n); Im(n) = k * Re(n))
  */
 open class AlGaAs(
   override val d: Double,
@@ -63,7 +71,8 @@ open class AlGaAs(
 ) : AlGaAsLayer
 
 open class ConstRefractiveIndexLayer(override val d: Double, val n: Complex) : Layer {
-  override fun n(wl: Double): Complex = n
+  /** [temperature] is unused */
+  override fun n(wl: Double, temperature: Double): Complex = n
 }
 
 // type = 1-1, type = 1-2, type = 1-3

@@ -18,7 +18,7 @@ class ControlsController {
       this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
       (including rootController)
       */
-      lineChartController().updateChart()
+      chartController().updateChart()
     }
   }
 
