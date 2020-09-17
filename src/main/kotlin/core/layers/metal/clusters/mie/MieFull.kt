@@ -19,11 +19,11 @@ abstract class MieFullLayerOfMetalClustersAlGaAs(
    * value of AlGaAs refractive index is used as n-property here
    * Mie theory is for the computation of extinction and scattering, not for the computation of refractive index
    * */
-  override fun extinctionCoefficient(wl: Double, temperature: Double): Double =
-    MieFull.extinctionCoefficient(wl, matrixPermittivity(wl, temperature), clusterPermittivity(wl), f, r)
+  override fun extinctionCoefficient(wl: Double, T: Double): Double =
+    MieFull.extinctionCoefficient(wl, matrixPermittivity(wl, T), clusterPermittivity(wl), f, r)
 
-  override fun scatteringCoefficient(wl: Double, temperature: Double): Double =
-    MieFull.scatteringCoefficient(wl, matrixPermittivity(wl, temperature), clusterPermittivity(wl), f, r)
+  override fun scatteringCoefficient(wl: Double, T: Double): Double =
+    MieFull.scatteringCoefficient(wl, matrixPermittivity(wl, T), clusterPermittivity(wl), f, r)
 }
 
 class MieFullLayerOfDrudeMetalClustersAlGaAs(

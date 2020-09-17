@@ -17,7 +17,7 @@ class OpticalParamsController {
   lateinit var modeController: ModeController
 
   @FXML
-  lateinit var temperatureController: TemperatureController
+  lateinit var TController: TController
 
   @FXML
   lateinit var mediumParamsController: MediumParamsController

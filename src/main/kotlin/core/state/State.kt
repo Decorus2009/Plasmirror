@@ -43,7 +43,7 @@ data class State(
 
   fun mode() = computationState.opticalParams.mode
 
-  fun temperature() = computationState.opticalParams.temperature
+  fun T() = computationState.opticalParams.T
 
   fun polarization() = computationState.opticalParams.polarization
 
@@ -99,19 +99,19 @@ data class State(
     computationData().yImaginary.addAll(values.map { it.imaginary })
   }
 
-  private fun List<Double>.reflectance() = computeReal { mirror().reflectance(it, polarization(), angle(), temperature()) }
+  private fun List<Double>.reflectance() = computeReal { mirror().reflectance(it, polarization(), angle(), T()) }
 
-  private fun List<Double>.transmittance() = computeReal { mirror().transmittance(it, polarization(), angle(), temperature()) }
+  private fun List<Double>.transmittance() = computeReal { mirror().transmittance(it, polarization(), angle(), T()) }
 
-  private fun List<Double>.absorbance() = computeReal { mirror().absorbance(it, polarization(), angle(), temperature()) }
+  private fun List<Double>.absorbance() = computeReal { mirror().absorbance(it, polarization(), angle(), T()) }
 
-  private fun List<Double>.extinctionCoefficient() = computeReal { mirror().extinctionCoefficient(it, temperature()) }
+  private fun List<Double>.extinctionCoefficient() = computeReal { mirror().extinctionCoefficient(it, T()) }
 
-  private fun List<Double>.scatteringCoefficient() = computeReal { mirror().scatteringCoefficient(it, temperature()) }
+  private fun List<Double>.scatteringCoefficient() = computeReal { mirror().scatteringCoefficient(it, T()) }
 
-  private fun List<Double>.permittivity() = computeComplex { mirror().permittivity(it, temperature()) }
+  private fun List<Double>.permittivity() = computeComplex { mirror().permittivity(it, T()) }
 
-  private fun List<Double>.refractiveIndex() = computeComplex { mirror().refractiveIndex(it, temperature()) }
+  private fun List<Double>.refractiveIndex() = computeComplex { mirror().refractiveIndex(it, T()) }
 }
 
 enum class ComputationUnit { NM, EV }

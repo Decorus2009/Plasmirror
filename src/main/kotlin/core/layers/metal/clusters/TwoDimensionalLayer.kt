@@ -19,15 +19,15 @@ abstract class TwoDimensionalLayerOfMetalClustersAlGaAs(
   private val latticeFactor: Double,
   permittivityType: PermittivityType
 ) : MetalClustersAlGaAs, AlGaAs(d, k, x, permittivityType) {
-  override fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {
+  override fun matrix(wl: Double, pol: Polarization, angle: Double, T: Double) = TransferMatrix().apply {
     TwoDimensionalLayer.rt(
       wl,
       pol,
       angle,
-      temperature,
+      T,
       d,
       latticeFactor,
-      matrixPermittivity(wl, temperature),
+      matrixPermittivity(wl, T),
       clusterPermittivity(wl)
     ).let { (r, t) ->
       this@apply[0, 0] = (t * t - r * r) / t

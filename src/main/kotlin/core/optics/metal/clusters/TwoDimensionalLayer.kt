@@ -15,7 +15,7 @@ object TwoDimensionalLayer {
     wl: Double,
     pol: Polarization,
     angle: Double,
-    temperature: Double,
+    T: Double,
     d: Double,
     latticeFactor: Double,
     mediumPermittivity: Complex,
@@ -25,7 +25,7 @@ object TwoDimensionalLayer {
     val a = latticeFactor * R
     val U0 = 9.03 / (a * a * a)
 
-    val (cos, sin) = cosSin(mediumPermittivity.toRefractiveIndex(), wl, angle, temperature)
+    val (cos, sin) = cosSin(mediumPermittivity.toRefractiveIndex(), wl, angle, T)
     val theta = Complex(cos.acos())
 
     val (alphaParallel, alphaOrthogonal) = alphaParallelOrthogonal(alpha(mediumPermittivity, metalPermittivity, R), U0)
@@ -52,8 +52,8 @@ object TwoDimensionalLayer {
     return rNumerator / commonDenominator to tNumerator / commonDenominator
   }
 
-  private fun cosSin(n: Complex, wl: Double, angle: Double, temperature: Double) =
-    with(cosThetaInLayer(n, wl, angle, temperature)) { this to Complex((Complex.ONE - this * this).sqrt()) }
+  private fun cosSin(n: Complex, wl: Double, angle: Double, T: Double) =
+    with(cosThetaInLayer(n, wl, angle, T)) { this to Complex((Complex.ONE - this * this).sqrt()) }
 
   private fun alphaParallelOrthogonal(alpha: Complex, U0: Double) = with(alpha) {
     this / (Complex.ONE - this * 0.5 * U0) to this / (Complex.ONE + this * U0)

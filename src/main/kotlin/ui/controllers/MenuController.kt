@@ -54,7 +54,7 @@ class MenuController {
         title = "Export Multiple"
         isResizable = false
         scene = Scene(page)
-        /* works after pressing directory button or switching between angle and temperature modes. Why? */
+        /* works after pressing directory button or switching between angle and T modes. Why? */
         addEventHandler(KeyEvent.KEY_RELEASED) { event: KeyEvent ->
           if (KeyCode.ESCAPE == event.code) {
             close()
@@ -72,7 +72,7 @@ class MenuController {
       with(Stage()) {
         title = "Help"
         scene = Scene(page)
-        /* works after pressing directory button or switching between angle and temperature modes. Why? */
+        /* works after pressing directory button or switching between angle and T modes. Why? */
         addEventHandler(KeyEvent.KEY_RELEASED) { event: KeyEvent ->
           if (KeyCode.ESCAPE == event.code) {
             close()

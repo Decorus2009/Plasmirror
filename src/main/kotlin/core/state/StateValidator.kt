@@ -21,16 +21,16 @@ fun validate(unit: ComputationUnit, start: String, end: String, step: String) =
 
 fun validate(opticalParams: OpticalParams) {
   require(opticalParams.angle.isAllowedAngle()) { "Incorrect light incidence angle value. Allowed range: 0..90 (exclusive)" }
-  require(opticalParams.temperature.isAllowedTemperature()) { "Incorrect temperature value. Allowed value should be > 0" }
+  require(opticalParams.T.isAllowedT()) { "Incorrect T value. Allowed value should be > 0" }
 }
 
 /**
- * Checks the temperature value set on UI in text field
+ * Checks the T value set on UI in text field
  */
-fun validateTemperature(value: String) = runCatching {
-  require(value.toDouble().isAllowedTemperature()) { "Incorrect temperature value. Allowed value should be > 0" }
+fun validateT(value: String) = runCatching {
+  require(value.toDouble().isAllowedT()) { "Incorrect T value. Allowed value should be > 0" }
 }.getOrElse {
-  alert(headerText = "Temperature value error", contentText = "Provide correct and allowed temperature")
+  alert(headerText = "T value error", contentText = "Provide correct and allowed T")
 }
 
 

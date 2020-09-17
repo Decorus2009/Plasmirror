@@ -2,7 +2,7 @@ package core.layers.semiconductor
 
 import core.*
 import core.optics.*
-import core.optics.semiconductor.AlGaAsMatrix
+import core.optics.semiconductor.AlGaAs.AlGaAs
 import core.structure.StructureBuilder.parseAt
 import core.structure.StructureBuilder.parseComplexAt
 import java.lang.Math.PI
@@ -17,17 +17,17 @@ import java.lang.Math.PI
 interface Layer {
   val d: Double
 
-  fun n(wl: Double, temperature: Double): Complex
+  fun n(wl: Double, T: Double): Complex
 
-  fun extinctionCoefficient(wl: Double, temperature: Double) = n(wl, temperature).toExtinctionCoefficientAt(wl)
+  fun extinctionCoefficient(wl: Double, T: Double) = n(wl, T).toExtinctionCoefficientAt(wl)
 
   /**
    * @return transfer matrix for a layer without excitons
    * polarization is unused
    */
-  fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {
-    val cos = cosThetaInLayer(n(wl, temperature), wl, angle, temperature)
-    var phi = Complex(2.0 * PI * d / wl) * n(wl, temperature) * cos
+  fun matrix(wl: Double, pol: Polarization, angle: Double, T: Double) = TransferMatrix().apply {
+    val cos = cosThetaInLayer(n(wl, T), wl, angle, T)
+    var phi = Complex(2.0 * PI * d / wl) * n(wl, T) * cos
     if (phi.imaginary < 0) {
       phi *= -1.0
     }
@@ -40,13 +40,13 @@ interface Layer {
 interface GaAsLayer : Layer {
   val permittivityType: PermittivityType
 
-  override fun n(wl: Double, temperature: Double) =
-    AlGaAsMatrix.permittivity(
+  override fun n(wl: Double, T: Double) =
+    AlGaAs.permittivity(
       wl = wl,
       k = 0.0,
       x = 0.0,
       permittivityType = permittivityType,
-      temperature = temperature
+      T = T
     ).toRefractiveIndex()
 }
 
@@ -54,8 +54,8 @@ interface AlGaAsLayer : GaAsLayer {
   val k: Double
   val x: Double
 
-  override fun n(wl: Double, temperature: Double) =
-    AlGaAsMatrix.permittivity(wl, k, x, permittivityType, temperature).toRefractiveIndex()
+  override fun n(wl: Double, T: Double) =
+    AlGaAs.permittivity(wl, k, x, permittivityType, T).toRefractiveIndex()
 }
 
 open class GaAs(override val d: Double, override val permittivityType: PermittivityType) : GaAsLayer
@@ -71,8 +71,8 @@ open class AlGaAs(
 ) : AlGaAsLayer
 
 open class ConstRefractiveIndexLayer(override val d: Double, val n: Complex) : Layer {
-  /** [temperature] is unused */
-  override fun n(wl: Double, temperature: Double): Complex = n
+  /** [T] is unused */
+  override fun n(wl: Double, T: Double): Complex = n
 }
 
 // type = 1-1, type = 1-2, type = 1-3

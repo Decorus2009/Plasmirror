@@ -15,11 +15,11 @@ abstract class MieFirstOrderLayerOfMetalClustersAlGaAs(
   private val r: Double,
   permittivityType: PermittivityType
 ) : MieLayerOfMetalClustersAlGaAs, AlGaAs(d, k, x, permittivityType) {
-  override fun extinctionCoefficient(wl: Double, temperature: Double): Double =
-    MieFirstOrder.extinctionCoefficient(wl, matrixPermittivity(wl, temperature), clusterPermittivity(wl), f, r)
+  override fun extinctionCoefficient(wl: Double, T: Double): Double =
+    MieFirstOrder.extinctionCoefficient(wl, matrixPermittivity(wl, T), clusterPermittivity(wl), f, r)
 
-  override fun scatteringCoefficient(wl: Double, temperature: Double): Double =
-    MieFirstOrder.scatteringCoefficient(wl, matrixPermittivity(wl, temperature), clusterPermittivity(wl), f, r)
+  override fun scatteringCoefficient(wl: Double, T: Double): Double =
+    MieFirstOrder.scatteringCoefficient(wl, matrixPermittivity(wl, T), clusterPermittivity(wl), f, r)
 }
 
 class MieFirstOrderLayerOfDrudeMetalClustersAlGaAs(

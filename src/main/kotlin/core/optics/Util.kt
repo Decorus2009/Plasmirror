@@ -35,9 +35,9 @@ object MediumTypes {
 }
 
 enum class PermittivityType {
-  ADACHI,
-  GAUSS,
-  GAUSS_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0;
+  ADACHI_SIMPLE,
+  ADACHI_GAUSSIAN_BROADENING,
+  ADACHI_GAUSSIAN_BROADENING_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0;
 }
 
 enum class Mode {
@@ -88,8 +88,8 @@ fun cosThetaIncident(angle: Double) = Complex(cos(angle * PI / 180.0))
 /**
  *  Snell law
  */
-fun cosThetaInLayer(n2: Complex, wl: Double, angle: Double, temperature: Double): Complex {
-  val n1 = activeState().mirror().leftMediumLayer.n(wl, temperature)
+fun cosThetaInLayer(n2: Complex, wl: Double, angle: Double, T: Double): Complex {
+  val n1 = activeState().mirror().leftMediumLayer.n(wl, T)
 
   val cos1 = cosThetaIncident(angle)
   val sin1Sq = ONE - (cos1 * cos1)

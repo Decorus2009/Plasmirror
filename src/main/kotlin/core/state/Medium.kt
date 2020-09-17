@@ -24,10 +24,10 @@ data class Medium(
       ConstRefractiveIndexLayer(d = Double.POSITIVE_INFINITY, n = Complex.ONE)
     }
     MediumType.GAAS_ADACHI -> {
-      GaAs(d = Double.POSITIVE_INFINITY, permittivityType = PermittivityType.ADACHI)
+      GaAs(d = Double.POSITIVE_INFINITY, permittivityType = PermittivityType.ADACHI_SIMPLE)
     }
     MediumType.GAAS_GAUSS -> {
-      GaAs(d = Double.POSITIVE_INFINITY, permittivityType = PermittivityType.GAUSS)
+      GaAs(d = Double.POSITIVE_INFINITY, permittivityType = PermittivityType.ADACHI_GAUSSIAN_BROADENING)
     }
     MediumType.CUSTOM -> {
       ConstRefractiveIndexLayer(d = Double.POSITIVE_INFINITY, n = Complex(nReal, nImaginary))

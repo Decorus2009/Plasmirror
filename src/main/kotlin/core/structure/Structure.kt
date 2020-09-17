@@ -4,7 +4,6 @@ import core.Complex
 import core.layers.metal.clusters.*
 import core.layers.metal.clusters.mie.*
 import core.layers.semiconductor.*
-import core.optics.PermittivityType
 import core.optics.PermittivityType.*
 
 class LayerDescription(val type: String, val description: List<String>)
@@ -106,9 +105,9 @@ object StructureBuilder {
   fun List<String>.parseComplexAt(i: Int) = this[i].toComplex()
 
   private fun permittivityType(permittivityTypeCode: String) = when (permittivityTypeCode) {
-    "1" -> ADACHI
-    "2" -> GAUSS
-    "3" -> GAUSS_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0
+    "1" -> ADACHI_SIMPLE
+    "2" -> ADACHI_GAUSSIAN_BROADENING
+    "3" -> ADACHI_GAUSSIAN_BROADENING_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0
     else -> throw IllegalArgumentException("Unknown epsType (must never be reached)")
   }
 
