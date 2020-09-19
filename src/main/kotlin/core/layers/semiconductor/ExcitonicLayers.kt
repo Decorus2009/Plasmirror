@@ -20,13 +20,13 @@ interface LayerExcitonic : Layer {
   val gamma0: Double
   val gamma: Double
 
-  override fun matrix(wl: Double, pol: Polarization, angle: Double, T: Double) = TransferMatrix().apply {
-    val cos = cosThetaInLayer(n(wl, T), wl, angle, T)
+  override fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {
+    val cos = cosThetaInLayer(n(wl, temperature), wl, angle, temperature)
     val gamma0e = when (pol) {
       P -> gamma0 * cos.real
       else -> gamma0 * (cos.pow(-1.0)).real
     }
-    val phi = Complex(2.0 * PI * d / wl) * n(wl, T) * cos
+    val phi = Complex(2.0 * PI * d / wl) * n(wl, temperature) * cos
     val S = Complex(gamma0e) / Complex(wl.toEnergy() - w0, gamma)
 
     this[0, 0] = Complex((phi * I).exp()) * Complex(1.0 + S.imaginary, -S.real)
@@ -62,37 +62,43 @@ class ConstRefractiveIndexLayerExcitonic(
   override val gamma: Double
 ) : LayerExcitonic, ConstRefractiveIndexLayer(d, n)
 
-// type = 4-1, type = 4-2, type = 4-3
+/** type = 4-1, type = 4-2, type = 4-3 */
 fun GaAsExcitonic(description: List<String>, permittivityType: PermittivityType) = with(description) {
   GaAsExcitonic(
-    d = parseAt(i = 0),
-    w0 = parseAt(i = 1),
-    gamma0 = parseAt(i = 2),
-    gamma = parseAt(i = 3),
+    //@formatter:off
+    d                = parseAt(i = 0),
+    w0               = parseAt(i = 1),
+    gamma0           = parseAt(i = 2),
+    gamma            = parseAt(i = 3),
     permittivityType = permittivityType
+    //@formatter:on
   )
 }
 
-// type = 5-1, type = 5-2, type = 5-3
+/** type = 5-1, type = 5-2, type = 5-3 */
 fun AlGaAsExcitonic(description: List<String>, permittivityType: PermittivityType) = with(description) {
   AlGaAsExcitonic(
-    d = parseAt(i = 0),
-    k = parseAt(i = 1),
-    x = parseAt(i = 2),
-    w0 = parseAt(i = 3),
-    gamma0 = parseAt(i = 4),
-    gamma = parseAt(i = 5),
+    //@formatter:off
+    d                = parseAt(i = 0),
+    k                = parseAt(i = 1),
+    x                = parseAt(i = 2),
+    w0               = parseAt(i = 3),
+    gamma0           = parseAt(i = 4),
+    gamma            = parseAt(i = 5),
     permittivityType = permittivityType
+    //@formatter:on
   )
 }
 
-// type = 6
+/** type = 6 */
 fun constRefractiveIndexLayerExcitonic(description: List<String>) = with(description) {
   ConstRefractiveIndexLayerExcitonic(
-    d = parseAt(i = 0),
-    n = parseComplexAt(i = 1),
-    w0 = parseAt(i = 2),
+    //@formatter:off
+    d      = parseAt(i = 0),
+    n      = parseComplexAt(i = 1),
+    w0     = parseAt(i = 2),
     gamma0 = parseAt(i = 3),
-    gamma = parseAt(i = 4)
+    gamma  = parseAt(i = 4)
+    //@formatter:on
   )
 }

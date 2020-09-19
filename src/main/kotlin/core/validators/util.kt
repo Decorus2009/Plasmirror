@@ -7,7 +7,7 @@ import java.util.*
 
 enum class ValidationResult { SUCCESS, FAILURE }
 
-fun Double.isAllowedT() = this > 0.0
+fun Double.isAllowedTemperature() = this > 0.0
 
 fun Double.isAllowedAngle() = this in 0.0..89.99999999
 

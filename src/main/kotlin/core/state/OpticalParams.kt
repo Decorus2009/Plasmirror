@@ -1,10 +1,11 @@
 package core.state
 
 import core.optics.*
+import ui.controllers.state.TemperatureController
 
 data class OpticalParams(
   var mode: Mode,
-  var T: Double,
+  var temperature: Double,
   var angle: Double,
   var polarization: Polarization,
   var leftMedium: Medium,
@@ -12,7 +13,7 @@ data class OpticalParams(
 ) {
   fun updateFromUI() {
     updateModeFromUI()
-    updateTFromUI()
+    updateTemperatureFromUI()
     updateAngleFromUI()
     updatePolarizationFromUI()
     updateLeftMediumFromUI()
@@ -21,7 +22,7 @@ data class OpticalParams(
 
   fun updateUI() {
     updateUIMode()
-    updateUIT()
+    updateUITemperature()
     updateUIAngle()
     updateUIPolarization()
     updateUILeftMedium()
@@ -34,12 +35,12 @@ data class OpticalParams(
 
   private fun updateUIMode() = modeController().setMode(mode.toString())
 
-  private fun updateTFromUI() = TController().TText().let { text ->
-    validateT(text)
-    T = text.toDouble()
+  private fun updateTemperatureFromUI() = temperatureController().temperatureText().let { text ->
+    validateTemperature(text)
+    temperature = text.toDouble()
   }
 
-  private fun updateUIT() = TController().setT(T.toString())
+  private fun updateUITemperature() = temperatureController().setTemperature(temperature.toString())
 
   private fun updateAngleFromUI() = lightParamsController().angleText().let { text ->
     validateAngle(text)
@@ -72,11 +73,7 @@ data class OpticalParams(
 
   private fun updateUIRightMedium() = mediumParamsController().setRightMedium(rightMedium)
 
-  private fun String.toMode() = when (this) {
-    Modes.extinctionCoefficient -> Mode.EXTINCTION_COEFFICIENT
-    Modes.scatteringCoefficient -> Mode.SCATTERING_COEFFICIENT
-    else -> Mode.valueOf(toUpperCase())
-  }
+  private fun String.toMode() = Mode.valueOf(toUpperCase().replace(' ', '_'))
 
   private fun String.toMediumType() = when (this) {
     MediumTypes.GaAsAdachi -> MediumType.GAAS_ADACHI
@@ -86,7 +83,7 @@ data class OpticalParams(
 
   private fun modeController() = opticalParamsController().modeController
 
-  private fun TController() = opticalParamsController().TController
+  private fun temperatureController() = opticalParamsController().temperatureController
 
   private fun lightParamsController() = opticalParamsController().lightParamsController
 

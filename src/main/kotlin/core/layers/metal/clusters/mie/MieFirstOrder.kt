@@ -15,11 +15,11 @@ abstract class MieFirstOrderLayerOfMetalClustersAlGaAs(
   private val r: Double,
   permittivityType: PermittivityType
 ) : MieLayerOfMetalClustersAlGaAs, AlGaAs(d, k, x, permittivityType) {
-  override fun extinctionCoefficient(wl: Double, T: Double): Double =
-    MieFirstOrder.extinctionCoefficient(wl, matrixPermittivity(wl, T), clusterPermittivity(wl), f, r)
+  override fun extinctionCoefficient(wl: Double, temperature: Double): Double =
+    MieFirstOrder.extinctionCoefficient(wl, matrixPermittivity(wl, temperature), clusterPermittivity(wl), f, r)
 
-  override fun scatteringCoefficient(wl: Double, T: Double): Double =
-    MieFirstOrder.scatteringCoefficient(wl, matrixPermittivity(wl, T), clusterPermittivity(wl), f, r)
+  override fun scatteringCoefficient(wl: Double, temperature: Double): Double =
+    MieFirstOrder.scatteringCoefficient(wl, matrixPermittivity(wl, temperature), clusterPermittivity(wl), f, r)
 }
 
 class MieFirstOrderLayerOfDrudeMetalClustersAlGaAs(
@@ -43,31 +43,35 @@ class MieFirstOrderLayerOfSbClustersAlGaAs(
   permittivityType: PermittivityType
 ) : SbClustersAlGaAs, MieFirstOrderLayerOfMetalClustersAlGaAs(d, k, x, f, r, permittivityType)
 
-// type = 8[1]-1-1, type = 8[1]-2-1, type = 8[1]-3-1
+/** type = 8[1]-1-1, type = 8[1]-2-1, type = 8[1]-3-1 */
 fun mieFirstOrderLayerOfDrudeMetalClustersAlGaAs(description: List<String>, permittivityType: PermittivityType) =
   with(description) {
     MieFirstOrderLayerOfDrudeMetalClustersAlGaAs(
-      d = parseAt(i = 0),
-      k = parseAt(i = 1),
-      x = parseAt(i = 2),
-      wPlasma = parseAt(i = 3),
-      gammaPlasma = parseAt(i = 4),
-      epsInf = parseAt(i = 5),
-      f = parseAt(i = 6),
-      r = parseAt(i = 7),
+      //@formatter:off
+      d                = parseAt(i = 0),
+      k                = parseAt(i = 1),
+      x                = parseAt(i = 2),
+      wPlasma          = parseAt(i = 3),
+      gammaPlasma      = parseAt(i = 4),
+      epsInf           = parseAt(i = 5),
+      f                = parseAt(i = 6),
+      r                = parseAt(i = 7),
       permittivityType = permittivityType
+      //@formatter:on
     )
   }
 
-// type = 8[1]-1-2, type = 8[1]-2-2, type = 8[1]-3-2
+/** type = 8[1]-1-2, type = 8[1]-2-2, type = 8[1]-3-2 */
 fun mieFirstOrderLayerOfSbClustersAlGaAs(description: List<String>, permittivityType: PermittivityType) =
   with(description) {
     MieFirstOrderLayerOfSbClustersAlGaAs(
-      d = parseAt(i = 0),
-      k = parseAt(i = 1),
-      x = parseAt(i = 2),
-      f = parseAt(i = 3),
-      r = parseAt(i = 4),
+      //@formatter:off
+      d                = parseAt(i = 0),
+      k                = parseAt(i = 1),
+      x                = parseAt(i = 2),
+      f                = parseAt(i = 3),
+      r                = parseAt(i = 4),
       permittivityType = permittivityType
+      //@formatter:on
     )
   }

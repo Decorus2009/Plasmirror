@@ -11,15 +11,16 @@ object AlGaAs {
    * J. Appl. Phys., 86, pp.445 (1999) - Adachi model with with Gaussian-like broadening
    * J. Appl. Phys. 58, R1 (1985) - simple Adachi model
    */
-  fun permittivity(wl: Double, k: Double, x: Double, permittivityType: PermittivityType, T: Double): Complex {
+  fun permittivity(wl: Double, k: Double, cAl: Double, permittivityType: PermittivityType): Complex {
     val w = wl.toEnergy()
+
     return when (permittivityType) {
-      ADACHI_SIMPLE -> epsAdachiSimple(w, x).let { Complex(it.real, it.real * k) }
-      ADACHI_GAUSSIAN_BROADENING -> epsAdachiGaussianBroadening(w, x)
-      ADACHI_GAUSSIAN_BROADENING_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0 -> epsAdachiGaussianBroadening(w, x).let { eps ->
+      ADACHI_SIMPLE -> epsAdachiSimple(w, cAl).let { Complex(it.real, it.real * k) }
+      ADACHI_GAUSSIAN_BROADENING -> AdachiGaussianBroadening(w, cAl).compute()
+      ADACHI_GAUSSIAN_BROADENING_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0 -> AdachiGaussianBroadening(w, cAl).compute().let { eps ->
         Complex(
           eps.real,
-          if (w >= E0(x)) eps.imaginary else eps.real * k
+          if (w >= AdachiGaussianBroadening.E0(cAl)) eps.imaginary else eps.real * k
         )
       }
     }

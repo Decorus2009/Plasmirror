@@ -4,19 +4,19 @@ import core.state.activeState
 import javafx.fxml.FXML
 import javafx.scene.control.TextField
 
-class TController {
+class TemperatureController {
   @FXML
   fun initialize() {
-    println("T controller init")
-    TTextField.text = activeState().T().toString()
+    println("Temperature controller init")
+    temperatureTextField.text = activeState().temperature().toString()
   }
 
-  fun TText() = TTextField.text
+  fun temperatureText() = temperatureTextField.text
 
-  fun setT(value: String) {
-    TTextField.text = value
+  fun setTemperature(value: String) {
+    temperatureTextField.text = value
   }
 
   @FXML
-  lateinit var TTextField: TextField
+  lateinit var temperatureTextField: TextField
 }

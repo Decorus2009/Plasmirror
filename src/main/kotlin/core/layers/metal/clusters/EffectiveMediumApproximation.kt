@@ -18,8 +18,8 @@ abstract class EffectiveMediumApproximationLayerOfMetalClustersAlGaAs(
   private val f: Double,
   permittivityType: PermittivityType
 ) : MetalClustersAlGaAs, AlGaAs(d, k, x, permittivityType) {
-  override fun n(wl: Double, T: Double) =
-    EffectiveMediumApproximation.permittivity(matrixPermittivity(wl, T), clusterPermittivity(wl), f).toRefractiveIndex()
+  override fun n(wl: Double, temperature: Double) =
+    EffectiveMediumApproximation.permittivity(matrixPermittivity(wl, temperature), clusterPermittivity(wl), f).toRefractiveIndex()
 }
 
 class EffectiveMediumApproximationLayerOfDrudeMetalClustersAlGaAs(
@@ -41,30 +41,34 @@ class EffectiveMediumApproximationLayerOfSbClustersAlGaAs(
   permittivityType: PermittivityType
 ) : SbClustersAlGaAs, EffectiveMediumApproximationLayerOfMetalClustersAlGaAs(d, k, x, f, permittivityType)
 
-// type = 7-1-1, type = 7-2-1, type = 7-3-1
+/** type = 7-1-1, type = 7-2-1, type = 7-3-1 */
 fun effectiveMediumLayerOfDrudeMetalClustersAlGaAs(description: List<String>, permittivityType: PermittivityType) =
   with(description) {
     EffectiveMediumApproximationLayerOfDrudeMetalClustersAlGaAs(
-      d = parseAt(i = 0),
-      k = parseAt(i = 1),
-      x = parseAt(i = 2),
-      wPlasma = parseAt(i = 3),
-      gammaPlasma = parseAt(i = 4),
-      epsInf = parseAt(i = 5),
-      f = parseAt(i = 6),
+      //@formatter:off
+      d                = parseAt(i = 0),
+      k                = parseAt(i = 1),
+      x                = parseAt(i = 2),
+      wPlasma          = parseAt(i = 3),
+      gammaPlasma      = parseAt(i = 4),
+      epsInf           = parseAt(i = 5),
+      f                = parseAt(i = 6),
       permittivityType = permittivityType
+      //@formatter:on
     )
   }
 
-// type = 7-1-2, type = 7-2-2, type = 7-3-2
+/** type = 7-1-2, type = 7-2-2, type = 7-3-2 */
 fun effectiveMediumLayerOfSbClustersAlGaAs(description: List<String>, permittivityType: PermittivityType) =
   with(description) {
+    //@formatter:off
     EffectiveMediumApproximationLayerOfSbClustersAlGaAs(
-      d = parseAt(i = 0),
-      k = parseAt(i = 1),
-      x = parseAt(i = 2),
-      f = parseAt(i = 3),
+      d                = parseAt(i = 0),
+      k                = parseAt(i = 1),
+      x                = parseAt(i = 2),
+      f                = parseAt(i = 3),
       permittivityType = permittivityType
+      //@formatter:on
     )
   }
 

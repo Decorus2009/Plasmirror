@@ -88,8 +88,8 @@ fun cosThetaIncident(angle: Double) = Complex(cos(angle * PI / 180.0))
 /**
  *  Snell law
  */
-fun cosThetaInLayer(n2: Complex, wl: Double, angle: Double, T: Double): Complex {
-  val n1 = activeState().mirror().leftMediumLayer.n(wl, T)
+fun cosThetaInLayer(n2: Complex, wl: Double, angle: Double, temperature: Double): Complex {
+  val n1 = activeState().mirror().leftMediumLayer.n(wl, temperature)
 
   val cos1 = cosThetaIncident(angle)
   val sin1Sq = ONE - (cos1 * cos1)

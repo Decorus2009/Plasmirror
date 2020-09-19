@@ -1,29 +1,18 @@
 package core.optics.semiconductor.AlGaAsSb
 
+import core.optics.semiconductor.AlGaAsSb.AdachiFull.AdachiFullTemperatureDependent
 import core.optics.toEnergy
 
 /**
- * A(x)B(1-x)C(y)D(1-y) = Al(x)Ga(1-x)As(y)Sb(1-y)
- *
- * Binary components:
- * AC = AlAs
- * AD = AlSb
- * BC = GaAs
- * BD = GaSb
- *
- * x is the Al concentration
- * y is the As concentration
+ * Permittivity of alloy Al(x)Ga(1-x)As(y)Sb(1-y) in full Adachi model with temperature dependence:
+ * https://doi.org/10.1063/1.2751406
  */
 object AlGaAsSb {
   /**
-   * Computation of the AlGaAs permittivity:
-   * J. Appl. Phys., 86, pp.445 (1999) - Adachi model with with Gaussian-like broadening
-   * J. Appl. Phys. 58, R1 (1985) - simple Adachi model
-   *
    * [wl] wavelength
-   * [cAl] Al concentration
-   * [cAs] As concentration
+   * [cAl] Al concentration (x)
+   * [cAs] As concentration (y)
    */
-  fun permittivity(wl: Double, cAl: Double, cAs: Double, T: Double) =
-    epsAdachiComplexTDependent(wl.toEnergy(), x, T)
+  fun permittivity(wl: Double, cAl: Double, cAs: Double, temperature: Double) =
+    AdachiFullTemperatureDependent(wl.toEnergy(), cAl, cAs, temperature).compute()
 }

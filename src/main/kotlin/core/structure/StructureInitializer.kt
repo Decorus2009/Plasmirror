@@ -16,11 +16,11 @@ fun String.toStructure() = with(toLines().tokenize()) {
  * Ignore: single-line comments, multi-line comments, empty lines
  * Expand each layer description named tokens to single line:
  *
- * type = 7-2, d = 10, x = 0.31,
+ * type = 2-2, d = 10, x = 0.31,
  * wPlasma = 7.38, gammaPlasma = 0.18,
  * f = 0.0017
  * ---->
- * type = 7-2, d = 10, x = 0.31, wPlasma = 7.38, gammaPlasma = 0.18, f = 0.0017
+ * type = 2-2, d = 10, x = 0.31, wPlasma = 7.38, gammaPlasma = 0.18, f = 0.0017
  *
  * NB: (?s) activates Pattern.DOTALL notation.
  * "In dotall mode, the expression . matches any character, including a line terminator.

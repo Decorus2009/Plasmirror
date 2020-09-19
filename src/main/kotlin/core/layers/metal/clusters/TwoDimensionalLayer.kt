@@ -19,15 +19,15 @@ abstract class TwoDimensionalLayerOfMetalClustersAlGaAs(
   private val latticeFactor: Double,
   permittivityType: PermittivityType
 ) : MetalClustersAlGaAs, AlGaAs(d, k, x, permittivityType) {
-  override fun matrix(wl: Double, pol: Polarization, angle: Double, T: Double) = TransferMatrix().apply {
+  override fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {
     TwoDimensionalLayer.rt(
       wl,
       pol,
       angle,
-      T,
+      temperature,
       d,
       latticeFactor,
-      matrixPermittivity(wl, T),
+      matrixPermittivity(wl, temperature),
       clusterPermittivity(wl)
     ).let { (r, t) ->
       this@apply[0, 0] = (t * t - r * r) / t
@@ -57,29 +57,33 @@ class TwoDimensionalLayerOfSbClustersAlGaAs(
   permittivityType: PermittivityType
 ) : SbClustersAlGaAs, TwoDimensionalLayerOfMetalClustersAlGaAs(d, k, x, latticeFactor, permittivityType)
 
-// type = 9-1-1, type = 9-2-1, type = 9-3-1
+/** type = 9-1-1, type = 9-2-1, type = 9-3-1 */
 fun twoDimensionalLayerOfDrudeMetalClustersAlGaAs(description: List<String>, permittivityType: PermittivityType) =
   with(description) {
     TwoDimensionalLayerOfDrudeMetalClustersAlGaAs(
-      d = parseAt(i = 0),
-      k = parseAt(i = 1),
-      x = parseAt(i = 2),
-      latticeFactor = parseAt(i = 3),
-      wPlasma = parseAt(i = 4),
-      gammaPlasma = parseAt(i = 5),
-      epsInf = parseAt(i = 6),
+      //@formatter:off
+      d                = parseAt(i = 0),
+      k                = parseAt(i = 1),
+      x                = parseAt(i = 2),
+      latticeFactor    = parseAt(i = 3),
+      wPlasma          = parseAt(i = 4),
+      gammaPlasma      = parseAt(i = 5),
+      epsInf           = parseAt(i = 6),
       permittivityType = permittivityType
+      //@formatter:on
     )
   }
 
-// type = 9-1-2, type = 9-2-2, type = 9-3-2
+/** type = 9-1-2, type = 9-2-2, type = 9-3-2 */
 fun twoDimensionalLayerOfSbClustersAlGaAs(description: List<String>, permittivityType: PermittivityType) =
   with(description) {
     TwoDimensionalLayerOfSbClustersAlGaAs(
-      d = parseAt(i = 0),
-      k = parseAt(i = 1),
-      x = parseAt(i = 2),
-      latticeFactor = parseAt(i = 3),
+      //@formatter:off
+      d                = parseAt(i = 0),
+      k                = parseAt(i = 1),
+      x                = parseAt(i = 2),
+      latticeFactor    = parseAt(i = 3),
       permittivityType = permittivityType
+      //@formatter:on
     )
   }

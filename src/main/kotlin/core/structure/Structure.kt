@@ -28,9 +28,14 @@ class Block(val repeat: Int, val layers: List<Layer>)
 class Structure(val blocks: List<Block>)
 
 object StructureBuilder {
-  fun build(structureDescription: StructureDescription) = Structure(structureDescription.blockDescriptions.map { bd ->
-    Block(bd.repeat.toInt(), bd.layerDescriptions.map { ld -> ld.toLayer() })
-  })
+  fun build(structureDescription: StructureDescription) = Structure(
+    blocks = structureDescription.blockDescriptions.map { bd ->
+      Block(
+        repeat = bd.repeat.toInt(),
+        layers = bd.layerDescriptions.map { ld -> ld.toLayer() }
+      )
+    }
+  )
 
   private fun LayerDescription.toLayer(): Layer {
     val typesList = type.split("-") // type might look like 9-2-2

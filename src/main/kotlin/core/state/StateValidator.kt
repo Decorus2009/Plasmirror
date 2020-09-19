@@ -21,16 +21,16 @@ fun validate(unit: ComputationUnit, start: String, end: String, step: String) =
 
 fun validate(opticalParams: OpticalParams) {
   require(opticalParams.angle.isAllowedAngle()) { "Incorrect light incidence angle value. Allowed range: 0..90 (exclusive)" }
-  require(opticalParams.T.isAllowedT()) { "Incorrect T value. Allowed value should be > 0" }
+  require(opticalParams.temperature.isAllowedTemperature()) { "Incorrect temperature value. Allowed value should be > 0" }
 }
 
 /**
- * Checks the T value set on UI in text field
+ * Checks the temperature value set on UI in text field
  */
-fun validateT(value: String) = runCatching {
-  require(value.toDouble().isAllowedT()) { "Incorrect T value. Allowed value should be > 0" }
+fun validateTemperature(value: String) = runCatching {
+  require(value.toDouble().isAllowedTemperature()) { "Incorrect temperature value. Allowed value should be > 0" }
 }.getOrElse {
-  alert(headerText = "T value error", contentText = "Provide correct and allowed T")
+  alert(headerText = "Temperature value error", contentText = "Provide correct and allowed temperature")
 }
 
 
@@ -58,5 +58,5 @@ fun validateMediumRefractiveIndex(nRealText: String, nImaginaryText: String) {
 // TODO leave for external data validation
 fun validate(data: Data) = with(data) {
   require(yReal.isNotEmpty()) { "yReal values are empty" }
-  require(yImaginary?.isNotEmpty() ?: true) { "yImaginary values are empty whereas they should be present" }
+  require(yImaginary.isNotEmpty()) { "yImaginary values are empty whereas they should be present" }
 }

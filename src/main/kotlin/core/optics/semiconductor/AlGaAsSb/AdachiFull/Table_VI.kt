@@ -1,20 +1,21 @@
-package core.optics.semiconductor.AlGaAsSb
+package core.optics.semiconductor.AlGaAsSb.AdachiFull
 
 object Table_VI {
   /**
-   * Record in table VI (AlGaAsSb column) for quaternary bowing parameters (C_A-B and C_C-D in the paper)
-   * for model parameters present in both table I and table III:
-   *   A(E0/E0 + delta0)
-   *   C(E2), D(EIndirect)
-   *   Gamma(E0/E0 + delta0)
-   *   Gamma(E1/E1 + delta1)
+   * Record in table VI (AlGaAsSb columns for C_A-B and C_C-D)
+   *   A(E0/E0 + Delta0)
+   *   C(E2),
+   *   D(EIndirect)
+   *   Gamma(E0/E0 + Delta0)
+   *   Gamma(E1/E1 + Delta1)
    *   Gamma(E2)
    *   Gamma(EIndirect)
+   *   aLattice
    */
   data class Record(val bowingA_B: Double, val bowingC_D: Double)
 
   /**
-   * T independent bowing constants (without a0) for AlGaAsSb
+   * temperature independent bowing constants for AlGaAsSb
    */
   //@formatter:off
   val values = mapOf(
@@ -24,7 +25,8 @@ object Table_VI {
     ModelParameters.GammaE0Delta0  to Record(-0.004, 0.010),
     ModelParameters.GammaE1Delta1  to Record(0.033, 0.009),
     ModelParameters.GammaE2        to Record(-0.031, 0.009),
-    ModelParameters.GammaEIndirect to Record(0.008, 0.010)
+    ModelParameters.GammaEIndirect to Record(0.008, 0.010),
+    ModelParameters.aLattice       to Record(0.002, 0.010)
   )
   //@formatter:on
 }

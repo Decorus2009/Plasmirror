@@ -17,18 +17,18 @@ import java.lang.Math.PI
 interface Layer {
   val d: Double
 
-  fun n(wl: Double, T: Double): Complex
+  fun n(wl: Double, temperature: Double): Complex
 
-  fun extinctionCoefficient(wl: Double, T: Double) = n(wl, T).toExtinctionCoefficientAt(wl)
+  fun extinctionCoefficient(wl: Double, temperature: Double) = n(wl, temperature).toExtinctionCoefficientAt(wl)
 
   /**
    * @return transfer matrix for a layer without excitons
    * polarization is unused
    */
-  fun matrix(wl: Double, pol: Polarization, angle: Double, T: Double) = TransferMatrix().apply {
-    val cos = cosThetaInLayer(n(wl, T), wl, angle, T)
-    var phi = Complex(2.0 * PI * d / wl) * n(wl, T) * cos
-    if (phi.imaginary < 0) {
+  fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {
+    val cos = cosThetaInLayer(n(wl, temperature), wl, angle, temperature)
+    var phi = Complex(2.0 * PI * d / wl) * n(wl, temperature) * cos
+    if (phi.imaginary < 0.0) {
       phi *= -1.0
     }
     this[0, 0] = Complex((phi * Complex.I).exp())
@@ -40,13 +40,12 @@ interface Layer {
 interface GaAsLayer : Layer {
   val permittivityType: PermittivityType
 
-  override fun n(wl: Double, T: Double) =
+  override fun n(wl: Double, temperature: Double) =
     AlGaAs.permittivity(
       wl = wl,
       k = 0.0,
-      x = 0.0,
-      permittivityType = permittivityType,
-      T = T
+      cAl = 0.0,
+      permittivityType = permittivityType
     ).toRefractiveIndex()
 }
 
@@ -54,8 +53,8 @@ interface AlGaAsLayer : GaAsLayer {
   val k: Double
   val x: Double
 
-  override fun n(wl: Double, T: Double) =
-    AlGaAs.permittivity(wl, k, x, permittivityType, T).toRefractiveIndex()
+  override fun n(wl: Double, temperature: Double) =
+    AlGaAs.permittivity(wl, k, x, permittivityType).toRefractiveIndex()
 }
 
 open class GaAs(override val d: Double, override val permittivityType: PermittivityType) : GaAsLayer
@@ -71,21 +70,36 @@ open class AlGaAs(
 ) : AlGaAsLayer
 
 open class ConstRefractiveIndexLayer(override val d: Double, val n: Complex) : Layer {
-  /** [T] is unused */
-  override fun n(wl: Double, T: Double): Complex = n
+  /** [temperature] is unused */
+  override fun n(wl: Double, temperature: Double): Complex = n
 }
 
-// type = 1-1, type = 1-2, type = 1-3
+/** type = 1-1, type = 1-2, type = 1-3 */
 fun GaAs(description: List<String>, permittivityType: PermittivityType) = with(description) {
-  GaAs(d = parseAt(i = 0), permittivityType = permittivityType)
+  GaAs(
+    //@formatter:off
+    d                = parseAt(i = 0),
+    permittivityType = permittivityType
+    //@formatter:on
+  )
 }
 
-// type = 2-1, type = 2-2, type = 2-3
+/** type = 2-1, type = 2-2, type = 2-3 */
 fun AlGaAs(description: List<String>, permittivityType: PermittivityType) = with(description) {
-  AlGaAs(d = parseAt(i = 0), k = parseAt(i = 1), x = parseAt(i = 2), permittivityType = permittivityType)
+  AlGaAs(
+    //@formatter:off
+    d                = parseAt(i = 0),
+    k                = parseAt(i = 1),
+    x                = parseAt(i = 2),
+    permittivityType = permittivityType
+    //@formatter:on
+  )
 }
 
-// type = 3
+/** type = 3 */
 fun constRefractiveIndexLayer(description: List<String>) = with(description) {
-  ConstRefractiveIndexLayer(d = parseAt(i = 0), n = parseComplexAt(i = 1))
+  ConstRefractiveIndexLayer(
+    d = parseAt(i = 0),
+    n = parseComplexAt(i = 1)
+  )
 }
