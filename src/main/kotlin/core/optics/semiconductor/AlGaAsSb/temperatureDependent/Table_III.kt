@@ -1,12 +1,14 @@
-package core.optics.semiconductor.AlGaAsSb.AdachiFull
+package core.optics.semiconductor.AlGaAsSb.temperatureDependent
 
 object Table_III {
   /**
    * A pair of [GammaL] and [smallGamma] for computation of temperature-dependent Gamma for
    * critical points E1/E1 + Delta1, E2
+   *
+   * NB: GammaL (meV), smallGamma (meV/K)
    */
   data class GammaComponents(val GammaL: Double, val smallGamma: Double) {
-    fun gammaAt(temperature: Double) = GammaL + smallGamma * temperature
+    fun gammaAt(temperature: Double) = GammaL * 1E-3 + smallGamma * 1E-3 * temperature
   }
 
   /**

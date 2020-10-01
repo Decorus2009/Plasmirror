@@ -1,4 +1,4 @@
-package core.optics.semiconductor.AlGaAsSb.AdachiFull
+package core.optics.semiconductor.AlGaAsSb.temperatureDependent
 
 import kotlin.math.pow
 
@@ -7,9 +7,11 @@ object Table_II {
    * Instance of this class represents a record in Table II in paper for AlAs, AlSb, GaAs and GaSb
    * [EAt0K] s the energy of critical point at 0K
    * [alpha], [beta] are Varshni parameters
+   *
+   * NB: alpha (meV/K)
    */
   data class Record(val EAt0K: Double, val alpha: Double, val beta: Double) {
-    fun energyAt(temperature: Double) = varshni(EAt0K, alpha, beta, temperature)
+    fun energyAt(temperature: Double) = varshni(EAt0K, alpha * 1E-3, beta, temperature)
   }
 
   /**

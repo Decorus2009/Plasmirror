@@ -1,6 +1,7 @@
-package core.optics.semiconductor.AlGaAsSb.AdachiFull
+package core.optics.semiconductor.AlGaAsSb.temperatureDependent
 
 import core.Complex
+import core.state.activeState
 import kotlin.math.pow
 
 /**
@@ -14,7 +15,15 @@ class AdachiFullTemperatureDependent(
   private val cAs: Double,
   private val temperature: Double
 ) {
-  fun compute() = eps1() + eps2() + eps3() + eps4()
+  fun compute(): Complex {
+    val eps1 = eps1()
+    val eps2 = eps2()
+    val eps3 = eps3()
+    val eps4 = eps4()
+    val wl = 1239.8 / w
+
+    return eps1 + eps2 + eps3 + eps4
+  }
 
   private fun eps1(): Complex {
     //@formatter:off

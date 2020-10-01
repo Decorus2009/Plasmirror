@@ -16,6 +16,10 @@ class Complex(real: Double, imaginary: Double) : ApacheComplex(real, imaginary) 
     val I = Complex(0.0, 1.0)
     val ONE = Complex(1.0, 0.0)
     val ZERO = Complex(0.0, 0.0)
+
+    fun of(value: Double) = Complex(value)
+
+    fun of(real: Double, imaginary: Double) = Complex(real, imaginary)
   }
 
   constructor(real: Double) : this(real, 0.0)
@@ -110,3 +114,13 @@ fun Double.round(): Double {
 }
 
 fun Double.toCm() = this * 1E-7 // wavelength: nm -> cm
+
+fun Double.checkIsNotNegative() = check(this >= 0.0) { "Parameter value \"$this\" should be >= 0" }
+
+fun Int.checkIsNotNegative() = check(this >= 0) { "Parameter value \"$this\" should be >= 0" }
+
+fun Double.isAllowedTemperature() = this > 0.0
+
+fun Double.isAllowedAngle() = this in 0.0..89.99999999
+
+fun Double.isNotAllowedAngle() = !isAllowedAngle()

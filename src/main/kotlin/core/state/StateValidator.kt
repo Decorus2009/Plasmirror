@@ -1,5 +1,7 @@
 package core.state
 
+import core.isAllowedAngle
+import core.isAllowedTemperature
 import core.validators.*
 
 fun validate(range: Range) = with(range) {
@@ -8,7 +10,7 @@ fun validate(range: Range) = with(range) {
     require(step > 0) { "Incorrect step value of x" }
     require(end >= start) { "Computation end value of x is larger that start one" }
   }.getOrElse {
-    alert(headerText = "Computation range error", contentText = "Provide correct range")
+    alert(header = "Computation range error", content = "Provide correct range")
   }
 }
 
@@ -30,7 +32,7 @@ fun validate(opticalParams: OpticalParams) {
 fun validateTemperature(value: String) = runCatching {
   require(value.toDouble().isAllowedTemperature()) { "Incorrect temperature value. Allowed value should be > 0" }
 }.getOrElse {
-  alert(headerText = "Temperature value error", contentText = "Provide correct and allowed temperature")
+  alert(header = "Temperature value error", content = "Provide correct and allowed temperature")
 }
 
 
@@ -40,7 +42,7 @@ fun validateTemperature(value: String) = runCatching {
 fun validateAngle(value: String) = runCatching {
   require(value.toDouble().isAllowedAngle()) { "Incorrect light incidence angle value. Allowed range: 0..90 (exclusive)" }
 }.getOrElse {
-  alert(headerText = "Angle value error", contentText = "Provide correct and allowed angle")
+  alert(header = "Angle value error", content = "Provide correct and allowed angle")
 }
 
 /**
@@ -51,7 +53,7 @@ fun validateMediumRefractiveIndex(nRealText: String, nImaginaryText: String) {
     nRealText.toDouble()
     nImaginaryText.toDouble()
   }.getOrElse {
-    alert(headerText = "Medium n value error", contentText = "Provide correct medium n")
+    alert(header = "Medium n value error", content = "Provide correct medium n")
   }
 }
 

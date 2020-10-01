@@ -1,7 +1,6 @@
 package core.state
 
 import core.optics.*
-import ui.controllers.state.TemperatureController
 
 data class OpticalParams(
   var mode: Mode,
@@ -76,9 +75,9 @@ data class OpticalParams(
   private fun String.toMode() = Mode.valueOf(toUpperCase().replace(' ', '_'))
 
   private fun String.toMediumType() = when (this) {
-    MediumTypes.GaAsAdachi -> MediumType.GAAS_ADACHI
-    MediumTypes.GaAsGauss -> MediumType.GAAS_GAUSS
-    else -> MediumType.valueOf(toUpperCase())
+    ExternalMediumTypes.GaAsAdachi -> ExternalMediumType.GAAS_ADACHI
+    ExternalMediumTypes.GaAsGauss -> ExternalMediumType.GAAS_GAUSS
+    else -> ExternalMediumType.valueOf(toUpperCase())
   }
 
   private fun modeController() = opticalParamsController().modeController

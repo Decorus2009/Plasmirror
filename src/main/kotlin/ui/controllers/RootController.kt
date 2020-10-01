@@ -28,9 +28,7 @@ class RootController {
       chartController().importActiveStateExternalData()
       chartController().updateChart()
       computeButton().setShortcut()
-
       chartController().updateLegendListener()
-
     }
 
   }

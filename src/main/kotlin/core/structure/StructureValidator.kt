@@ -21,6 +21,9 @@ fun TokenizedLines.validate() {
 //  onlyOneLayerForCertainComputationModes()
   numberOfParamsInLayer()
   numbersFormat()
+
+  // TODO validate pair of params and their names (e.g. wPlasma = 14.6 -> "wPlasma" to 14.6)
+  //  also check that wPlasma is in allowed arg names so that it can further be transferred to layer builder
 }
 
 /**
@@ -111,9 +114,12 @@ private fun TokenizedLines.onlyOneLayerForCertainComputationModes() {
 /**
  * Check the number of params for a layer with certain type
  */
+// TODO reconsider basing on the medium and its permittivity model specified in layer type
+//  and metal type (Drude that requires params (wPlasma, ...) vs Sb the doesn't require params at all
+//   e.g. mie[1&2][Drude-AlGaAs:Adachi.gaussian]
 private fun TokenizedLines.numberOfParamsInLayer() =
   filterNot { it.isRepeatDescription() }.forEach { layerLine ->
-    val type = layerLine[0]
+    val type = layerLine.first()
     if (type !in numberOfParams.keys || numberOfParams[type] != layerLine.size) {
       throw StructureDescriptionException("Invalid layer type or incorrect number of parameters for a layer")
     }

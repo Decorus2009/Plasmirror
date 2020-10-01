@@ -1,6 +1,6 @@
 package core
 
-import core.layers.metal.clusters.mie.MieLayerOfMetalClustersAlGaAs
+import core.layers.composite.Mie
 import core.layers.semiconductor.ConstRefractiveIndexLayer
 import core.layers.semiconductor.Layer
 import core.optics.*
@@ -28,9 +28,11 @@ class Mirror(
     rightMediumLayer = opticalParams.rightMedium.toLayer()
   }
 
+  // TODO use pow
   fun reflectance(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
     r(wl, pol, angle, temperature).abs().let { it * it }
 
+  // TODO use pow
   fun transmittance(wl: Double, pol: Polarization, angle: Double, temperature: Double): Double {
     val t = t(wl, pol, angle, temperature).abs()
 
@@ -57,7 +59,7 @@ class Mirror(
     structure.firstLayer().extinctionCoefficient(wl, temperature)
 
   fun scatteringCoefficient(wl: Double, temperature: Double) =
-    (structure.firstLayer() as MieLayerOfMetalClustersAlGaAs).scatteringCoefficient(wl, temperature)
+    (structure.firstLayer() as Mie).scatteringCoefficient(wl, temperature)
 
   private fun r(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
     matrix(wl, pol, angle, temperature).let { it[1, 0] / it[1, 1] * (-1.0) }

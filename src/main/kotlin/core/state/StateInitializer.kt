@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import core.Mirror
 import core.structure.toStructure
+import core.util.isNullOrMissing
+import core.util.requireNode
 
 fun requireStates() = requireStatesNodes().map { it.toState() }
 
@@ -31,7 +33,7 @@ private fun JsonNode.toComputationState(): ComputationState {
 }
 
 inline fun <reified T> JsonNode.parse(): T {
-  if (isNullOrMissing()) {
+  if (isNullOrMissing) {
     throw IllegalStateException("Null or missing node in the config")
   }
   return runCatching {

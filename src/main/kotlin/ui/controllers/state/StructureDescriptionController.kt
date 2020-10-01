@@ -20,7 +20,7 @@ class StructureDescriptionController {
     area.richChanges().filter { it.inserted != it.removed }.subscribe { area.setStyleSpans(0, computeHighlighting(area.text)) }
     area.style = """
       -fx-font-family: system;
-      -fx-font-size: 11pt;
+      -fx-font-size: 13pt;
       -fx-highlight-fill: #dbdddd;
       -fx-highlight-text-fill: #dbdddd;
     """
@@ -32,7 +32,7 @@ class StructureDescriptionController {
    */
   private fun computeHighlighting(text: String): StyleSpans<Collection<String>> {
     val COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/"
-    val NAME_PATTERN = "\\w+\\s*=\\s*+"
+    val NAME_PATTERN = "\\w+\\s*:\\s*+"
     val REPEAT_PATTERN = "\\s*[xX]\\s*[0-9]+\\s*"
     val PATTERN = Pattern.compile("(?<COMMENT>$COMMENT_PATTERN)|(?<NAME>$NAME_PATTERN)|(?<REPEAT>$REPEAT_PATTERN)")
 

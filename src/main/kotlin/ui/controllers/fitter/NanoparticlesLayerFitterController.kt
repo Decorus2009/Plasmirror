@@ -1,7 +1,7 @@
 //package ui.controllers.fitter
 //
 //import core.layers.semiconductor.Layer
-//import core.layers.metal.clusters.TwoDimensionalLayerOfDrudeMetalClustersAlGaAs
+//import core.layers.metal.particles.TwoDimensionalLayerOfDrudeMetalParticlesAlGaAs
 //import javafx.application.Platform
 //import javafx.fxml.FXML
 //import javafx.scene.control.CheckBox
@@ -85,7 +85,7 @@
 //      }
 //    }
 //    Platform.runLater {
-//      with(layer as TwoDimensionalLayerOfDrudeMetalClustersAlGaAs) {
+//      with(layer as TwoDimensionalLayerOfDrudeMetalParticlesAlGaAs) {
 //        d.let {
 //          d_valueTextField.text = String.format(Locale.US, "%.2f", it)
 //          d_fromTextField.text = String.format(Locale.US, "%.2f", it * 0.5)
@@ -167,7 +167,7 @@
 //        val eps_inf_to = eps_inf_toTextField.text.toDouble()
 //        val eps_inf_step = eps_inf_stepTextField.text.toDouble()
 //
-//        with(layer as TwoDimensionalLayerOfDrudeMetalClustersAlGaAs) {
+//        with(layer as TwoDimensionalLayerOfDrudeMetalParticlesAlGaAs) {
 //            var d = d_from
 //            while (d <= d_to) {
 //                this.d = d

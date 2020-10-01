@@ -1,4 +1,4 @@
-package core.optics.metal.clusters.mie
+package core.optics.composite.mie
 
 import core.Complex
 import core.optics.toRefractiveIndex
@@ -6,7 +6,7 @@ import core.toCm
 import java.lang.Math.*
 import kotlin.math.pow
 
-object MieFull : Mie {
+object MieAll : Mie {
   private lateinit var D: MutableList<Complex>
   private lateinit var psi: MutableList<Double>
   private lateinit var xi: List<Complex>
@@ -20,12 +20,12 @@ object MieFull : Mie {
   private lateinit var mx: Complex
 
   override fun extinctionCoefficient(
-    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wavelength, mediumPermittivity, metalPermittivity, f, r).first
+    wl: Double, mediumPermittivity: Complex, particlePermittivity: Complex, f: Double, r: Double
+  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r).first
 
   override fun scatteringCoefficient(
-    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wavelength, mediumPermittivity, metalPermittivity, f, r).second
+    wl: Double, mediumPermittivity: Complex, particlePermittivity: Complex, f: Double, r: Double
+  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r).second
 
   private fun alphaExtAlphaSca(
     wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double

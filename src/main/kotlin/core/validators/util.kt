@@ -7,15 +7,10 @@ import java.util.*
 
 enum class ValidationResult { SUCCESS, FAILURE }
 
-fun Double.isAllowedTemperature() = this > 0.0
 
-fun Double.isAllowedAngle() = this in 0.0..89.99999999
-
-fun Double.isNotAllowedAngle() = !isAllowedAngle()
-
-fun alert(title: String = "Error", headerText: String, contentText: String): Optional<ButtonType> = with(Alert(AlertType.ERROR)) {
+fun alert(title: String = "Error", header: String, content: String): Optional<ButtonType> = with(Alert(AlertType.ERROR)) {
   this.title = title
-  this.headerText = headerText
-  this.contentText = contentText
+  this.headerText = header
+  this.contentText = content
   showAndWait()
 }

@@ -10,34 +10,32 @@ import kotlin.math.sqrt
 
 enum class Polarization { S, P }
 
-/**
- * Used in
- */
-enum class MediumType {
+enum class ExternalMediumType {
   AIR,
   GAAS_ADACHI,
   GAAS_GAUSS,
   CUSTOM;
 
   override fun toString() = when (this) {
-    AIR -> MediumTypes.air
-    GAAS_ADACHI -> MediumTypes.GaAsAdachi
-    GAAS_GAUSS -> MediumTypes.GaAsGauss
-    CUSTOM -> MediumTypes.custom
+    AIR -> ExternalMediumTypes.air
+    GAAS_ADACHI -> ExternalMediumTypes.GaAsAdachi
+    GAAS_GAUSS -> ExternalMediumTypes.GaAsGauss
+    CUSTOM -> ExternalMediumTypes.custom
   }
 }
 
-object MediumTypes {
+object ExternalMediumTypes {
   const val air = "Air"
   const val GaAsAdachi = "GaAs: Adachi"
   const val GaAsGauss = "GaAs: Gauss"
   const val custom = "Custom"
 }
 
-enum class PermittivityType {
+enum class PermittivityModel {
   ADACHI_SIMPLE,
-  ADACHI_GAUSSIAN_BROADENING,
-  ADACHI_GAUSSIAN_BROADENING_WITH_VARIABLE_IM_PERMITTIVITY_BELOW_E0;
+  ADACHI_FULL_T,
+  ADACHI_FULL_GAUSS,
+  ADACHI_FULL_GAUSS_MOD;
 }
 
 enum class Mode {
@@ -80,6 +78,8 @@ object Modes {
 fun Complex.toExtinctionCoefficientAt(wavelength: Double) = 4.0 * PI * imaginary / (wavelength.toCm()) // cm^-1
 
 fun Complex.toRefractiveIndex() = Complex(sqrt((abs() + real) / 2.0), sqrt((abs() - real) / 2.0))
+
+fun Complex.toPermittivity() = this * this
 
 fun Double.toEnergy() = 1239.8 / this
 

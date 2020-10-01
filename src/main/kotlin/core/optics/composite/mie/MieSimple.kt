@@ -1,4 +1,4 @@
-package core.optics.metal.clusters.mie
+package core.optics.composite.mie
 
 import core.Complex
 import core.Complex.Companion.I
@@ -9,14 +9,21 @@ import core.toCm
 import java.lang.Math.PI
 import kotlin.math.pow
 
+object MieOne : MieSimple {
+  override fun a(x: Double, mSq: Complex) = super.a(x, mSq).subList(0, 1)
+  override fun b(x: Double, mSq: Complex) = super.b(x, mSq).subList(0, 1)
+}
+
+object MieTwo : MieSimple
+
 interface MieSimple : Mie {
   override fun extinctionCoefficient(
-    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wavelength, mediumPermittivity, metalPermittivity, f, r).first
+    wl: Double, mediumPermittivity: Complex, particlePermittivity: Complex, f: Double, r: Double
+  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r).first
 
   override fun scatteringCoefficient(
-    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wavelength, mediumPermittivity, metalPermittivity, f, r).second
+    wl: Double, mediumPermittivity: Complex, particlePermittivity: Complex, f: Double, r: Double
+  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r).second
 
   fun a(x: Double, mSq: Complex) = listOf(a1(x, mSq), a2(x, mSq))
 
@@ -56,10 +63,3 @@ interface MieSimple : Mie {
 
   private fun b2() = ZERO
 }
-
-object MieFirstOrder : MieSimple {
-  override fun a(x: Double, mSq: Complex) = super.a(x, mSq).subList(0, 1)
-  override fun b(x: Double, mSq: Complex) = super.b(x, mSq).subList(0, 1)
-}
-
-object MieFirstAndSecondOrder : MieSimple

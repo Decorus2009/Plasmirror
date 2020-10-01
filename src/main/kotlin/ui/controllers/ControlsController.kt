@@ -2,6 +2,7 @@ package ui.controllers
 
 import core.state.activeState
 import core.state.saveStates
+import core.structure.toStructure
 import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javafx.scene.control.Label

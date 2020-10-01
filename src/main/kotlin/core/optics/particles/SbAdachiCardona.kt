@@ -1,4 +1,4 @@
-package core.optics.metal.clusters
+package core.optics.particles
 
 import core.Complex
 import core.interpolateComplex

@@ -1,4 +1,4 @@
-package core.optics.semiconductor.AlGaAsSb.AdachiFull
+package core.optics.semiconductor.AlGaAsSb.temperatureDependent
 
 //@formatter:off
 object ModelParameters {

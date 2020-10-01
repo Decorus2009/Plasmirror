@@ -1,102 +1,87 @@
 package core.structure
 
-// TODO FIX: get rid of Validation result. Refactor then if yes?
-// TODO FIX: throw StructureDescriptionException up to [ControlsController.initialize]
-/**
- * Validates and builds structure description representation from the string
- */
-fun String.toStructure() = with(toLines().tokenize()) {
-  validate()
+import com.fasterxml.jackson.databind.JsonNode
+import core.state.*
+import core.util.requireNode
+import core.validators.alert
+import javafx.application.Platform.runLater
+
+fun String.toStructure() = with(json().asArray()) {
+//  validate() // TODO
   toStructure()
 }
 
 /**
- * Maps structure string representation to the list of lines
- * such that each line represents description of a layer or period.
- * Ignore: single-line comments, multi-line comments, empty lines
+ * Maps structure string representation to a json object
+ * Ignores: single-line comments, multi-line comments, empty lines
  * Expand each layer description named tokens to single line:
  *
- * type = 2-2, d = 10, x = 0.31,
- * wPlasma = 7.38, gammaPlasma = 0.18,
- * f = 0.0017
+ * x1
+ * layer: GaAs, d: 5;
+ * // comment
+ * layer: AlGaAs, d: 1000, k: 0.0, cAl: 0.3;
+ *
+ * /*
+ * multiline comment 1
+ * multiline comment 2
+ * */
+ * x20
+ * layer: spheres_lattice,
+ * medium: { material: AlGaAs, n: Adachi_simple, k: 0.0, cAl: 0.3 },
+ * particles: { n: Drude,      w: 14.6, G: 0.5, epsInf: 1.0 },
+ * d: 40, lattice_factor: 8.1       ;
+ *
+ * ;
  * ---->
- * type = 2-2, d = 10, x = 0.31, wPlasma = 7.38, gammaPlasma = 0.18, f = 0.0017
+ * {"layers":[{"repeat":1},{"layer":"gaas","d":5},{"layer":"algaas","d":1000,"k":0.0,"cal":0.3},{"repeat":20},{"layer":"spheres_lattice","medium":{"material":"algaas","n":"adachi_simple","k":0.0,"cal":0.3},"particles":{"n":"drude","w":14.6,"g":0.5,"epsinf":1.0},"d":40,"lattice_factor":8.1}]}
+
  *
- * NB: (?s) activates Pattern.DOTALL notation.
- * "In dotall mode, the expression . matches any character, including a line terminator.
- * By default this expression does not match line terminators."
- *
- * @return structure representation as prepared lines
+ * @return structure representation as json object containing array of "layer objects"
  */
-private fun String.toLines() = toLowerCase()
-  /** exclude multi-line comments */
-  .replace(Regex("(?s)/\\*.*\\*/"), "")
-  /** exclude single-line comments */
-  .replace(Regex("\\s*[/]{2,}.*"), "")
-  /**
-   * replace all new line characters by whitespaces
-   * (the case when the structure description of some layer occupied several lines)
-   */
-  .replace(Regex("\\R*"), "")
-  /** remove all whitespaces */
-  .replace(Regex("\\s*"), "")
-  /** put period descriptions to separate lines */
-  .replace(Regex("([x][0-9]+)"), "\n\$1\n")
-  /** each line will start with the keyword "type" */
-  .replace(Regex("(type)"), "\n\$1")
-  .lines()
-  .map { it.trim() }
-  .filter { it.isNotBlank() }
+private fun String.json() = """{"${DescriptionParameters.structure}":[${toLowerCase()
+  .replace(Regex("(?s)/\\*.*\\*/"), "") // exclude multi-line comments
+  .replace(Regex("\\s*[/]{2,}.*"), "") // exclude single-line comments
+  .replace(Regex("\\s+"), "") // remove all spaces, \n
+  .replace(Regex("([xX])([\\d]+)"), "${DescriptionParameters.repeat}:$2;") // x42 -> repeat:42
+  .replace(Regex("n:\\("), "\"n\":\"(") // n:( -> "n":"(    for (n:(3.6,0.1),)
+  .replace(Regex("\\),"), ")\",") // ), -> )",    for (n:(3.6,0.1),)
+  .replace(Regex("(\\w+):(\\w+\\.*[0-9]*)"), "\"$1\":\"$2\"") // n: drude -> "n": "drude"
+  .replace(Regex("(\\w+):\\{"), "\"$1\":{") // particles: { -> "particles": {
+  .split(";")
+  .joinToString(",") { "{$it}" } // surround with {} to convert to json node 
+  .replace(",{}", "") // remove empty trailing nodes
+}]}"""
+
+private fun String.asArray(): List<JsonNode> = mapper.readTree(this)
+  .requireNode(DescriptionParameters.structure)
+  .also { require(it.isArray) }
+  .map { it }
 
 /**
- * Tokenizes each line of, i.e. removes names of layer parameters ("type=", "d=", "k=", "x=")
- *
- * [this] structure representation as lines
- * @return list of tokenized lines (each tokenized line is a list of tokens)
+ * [adjacentPositionsOfRepeatDescriptors] serve as bounds
+ * when slicing into chunks to be converted to block descriptions
  */
-private fun List<String>.tokenize() = map { line ->
-  line.split(",").map { token -> token.replace(Regex(".+=+"), "") }
+private fun List<JsonNode>.toStructure(): Structure {
+  val blocks = adjacentPositionsOfRepeatDescriptors().map { (position, nextPosition) ->
+    slice(position until nextPosition).toBlock()
+  }
+//  return Structure(blocks)
+  return blocks.toStructure()
 }
 
 /**
- * @return [Structure] object using the tokenized data for layers
+ * @return pairs of adjacent positions of repeat descriptors. The last position is coupled with a size of [this]
+ * e.g. [0, 2, 5] -> [(0, 2), (2, 5), (5, 8)], 8 is the size of tokenized lines list
  */
-private fun TokenizedLines.toStructure() = StructureBuilder.build(structureDescription = toStructureDescription())
-
-/**
- * @return [StructureDescription] object using the tokenized data for layers
- * [adjacentPositionsOfRepeatDescriptors] serve as bounds
- * when slicing [TokenizedLines] into chunks to be converted to block descriptions
- */
-private fun TokenizedLines.toStructureDescription() =
-  adjacentPositionsOfRepeatDescriptors()
-    .map { (position, nextPosition) ->
-      slice(position until nextPosition).toBlockDescription()
+private fun List<JsonNode>.adjacentPositionsOfRepeatDescriptors() = with(repeatDescriptorsPositions()) {
+  mapIndexed { index: Int, position: Int ->
+    val nextPosition = when (position) {
+      last() -> this@adjacentPositionsOfRepeatDescriptors.size
+      else -> this@with.elementAt(index + 1)
     }
-    .toStructureDescription()
-
-@JvmName("BlockDescriptionsToStructureDescription")
-private fun List<BlockDescription>.toStructureDescription() = StructureDescription(blockDescriptions = this)
-
-private fun TokenizedLines.toBlockDescription() = BlockDescription(
-  repeat = first().repeatValue(),
-  layerDescriptions = remaining().map { it.toLayerDescription() }
-)
-
-private fun List<String>.toLayerDescription() = LayerDescription(
-  type = first(),
-  description = remaining()
-)
-
-/**
- * @return view of elements of the list except first
- */
-private fun <T> List<T>.remaining() = subList(1, size)
-
-/**
- * @return String representation of a number in repeat descriptor (e.g. ["x123"] -> "123")
- */
-private fun List<String>.repeatValue() = first().substring(1)
+    position to nextPosition
+  }
+}
 
 /**
  * @return positions of repeat descriptors in list of tokenized lines
@@ -115,21 +100,12 @@ private fun List<String>.repeatValue() = first().substring(1)
  *
  * returns [0, 2, 5]
  */
-private fun TokenizedLines.repeatDescriptorsPositions() =
-  mapIndexed { idx, line -> if (line.isRepeatDescription()) idx else -1 }.filterNot { it == -1 }
+private fun List<JsonNode>.repeatDescriptorsPositions() =
+  mapIndexed { idx, node -> if (node.isRepeatDescription()) idx else -1 }.filterNot { it == -1 }
+
+private fun JsonNode.isRepeatDescription() = size() == 1 && has("repeat")
 
 /**
- * @return pairs of adjacent positions of repeat descriptors. The last position is coupled with a size of [TokenizedLines]
- * e.g. [0, 2, 5] -> [(0, 2), (2, 5), (5, 8)], 8 is the size of tokenized lines list
- *
- * see the usage in [toStructureDescription]
+ * @return view of elements of the list except first
  */
-private fun TokenizedLines.adjacentPositionsOfRepeatDescriptors() = with(repeatDescriptorsPositions()) {
-  mapIndexed { index: Int, position: Int ->
-    val nextPosition = when (position) {
-      last() -> this@adjacentPositionsOfRepeatDescriptors.size
-      else -> this@with.elementAt(index + 1)
-    }
-    position to nextPosition
-  }
-}
+fun <T> List<T>.remaining() = subList(1, size)

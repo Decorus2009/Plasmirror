@@ -1,4 +1,4 @@
-package core.optics.metal.clusters
+package core.optics.composite
 
 import core.Complex
 import core.optics.*
@@ -7,7 +7,7 @@ import kotlin.math.pow
 /**
  * Phys. Rev. B, 28, PP. 4247 (1983) - Persson model
  */
-object TwoDimensionalLayer {
+object SpheresLattice {
   /**
    * reflection and transmission magnitude coefficients at a given wavelength [wl]
    */
@@ -19,7 +19,7 @@ object TwoDimensionalLayer {
     d: Double,
     latticeFactor: Double,
     mediumPermittivity: Complex,
-    metalPermittivity: Complex
+    particlePermittivity: Complex
   ): Pair<Complex, Complex> {
     val R = d / 2.0
     val a = latticeFactor * R
@@ -28,7 +28,7 @@ object TwoDimensionalLayer {
     val (cos, sin) = cosSin(mediumPermittivity.toRefractiveIndex(), wl, angle, temperature)
     val theta = Complex(cos.acos())
 
-    val (alphaParallel, alphaOrthogonal) = alphaParallelOrthogonal(alpha(mediumPermittivity, metalPermittivity, R), U0)
+    val (alphaParallel, alphaOrthogonal) = alphaParallelOrthogonal(alpha(mediumPermittivity, particlePermittivity, R), U0)
     val (A, B) = AB(wl, a, cos, sin)
 
     val common1 = cos * cos * alphaParallel
