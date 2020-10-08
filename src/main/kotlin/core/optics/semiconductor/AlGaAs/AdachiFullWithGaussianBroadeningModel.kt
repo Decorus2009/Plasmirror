@@ -1,6 +1,7 @@
 package core.optics.semiconductor.AlGaAs
 
 import core.Complex
+import core.optics.toRefractiveIndex
 import kotlin.math.exp
 import kotlin.math.pow
 
@@ -8,8 +9,10 @@ import kotlin.math.pow
  * J. Appl. Phys., 86, pp.445 (1999) - Adachi model with Gaussian-like broadening
  * (doi: 10.1063/1.370750)
  */
-class AdachiFullWithGaussianBroadening(private val w: Double, private val cAl: Double) {
-  fun compute() = epsInf() + eps1() + eps2() + eps3() + eps4()
+class AdachiFullWithGaussianBroadeningModel(private val w: Double, private val cAl: Double) {
+  fun refractiveIndex() = permittivity().toRefractiveIndex()
+
+  fun permittivity() = epsInf() + eps1() + eps2() + eps3() + eps4()
 
   private fun eps1(): Complex {
     //@formatter:off

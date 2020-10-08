@@ -62,8 +62,8 @@ object SpheresLattice {
   private fun alpha(mediumPermittivity: Complex, metalPermittivity: Complex, R: Double) =
     (metalPermittivity - mediumPermittivity) / (metalPermittivity + mediumPermittivity * 2.0) * R.pow(3.0)
 
-  private fun AB(wavelength: Double, a: Double, cos: Complex, sin: Complex) =
-    with((2 * Math.PI / a).pow(2.0) / wavelength) {
+  private fun AB(wl: Double, a: Double, cos: Complex, sin: Complex) =
+    with((2 * Math.PI / a).pow(2.0) / wl) {
       Complex.I / cos * this to sin * this
     }
 }

@@ -20,6 +20,8 @@ class Complex(real: Double, imaginary: Double) : ApacheComplex(real, imaginary) 
     fun of(value: Double) = Complex(value)
 
     fun of(real: Double, imaginary: Double) = Complex(real, imaginary)
+
+    fun of(complex: ApacheComplex) = Complex(complex.real, complex.imaginary)
   }
 
   constructor(real: Double) : this(real, 0.0)
@@ -42,6 +44,8 @@ class Complex(real: Double, imaginary: Double) : ApacheComplex(real, imaginary) 
   operator fun div(that: Complex) = Complex(divide(that))
 
   operator fun unaryMinus() = Complex(-real, -imaginary)
+
+  override fun pow(x: Double) = of(ApacheComplex(real, imaginary).pow(x))
 }
 
 /**

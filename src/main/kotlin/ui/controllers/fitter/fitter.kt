@@ -39,10 +39,10 @@
 //
 //    val spline = SplineInterpolator().interpolate(xImported.toDoubleArray(), yImported.toDoubleArray())
 //    interpolated = listOf<Double>()
-//    var wavelength = wavelengthStart
-//    while (wavelength <= wavelengthEnd) {
-//      interpolated += spline.value(wavelength)
-//      wavelength += wavelengthStep
+//    var wl = wavelengthStart
+//    while (wl <= wavelengthEnd) {
+//      interpolated += spline.value(wl)
+//      wl += wavelengthStep
 //    }
 //
 //    println("INterpolated size ${interpolated.size}")

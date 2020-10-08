@@ -1,4 +1,4 @@
-package core.optics.semiconductor.AlGaAsSb.temperatureDependent
+package core.optics.semiconductor.AlGaAsSb
 
 object Table_I {
   /**

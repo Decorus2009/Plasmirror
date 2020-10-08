@@ -1,7 +1,7 @@
-package core.optics.semiconductor.AlGaAsSb.temperatureDependent
+package core.optics.semiconductor.AlGaAsSb
 
 import core.Complex
-import core.state.activeState
+import core.optics.toRefractiveIndex
 import kotlin.math.pow
 
 /**
@@ -9,21 +9,15 @@ import kotlin.math.pow
  * of computation stack below. It's much more convenient to keep this values within an internal state of the class instance,
  * however initialized each time the permittivity computation is needed
  */
-class AdachiFullTemperatureDependent(
+class AdachiFullTemperatureDependentModel(
   private val w: Double,
   private val cAl: Double,
   private val cAs: Double,
   private val temperature: Double
 ) {
-  fun compute(): Complex {
-    val eps1 = eps1()
-    val eps2 = eps2()
-    val eps3 = eps3()
-    val eps4 = eps4()
-    val wl = 1239.8 / w
+  fun refractiveIndex() = permittivity().toRefractiveIndex()
 
-    return eps1 + eps2 + eps3 + eps4
-  }
+  fun permittivity() = eps1() + eps2() + eps3() + eps4()
 
   private fun eps1(): Complex {
     //@formatter:off

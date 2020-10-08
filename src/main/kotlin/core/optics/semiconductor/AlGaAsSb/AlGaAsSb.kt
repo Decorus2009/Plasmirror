@@ -1,6 +1,5 @@
 package core.optics.semiconductor.AlGaAsSb
 
-import core.optics.semiconductor.AlGaAsSb.temperatureDependent.AdachiFullTemperatureDependent
 import core.optics.toEnergy
 
 /**
@@ -14,5 +13,5 @@ object AlGaAsSb {
    * [cAs] As concentration (y)
    */
   fun permittivity(wl: Double, cAl: Double, cAs: Double, temperature: Double) =
-    AdachiFullTemperatureDependent(wl.toEnergy(), cAl, cAs, temperature).compute()
+    AdachiFullTemperatureDependentModel(wl.toEnergy(), cAl, cAs, temperature).permittivity()
 }

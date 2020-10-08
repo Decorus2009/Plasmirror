@@ -5,6 +5,7 @@ import core.layers.composite.*
 import core.layers.particles.*
 import core.layers.semiconductor.*
 import core.optics.PermittivityModel
+import core.optics.particles.LorentzOscillator
 import core.util.*
 import core.validators.alert
 
@@ -39,11 +40,12 @@ private fun JsonNode.toLayer(): Layer {
   return when (layerType) {
     LayerType.GAAS -> GaAs(
       d = d,
+      kToN = requireDouble(DescriptionParameters.kToN),
       permittivityModel = requirePermittivityModelFor(layerType)
     )
     LayerType.ALGAAS -> AlGaAs(
       d = d,
-      k = requireDouble(DescriptionParameters.k),
+      kToN = requireDouble(DescriptionParameters.kToN),
       cAl = requirePositiveDouble(DescriptionParameters.cAl),
       permittivityModel = requirePermittivityModelFor(layerType)
     )
@@ -58,6 +60,7 @@ private fun JsonNode.toLayer(): Layer {
     )
     LayerType.GAAS_X -> GaAsExcitonic(
       d = d,
+      kToN = requireDouble(DescriptionParameters.kToN),
       w0 = requirePositiveDouble(DescriptionParameters.w0),
       G0 = requireDouble(DescriptionParameters.g0),
       G = requireDouble(DescriptionParameters.g),
@@ -65,7 +68,7 @@ private fun JsonNode.toLayer(): Layer {
     )
     LayerType.ALGAAS_X -> AlGaAsExcitonic(
       d = d,
-      k = requireDouble(DescriptionParameters.k),
+      kToN = requireDouble(DescriptionParameters.kToN),
       cAl = requirePositiveDouble(DescriptionParameters.cAl),
       w0 = requirePositiveDouble(DescriptionParameters.w0),
       G0 = requireDouble(DescriptionParameters.g0),
@@ -160,15 +163,23 @@ private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Des
     LayerType.MIE -> requirePositiveDouble(DescriptionParameters.r)
     // "r" parameter can be provided only for Mie layer
     else -> requirePositiveDoubleOrNull(DescriptionParameters.r)?.let {
-      error("Particles radius should be provided only for Mie layer")
+      error("Particle radius should be provided only for Mie layer")
     }
   }
   when (requireParticlesPermittivityModel()) {
     ParticlesPermittivityModel.DRUDE -> DrudeParticles(
       r = r,
-      w = requirePositiveDouble(DescriptionParameters.w),
-      G = requireDouble(DescriptionParameters.g),
+      wPl = requirePositiveDouble(DescriptionParameters.w),
+      g = requireDouble(DescriptionParameters.g),
       epsInf = requireDouble(DescriptionParameters.epsInf)
+    )
+    ParticlesPermittivityModel.DRUDE_LORENTZ -> DrudeLorentzParticles(
+      // Drude params
+      r = r,
+      wPl = requirePositiveDouble(DescriptionParameters.w),
+      g = requireDouble(DescriptionParameters.g),
+      epsInf = requireDouble(DescriptionParameters.epsInf),
+      oscillators = requireOscillators()
     )
     ParticlesPermittivityModel.SB -> SbParticles(r)
   }
@@ -188,6 +199,41 @@ private fun JsonNode.requireOrders() = requirePositiveIntOrNull(DescriptionParam
     }
   }
 }
+
+/**
+ * Reads a part of user-provided structure description:
+ * oscillators: {
+ *   1: { w: 1, f: 2, g: 3 },
+ *   2: { w: 4, f: 5, g: 6 }
+ * }
+ *
+ * converted to json:
+ * "oscillators": {
+ *   "1": {"w": "1", "f": "2", "g": "3"},
+ *   "2": {"w": "4", "f": "5", "g": "6"}
+ * }
+ *
+ * Iterates through json-map entries, sorts them by keys and returns a list of [LorentzOscillator] objects.
+ * So, it's a user's responsibility to specify meaningful successive orders starting with 1.
+ * In [core.optics.particles.DrudeLorentzModel] only list of oscillators is used
+ * without any information about user-provided orders
+ */
+private fun JsonNode.requireOscillators() = requireNode(DescriptionParameters.oscillators)
+  .fields()
+  .asSequence()
+  .map { oscillator: MutableMap.MutableEntry<String, JsonNode> ->
+    val order = oscillator.key
+    val params = oscillator.value
+    order to LorentzOscillator(
+      f_i = params.requireDouble(DescriptionParameters.f),
+      g_i = params.requireDouble(DescriptionParameters.g),
+      w_i = params.requireDouble(DescriptionParameters.w)
+    )
+  }
+  .sortedBy { it.first }
+  .map { it.second }
+  .toList()
+
 
 enum class LayerType {
   GAAS,
@@ -211,11 +257,12 @@ object DescriptionParameters {
   const val particles = "particles"
   const val material = "material"
   const val orders = "orders"
+  const val oscillators = "oscillators"
   const val latticeFactor = "lattice_factor"
   const val epsInf = "epsinf"
   const val d = "d"
   const val n = "n"
-  const val k = "k"
+  const val kToN = "k_to_n"
   const val cAl = "cal"
   const val cAs = "cas"
   const val w = "w"
@@ -233,7 +280,7 @@ object DescriptionParameters {
  * layer: GaAs, n: Adachi_simple, d: 5;
  *
  *
- * layer: AlGaAs, n: Adachi_simple, d: 5, k: 0.0, cAl: 0.3;
+ * layer: AlGaAs, n: Adachi_simple, d: 5, k/n: 0.0, cAl: 0.3;
  *
  *
  * layer: AlGaAsSb, d: 5, cAl: 0.3, cAs: 0.02;
@@ -246,7 +293,7 @@ object DescriptionParameters {
  * layer: GaAs_X, n: Adachi_simple, d: 5, w0: 1.52, G0: 0.005, G: 0.5;
  *
  *
- * layer: GaAs_X, n: Adachi_simple, d: 5, k: 0.0, cAl: 0.3, w0: 1.52, G0: 0.005, G: 0.5;
+ * layer: GaAs_X, n: Adachi_simple, d: 5, k/n: 0.0, cAl: 0.3, w0: 1.52, G0: 0.005, G: 0.5;
  *
  *
  * layer: const_n, n: 3.6, d: 5, w0: 1.52, G0: 0.005, G: 0.5;
@@ -254,12 +301,21 @@ object DescriptionParameters {
  *
  *
  * layer: eff_medium,
- * medium: { material: AlGaAs, n: Adachi_simple, k: 0.0, cAl: 0.3 },
+ * medium: { material: AlGaAs, n: Adachi_simple, k/n: 0.0, cAl: 0.3 },
  * particles: { n: Drude, w: 14.6, G: 0.5, epsInf: 1.0 },
+ *
+ * // or
+ *
+ * particles: { n: Drude-Lorentz, w: 14.6, G: 0.5, epsInf: 1.0,
+ *   oscillators: {
+ *     1: { w: 1, f: 2, g: 3 },
+ *     2: { w: 4, f: 5, g: 6 }
+ *   }
+ * },
  * d: 1000, f: 0.01;
  *
  * layer: eff_medium,
- * medium: { layer: AlGaAsSb, n: Adachi_full_T, cAl: 0.3, cSb: 0.01 },
+ * medium: { layer: AlGaAsSb, n: Adachi_T, cAl: 0.3, cSb: 0.01 },
  * particles: { n: Drude, w: 14.6, G: 0.5, epsInf: 1.0 },
  * d: 1000, f: 0.01;
  *
@@ -267,12 +323,12 @@ object DescriptionParameters {
  * layer: mie,
  * orders: 1,
  * f = 0.01,
- * medium: { material: AlGaAs, n: Adachi_simple, k: 0.0, cAl: 0.3 },
+ * medium: { material: AlGaAs, n: Adachi_simple, k/n: 0.0, cAl: 0.3 },
  * particles: { n: Drude, r: 10.6, w: 14.6, G: 0.5, epsInf: 1.0 };
  *
  *
  * layer: spheres_lattice,
- * medium: { material: AlGaAs, n: Adachi_simple, k: 0.0, cAl: 0.3 },
+ * medium: { material: AlGaAs, n: Adachi_simple, k/n: 0.0, cAl: 0.3 },
  * particles: { n: Drude, w: 14.6, G: 0.5, epsInf: 1.0 },
  * d: 40, lattice_factor: 8.1;
  */

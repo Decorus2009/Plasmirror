@@ -30,9 +30,9 @@ interface MieSimple : Mie {
   fun b(x: Double, mSq: Complex) = listOf(b1(x, mSq), b2())
 
   private fun alphaExtAlphaSca(
-    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
+    wl: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
   ): Pair<Double, Double> {
-    val k = 2.0 * PI * mediumPermittivity.toRefractiveIndex().real / wavelength.toCm()
+    val k = 2.0 * PI * mediumPermittivity.toRefractiveIndex().real / wl.toCm()
     val x = k * r.toCm()
     val mSq = metalPermittivity / mediumPermittivity
     val common1 = 2.0 * PI / k.pow(2)

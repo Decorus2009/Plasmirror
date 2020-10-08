@@ -1,4 +1,4 @@
-package core.optics.semiconductor.AlGaAsSb.temperatureDependent
+package core.optics.semiconductor.AlGaAsSb
 
 import kotlin.math.pow
 

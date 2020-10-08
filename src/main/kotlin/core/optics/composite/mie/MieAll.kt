@@ -28,14 +28,14 @@ object MieAll : Mie {
   ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r).second
 
   private fun alphaExtAlphaSca(
-    wavelength: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
+    wl: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
   ): Pair<Double, Double> {
     val numberOfAngles = 20
     val nSemiconductor = mediumPermittivity.toRefractiveIndex()
     val nMetal = metalPermittivity.toRefractiveIndex()
     m = nMetal / nSemiconductor
 
-    x = nSemiconductor.real * 2.0 * PI * r / wavelength
+    x = nSemiconductor.real * 2.0 * PI * r / wl
 
     val common1 = PI * (r.toCm()).pow(2.0)
     val common2 = 3.0 / 4.0 * f / (PI * r.toCm().pow(3.0))

@@ -33,9 +33,9 @@ object ExternalMediumTypes {
 
 enum class PermittivityModel {
   ADACHI_SIMPLE,
-  ADACHI_FULL_T,
-  ADACHI_FULL_GAUSS,
-  ADACHI_FULL_GAUSS_MOD;
+  ADACHI_T,
+  ADACHI_GAUSS,
+  ADACHI_GAUSS_MOD;
 }
 
 enum class Mode {
@@ -75,7 +75,7 @@ object Modes {
   const val scatteringCoefficient = "Scattering Coefficient"
 }
 
-fun Complex.toExtinctionCoefficientAt(wavelength: Double) = 4.0 * PI * imaginary / (wavelength.toCm()) // cm^-1
+fun Complex.toExtinctionCoefficientAt(wl: Double) = 4.0 * PI * imaginary / (wl.toCm()) // cm^-1
 
 fun Complex.toRefractiveIndex() = Complex(sqrt((abs() + real) / 2.0), sqrt((abs() - real) / 2.0))
 

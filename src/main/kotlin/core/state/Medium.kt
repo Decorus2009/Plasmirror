@@ -27,7 +27,7 @@ data class Medium(
       GaAs(d = Double.POSITIVE_INFINITY, permittivityModel = PermittivityModel.ADACHI_SIMPLE)
     }
     ExternalMediumType.GAAS_GAUSS -> {
-      GaAs(d = Double.POSITIVE_INFINITY, permittivityModel = PermittivityModel.ADACHI_FULL_GAUSS)
+      GaAs(d = Double.POSITIVE_INFINITY, permittivityModel = PermittivityModel.ADACHI_GAUSS)
     }
     ExternalMediumType.CUSTOM -> {
       ConstRefractiveIndexLayer(d = Double.POSITIVE_INFINITY, n = Complex(nReal, nImaginary))

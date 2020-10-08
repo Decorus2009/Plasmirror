@@ -1,13 +1,11 @@
 package core.structure
 
 import com.fasterxml.jackson.databind.JsonNode
-import core.state.*
+import core.state.mapper
 import core.util.requireNode
-import core.validators.alert
-import javafx.application.Platform.runLater
 
 fun String.toStructure() = with(json().asArray()) {
-//  validate() // TODO
+  preValidate()
   toStructure()
 }
 
@@ -19,7 +17,7 @@ fun String.toStructure() = with(json().asArray()) {
  * x1
  * layer: GaAs, d: 5;
  * // comment
- * layer: AlGaAs, d: 1000, k: 0.0, cAl: 0.3;
+ * layer: AlGaAs, d: 1000, k/n: 0.0, cAl: 0.3;
  *
  * /*
  * multiline comment 1
@@ -27,7 +25,7 @@ fun String.toStructure() = with(json().asArray()) {
  * */
  * x20
  * layer: spheres_lattice,
- * medium: { material: AlGaAs, n: Adachi_simple, k: 0.0, cAl: 0.3 },
+ * medium: { material: AlGaAs, n: Adachi_simple, k/n: 0.0, cAl: 0.3 },
  * particles: { n: Drude,      w: 14.6, G: 0.5, epsInf: 1.0 },
  * d: 40, lattice_factor: 8.1       ;
  *
@@ -39,20 +37,23 @@ fun String.toStructure() = with(json().asArray()) {
  * @return structure representation as json object containing array of "layer objects"
  */
 private fun String.json() = """{"${DescriptionParameters.structure}":[${toLowerCase()
-  .replace(Regex("(?s)/\\*.*\\*/"), "") // exclude multi-line comments
-  .replace(Regex("\\s*[/]{2,}.*"), "") // exclude single-line comments
-  .replace(Regex("\\s+"), "") // remove all spaces, \n
+  .replace(Regex("(?s)/\\*.*\\*/"), "")                                    // exclude multi-line comments
+  .replace(Regex("\\s*[/]{2,}.*"), "")                                     // exclude single-line comments
+  .replace(Regex("\\s+"), "")                                              // remove all spaces, \n
   .replace(Regex("([xX])([\\d]+)"), "${DescriptionParameters.repeat}:$2;") // x42 -> repeat:42
-  .replace(Regex("n:\\("), "\"n\":\"(") // n:( -> "n":"(    for (n:(3.6,0.1),)
-  .replace(Regex("\\),"), ")\",") // ), -> )",    for (n:(3.6,0.1),)
-  .replace(Regex("(\\w+):(\\w+\\.*[0-9]*)"), "\"$1\":\"$2\"") // n: drude -> "n": "drude"
-  .replace(Regex("(\\w+):\\{"), "\"$1\":{") // particles: { -> "particles": {
+  // add artificial d param required for description parsing: medium: { -> medium: { d: 0,
+  .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "${DescriptionParameters.medium}:{d:0,")                                                                        
+  .replace(Regex("n:\\("), "\"n\":\"(")                                    // n:( -> "n":"(    for (n:(3.6,0.1),)
+  .replace(Regex("k/n"), "k_to_n")                                         // k/n -> "k_to_n"
+  .replace(Regex("\\),"), ")\",")                                          // ), -> )",    for (n:(3.6,0.1),)
+  .replace(Regex("(\\w+):(\\w+\\.*[0-9]*)"), "\"$1\":\"$2\"")              // n: drude -> "n": "drude"
+  .replace(Regex("(\\w+):\\{"), "\"$1\":{")                                // particles: { -> "particles": {
   .split(";")
-  .joinToString(",") { "{$it}" } // surround with {} to convert to json node 
-  .replace(",{}", "") // remove empty trailing nodes
+  .joinToString(",") { "{$it}" }                                           // surround with {} to convert to json node 
+  .replace(",{}", "")                                                      // remove empty trailing nodes
 }]}"""
 
-private fun String.asArray(): List<JsonNode> = mapper.readTree(this)
+private fun String.asArray() = mapper.readTree(this)
   .requireNode(DescriptionParameters.structure)
   .also { require(it.isArray) }
   .map { it }
@@ -65,7 +66,6 @@ private fun List<JsonNode>.toStructure(): Structure {
   val blocks = adjacentPositionsOfRepeatDescriptors().map { (position, nextPosition) ->
     slice(position until nextPosition).toBlock()
   }
-//  return Structure(blocks)
   return blocks.toStructure()
 }
 
@@ -103,7 +103,7 @@ private fun List<JsonNode>.adjacentPositionsOfRepeatDescriptors() = with(repeatD
 private fun List<JsonNode>.repeatDescriptorsPositions() =
   mapIndexed { idx, node -> if (node.isRepeatDescription()) idx else -1 }.filterNot { it == -1 }
 
-private fun JsonNode.isRepeatDescription() = size() == 1 && has("repeat")
+fun JsonNode.isRepeatDescription() = size() == 1 && has("repeat")
 
 /**
  * @return view of elements of the list except first

@@ -36,21 +36,23 @@ interface LayerExcitonic : Layer {
 
 class GaAsExcitonic(
   d: Double,
+  kToN: Double,
+  cAl: Double = 0.0,
   override val w0: Double,
   override val G0: Double,
   override val G: Double,
   permittivityModel: PermittivityModel
-) : LayerExcitonic, GaAs(d, permittivityModel)
+) : LayerExcitonic, AlGaAsBase(d, kToN, cAl, permittivityModel)
 
 class AlGaAsExcitonic(
   d: Double,
-  k: Double,
+  kToN: Double,
   cAl: Double,
   override val w0: Double,
   override val G0: Double,
   override val G: Double,
   permittivityModel: PermittivityModel
-) : LayerExcitonic, AlGaAs(d, k, cAl, permittivityModel)
+) : LayerExcitonic, AlGaAsBase(d, kToN, cAl, permittivityModel)
 
 class ConstRefractiveIndexLayerExcitonic(
   d: Double,

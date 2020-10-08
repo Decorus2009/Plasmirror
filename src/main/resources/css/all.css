@@ -1,12 +1,22 @@
-.name {
+.param {
     -fx-fill: #1E90FF;
 }
 .repeat {
     -fx-font-weight: bold;
 }
 .comment {
-	-fx-fill: cadetblue;
+	-fx-fill: #808080;
     -fx-font-style: italic;
+}
+.permittivity_model {
+    -fx-fill: #ffa812;
+}
+.layer {
+    -fx-fill: #cd5c5c;
+}
+.material {
+    -fx-font-weight: bold;
+    -fx-fill: #1E90FF;
 }
 
 
@@ -65,8 +75,6 @@
 }
 .axis {
     -fx-font-size: 1.4em;
-
-
     -fx-tick-length: 10;
     -fx-minor-tick-length: 10;
 }
