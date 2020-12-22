@@ -1,0 +1,7 @@
+Mie computation for extinction coefficient (Sb particles)
+x1
+layer: mie,
+orders: all,
+medium: { material: AlGaAs, n: Adachi_gauss, k/n: 0.03, cAl: 0.3 },
+particles: { n: Sb, r: 7.5 },
+d: 1000, f: 0.05

@@ -2,7 +2,6 @@ package core.layers.particles
 
 import core.Complex
 import core.optics.particles.*
-import core.structure.LayerType
 
 /**
  * [r] is not used for [LayerType.SPHERES_LATTICE] layer

@@ -1,6 +1,7 @@
 package core.optics.semiconductor.AlGaAsSb
 
 import core.Complex
+import core.isZero
 import core.optics.toRefractiveIndex
 import kotlin.math.pow
 
@@ -170,7 +171,7 @@ class AdachiFullTemperatureDependentModel(
       }
     }
 
-    return vegard(
+    return vegard42(
       x = cAl,
       y = cAs,
       B_AC = B_AlAs,
@@ -193,25 +194,57 @@ class AdachiFullTemperatureDependentModel(
    *   EIndirect
    */
   private fun energy(transition: String): Double {
-    fun Map<String, Table_II.Record>.energy() = getValue(transition).energyAt(temperature)
+    fun Map<String, Table_II.Record>.transitionEnergy() = getValue(transition).energyAt(temperature)
 
-    return vegard(
-      cAl,
-      cAs,
-      B_AC = Table_II.AlAsValues.energy(),
-      B_AD = Table_II.AlSbValues.energy(),
-      B_BC = Table_II.GaAsValues.energy(),
-      B_BD = Table_II.GaSbValues.energy(),
-      bowingA_B = Table_V.values.getValue(transition).bowingA_B(cAs),
-      bowingC_D = Table_V.values.getValue(transition).bowingC_D(cAl)
+    val bowings = Table_V.values.getValue(transition)
+
+    //@formatter:off
+    // T_ABC = T_Al(x)Ga(1-x)As
+    val T_ABC = vegard32(
+      fraction = cAl,
+      B_AC     = Table_II.AlAsValues.transitionEnergy(),
+      B_BC     = Table_II.GaAsValues.transitionEnergy(),
+      bowing   = bowings.AlGaAsValue
     )
+
+    // T_ABD = T_Al(x)Ga(1-x)Sb (interpret as general T_ABC)
+    val T_ABD = vegard32(
+      fraction = cAl,
+      B_AC     = Table_II.AlSbValues.transitionEnergy(),
+      B_BC     = Table_II.GaSbValues.transitionEnergy(),
+      bowing   = bowings.AlGaSbValue
+    )
+
+    // T_ACD = T_AlAs(y)Sb(1-x) -> T_As(y)Sb(1-x)Al (interpret as general T_ABC)
+    // B_AC = B_AsAl = B_AlAs
+    // B_BC = B_SbAl = B_AlSb
+    val T_ACD = vegard32(
+      fraction = cAs,
+      B_AC     = Table_II.AlAsValues.transitionEnergy(),
+      B_BC     = Table_II.AlSbValues.transitionEnergy(),
+      bowing   = bowings.AlAsSbValue
+    )
+
+    // T_BCD = T_GaAs(y)Sb(1-x) -> T_As(y)Sb(1-x)Ga (interpret as general T_ABC)
+    // B_AC = B_AsGa -> B_GaAs
+    // B_BC = B_SbGa -> B_GaSb
+    val T_BCD = vegard32(
+      fraction = cAs,
+      B_AC     = Table_II.GaAsValues.transitionEnergy(),
+      B_BC     = Table_II.GaSbValues.transitionEnergy(),
+      bowing   = bowings.GaAsSbValue
+    )
+    //@formatter:on
+
+    return vegard43(cAl, cAs, T_ABC, T_ABD, T_ACD, T_BCD)
   }
 }
 
 /**
  * Vegard's law for quaternary alloys using binary components
+ * eq. (17)
  */
-private fun vegard(
+private fun vegard42(
   x: Double,
   y: Double,
   B_AC: Double,
@@ -220,6 +253,48 @@ private fun vegard(
   B_BD: Double,
   bowingA_B: Double,
   bowingC_D: Double
-) = x * y * B_AC + x * (1 - y) * B_AD + (1 - x) * y * B_BC + (1 - x) * (1 - y) * B_BD + x * (1 - x) * bowingA_B + y * (1 - y) * bowingC_D
+) = x * y * B_AC + x * (1.0 - y) * B_AD + (1.0 - x) * y * B_BC + (1.0 - x) * (1.0 - y) * B_BD + x * (1.0 - x) * bowingA_B + y * (1.0 - y) * bowingC_D
+
+/**
+ * Vegard's law for quaternary alloys using ternary components
+ * eq. (16)
+ */
+private fun vegard43(
+  x: Double,
+  y: Double,
+  T_ABC: Double,
+  T_ABD: Double,
+  T_ACD: Double,
+  T_BCD: Double
+): Double {
+  // multiplier may become infinite if both x and y are equal 0
+  // so let's use a crutch: set x and y to 1E-7
+  val actualX = if (x.isZero()) x + 1E-7 else x
+  val actualY = if (y.isZero()) y + 1E-7 else y
+
+  val common1 = actualX * (1.0 - actualX)
+  val common2 = actualY * (1.0 - actualY)
+  val multiplier = 1.0 / (common1 + common2)
+
+  val summand1 = common1 * (actualY * T_ABC + (1.0 - actualY) * T_ABD)
+  val summand2 = common2 * (actualX * T_ACD + (1.0 - actualX) * T_BCD)
+
+  return multiplier * (summand1 + summand2)
+}
+
+/**
+ * Vegard's law for ternary alloys using binary components
+ * eq. (15)
+ *
+ * NB: abstract [fraction] with regard to Al(x)Ga(1-x)As(y)Sb(1-y) alloy corresponds to x or y:
+ *
+ * x for Al(x)Ga(1-x)As
+ * x for Al(x)Ga(1-x)Sb
+ *
+ * y for AlAs(y)Sb(1-y) (interpreted as As(y)Sb(1-y)Al)
+ * y for GaAs(y)Sb(1-y) (interpreted as As(y)Sb(1-y)Ga)
+ */
+private fun vegard32(fraction: Double, B_AC: Double, B_BC: Double, bowing: Double) =
+  fraction * B_AC + (1.0 - fraction) * B_BC - fraction * (1 - fraction) * bowing
 
 

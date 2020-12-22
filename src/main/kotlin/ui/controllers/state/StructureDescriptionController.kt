@@ -27,7 +27,7 @@ class StructureDescriptionController {
       -fx-highlight-fill: #dbdddd;
       -fx-highlight-text-fill: #dbdddd;
     """
-    area.replaceText(0, 0, activeState().computationState.textDescription)
+    setStructureDescription(activeState().currentTextDescription())
   }
 
   /**
@@ -76,6 +76,12 @@ class StructureDescriptionController {
     }
     spansBuilder.add(emptyList(), text.length - lastKwEnd)
     return spansBuilder.create()
+  }
+
+  fun structureDescription() = structureDescriptionCodeArea.text
+
+  fun setStructureDescription(value: String) {
+    structureDescriptionCodeArea.replaceText(0, structureDescriptionCodeArea.length, value)
   }
 
   @FXML

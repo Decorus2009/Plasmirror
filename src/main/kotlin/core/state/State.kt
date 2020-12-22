@@ -41,17 +41,24 @@ data class State(
 
   fun computationData() = computationState.data
 
-  fun mode() = computationState.opticalParams.mode
+  fun mode() = opticalParams().mode
 
-  fun temperature() = computationState.opticalParams.temperature
+  fun temperature() = opticalParams().temperature
 
-  fun polarization() = computationState.opticalParams.polarization
+  fun polarization() = opticalParams().polarization
 
-  fun angle() = computationState.opticalParams.angle
+  fun angle() = opticalParams().angle
 
   fun leftMedium() = opticalParams().leftMedium
 
   fun rightMedium() = opticalParams().rightMedium
+
+  fun currentTextDescription() = structureDescriptionFor(mode().toString())
+
+  fun updateStructureDescription(mode: String, description: String) =
+    computationState.updateStructureDescription(mode, description)
+
+  fun structureDescriptionFor(mode: String) = computationState.structureDescriptionFor(mode)
 
   fun mirror() = computationState.mirror
 
@@ -77,7 +84,7 @@ data class State(
   /**
    * Generates a sequence of computation wavelengths
    */
-  private fun generateWavelengths(): List<Double> = with(computationState.range) {
+  private fun generateWavelengths() = with(computationState.range) {
     generateSequence(start) { currentWavelength ->
       val next = currentWavelength + step
       when {

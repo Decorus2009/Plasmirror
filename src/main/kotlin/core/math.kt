@@ -5,8 +5,7 @@ import org.apache.commons.math3.complex.Complex.*
 import org.apache.commons.math3.complex.ComplexField
 import org.apache.commons.math3.linear.Array2DRowFieldMatrix
 import org.apache.commons.math3.linear.FieldMatrix
-import kotlin.math.floor
-import kotlin.math.pow
+import kotlin.math.*
 
 typealias ApacheComplex = org.apache.commons.math3.complex.Complex
 
@@ -119,12 +118,19 @@ fun Double.round(): Double {
 
 fun Double.toCm() = this * 1E-7 // wavelength: nm -> cm
 
-fun Double.checkIsNotNegative() = check(this >= 0.0) { "Parameter value \"$this\" should be >= 0" }
+fun Double.checkIsNonNegative(field: String) = check(this >= 0.0) { "Parameter value \"$field\" should be >= 0" }
 
-fun Int.checkIsNotNegative() = check(this >= 0) { "Parameter value \"$this\" should be >= 0" }
+fun Double.checkIsPositive(field: String) = check(this > 0.0) { "Parameter value \"$field\" should be > 0" }
+
+fun Int.checkIsNonNegative(field: String) = check(this >= 0) { "Parameter value \"$field\" should be >= 0" }
+
+fun Int.checkIsPositive(field: String) = check(this > 0) { "Parameter value \"$field\" should be > 0" }
+
 
 fun Double.isAllowedTemperature() = this > 0.0
 
 fun Double.isAllowedAngle() = this in 0.0..89.99999999
 
 fun Double.isNotAllowedAngle() = !isAllowedAngle()
+
+fun Double.isZero() = abs(this) < 1E-15

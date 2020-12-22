@@ -1,8 +1,8 @@
 package ui.controllers
 
-import core.state.activeState
-import core.state.saveStates
-import core.structure.toStructure
+import core.state.*
+import core.structure.StructureDescriptionException
+import core.validators.alert
 import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javafx.scene.control.Label
@@ -13,13 +13,17 @@ class ControlsController {
   @FXML
   fun initialize() {
     computeButton.setOnAction {
-      withClock { activeState().compute() }
-      saveStates()
-      /*
-      this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
-      (including rootController)
-      */
-      chartController().updateChart()
+      try {
+        withClock { activeState().compute() }
+        saveStates()
+        /*
+          this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
+          (including rootController)
+          */
+        chartController().updateChart()
+      } catch (ex: Exception) {
+        ex.handle()
+      }
     }
   }
 
@@ -28,6 +32,23 @@ class ControlsController {
     block()
     val stop = System.nanoTime()
     computationTimeLabel.text = "Computation time: ${String.format(Locale.US, "%.2f", (stop - start).toDouble() / 1E6)}ms"
+  }
+
+  private fun Exception.handle() {
+    when (this) {
+      is StructureDescriptionException -> {
+        alert(
+          header = "Structure description error",
+          content = message ?: cause?.message ?: "Error description is absent"
+        )
+      }
+      else -> {
+        alert(
+          header = "Unknown error",
+          content = cause?.message ?: message ?: "Error description is absent"
+        )
+      }
+    }
   }
 
   lateinit var mainController: MainController

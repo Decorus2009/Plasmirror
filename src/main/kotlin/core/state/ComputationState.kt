@@ -14,20 +14,31 @@ data class ComputationState(
   val data: Data,
   val opticalParams: OpticalParams,
   val mirror: Mirror,
-  var textDescription: String
+  val textDescriptions: MutableMap<String, String>
 ) {
+  override fun toString(): String {
+    return textDescriptions.toString()
+  }
+
   fun updateFromUI() {
     range.updateFromUI()
     opticalParams.updateFromUI()
-    textDescription = structureTextDescription()
-    mirror.updateVia(opticalParams, textDescription)
+    updateStructureDescription(opticalParams.mode.toString(), currentStructureTextDescription())
+    mirror.updateVia(opticalParams, currentStructureTextDescription())
   }
 
   fun updateUI() {
     range.updateUI()
     opticalParams.updateUI()
+    // TODO need maybe update structure description per mode
   }
 
-  private fun structureTextDescription() =
+  fun updateStructureDescription(mode: String, description: String) {
+    textDescriptions[mode.toLowerCase()] = description
+  }
+
+  fun structureDescriptionFor(mode: String) = textDescriptions[mode.toLowerCase()]!!
+
+  private fun currentStructureTextDescription() =
     rootController.mainController.structureDescriptionController.structureDescriptionCodeArea.text
 }

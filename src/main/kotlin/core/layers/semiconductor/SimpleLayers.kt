@@ -119,7 +119,7 @@ private fun refractiveIndex(
       AdachiFullWithGaussianBroadeningModel(w, cAl).refractiveIndex()
     }
     PermittivityModel.ADACHI_T -> {
-      AdachiFullTemperatureDependentModel(w, cAl, cAs = 0.0, temperature = temperature).refractiveIndex()
+      AdachiFullTemperatureDependentModel(w, cAl, cAs = 1.0, temperature = temperature).refractiveIndex()
     }
     PermittivityModel.ADACHI_SIMPLE -> {
       AdachiSimpleModel.refractiveIndex(w, cAl).let { refInd ->

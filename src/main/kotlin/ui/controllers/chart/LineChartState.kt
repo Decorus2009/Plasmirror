@@ -12,7 +12,7 @@ object LineChartState {
 
   private val colors = mapOf(
     /* main */
-    0 to "#000000", 1 to "#F3622D", 2 to "#57B757", 3 to "#41A9C9", 4 to "#4258C9",
+    0 to "#F3622D", 1 to "#FBA71B", 2 to "#57B757", 3 to "#41A9C9", 4 to "#4258C9",
     5 to "#9A42C8", 6 to "#C84164", 7 to "#888888", 8 to "#000000", 9 to "#FFFFFF",
     /* additional */
     10 to "#FAEBD7", 11 to "#00FFFF", 12 to "#7FFFD4", 13 to "#F0FFFF", 14 to "#F5F5DC",
@@ -36,15 +36,15 @@ object LineChartState {
   )
   private var currentColorIndex = 2
 
+  val computed = LineChartSeries(ExtendedSeries(color = colors.getValue(0)), ExtendedSeries(color = colors.getValue(1)))
+  val imported = mutableListOf<LineChartSeries>()
+
   fun nextColor(offset: Int = 0): String {
     if (currentColorIndex + offset > colors.size) {
       currentColorIndex = offset + 2
     }
-    return colors[offset + currentColorIndex++]!!
+    return colors.getValue(offset + currentColorIndex++)
   }
-
-  val computed = LineChartSeries(ExtendedSeries(color = colors[0]!!), ExtendedSeries(color = colors[1]!!))
-  val imported = mutableListOf<LineChartSeries>()
 
   // TODO eV
   fun toEV() = (imported + computed)

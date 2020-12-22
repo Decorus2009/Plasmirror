@@ -60,8 +60,8 @@ class SeriesManagerController {
       chartController().run {
         removeByName(name)
         updateStyleOfAll()
-        updateLegendListener()
         activeState().removeExternalDataWith(name)
+        updateLegendListener()
       }
       disable()
     }

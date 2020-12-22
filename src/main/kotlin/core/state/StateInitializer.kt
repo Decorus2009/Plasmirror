@@ -18,17 +18,20 @@ private fun JsonNode.toState() = State(
 
 private fun JsonNode.toComputationState(): ComputationState {
   val opticalParams = requireNode("opticalParams").parse<OpticalParams>().also { validate(it) }
-  val textDescription = requireNode("textDescription").parse<String>()
+  val textDescriptions = requireNode("textDescriptions").parse<Map<String, String>>().toMutableMap()
+  val currentMode = opticalParams.mode
+  val currentTextDescription = textDescriptions[currentMode.toString().toLowerCase()]!!
+
   return ComputationState(
     requireNode("range").parse<Range>().also { validate(it) },
     Data(),
     opticalParams,
     Mirror(
-      structure = textDescription.toStructure(),
+      structure = currentTextDescription.toStructure(),
       leftMediumLayer = opticalParams.leftMedium.toLayer(),
       rightMediumLayer = opticalParams.rightMedium.toLayer()
     ),
-    textDescription
+    textDescriptions
   )
 }
 

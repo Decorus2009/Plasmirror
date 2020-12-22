@@ -47,7 +47,7 @@ enum class Mode {
   EXTINCTION_COEFFICIENT,
   SCATTERING_COEFFICIENT;
 
-  fun isComplex() = this in listOf(PERMITTIVITY, REFRACTIVE_INDEX, EXTINCTION_COEFFICIENT, SCATTERING_COEFFICIENT)
+  fun isComplex() = this in listOf(PERMITTIVITY, REFRACTIVE_INDEX)
 
   fun isReal() = !isComplex()
 
@@ -55,17 +55,17 @@ enum class Mode {
    * Used in [ModeController] during choice box value initialization
    */
   override fun toString() = when (this) {
-    REFLECTANCE -> Modes.reflectance
-    TRANSMITTANCE -> Modes.transmittance
-    ABSORBANCE -> Modes.absorbance
-    PERMITTIVITY -> Modes.permittivity
-    REFRACTIVE_INDEX -> Modes.refractiveIndex
-    EXTINCTION_COEFFICIENT -> Modes.extinctionCoefficient
-    SCATTERING_COEFFICIENT -> Modes.scatteringCoefficient
+    REFLECTANCE -> ModeNames.reflectance
+    TRANSMITTANCE -> ModeNames.transmittance
+    ABSORBANCE -> ModeNames.absorbance
+    PERMITTIVITY -> ModeNames.permittivity
+    REFRACTIVE_INDEX -> ModeNames.refractiveIndex
+    EXTINCTION_COEFFICIENT -> ModeNames.extinctionCoefficient
+    SCATTERING_COEFFICIENT -> ModeNames.scatteringCoefficient
   }
 }
 
-object Modes {
+object ModeNames {
   const val reflectance = "Reflectance"
   const val transmittance = "Transmittance"
   const val absorbance = "Absorbance"

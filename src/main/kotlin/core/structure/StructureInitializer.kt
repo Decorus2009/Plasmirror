@@ -1,12 +1,20 @@
 package core.structure
 
+import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonNode
 import core.state.mapper
 import core.util.requireNode
 
-fun String.toStructure() = with(json().asArray()) {
-  preValidate()
-  toStructure()
+fun String.toStructure() = runCatching {
+  json().asArray().let {
+    it.preValidate()
+    it.toStructure().apply { postValidate() }
+  }
+}.getOrElse { ex ->
+  if (ex is JsonParseException) {
+    throw StructureDescriptionException(message = "Check the usage of '. , : ; + - * / ( )' symbols", cause = ex)
+  }
+  throw StructureDescriptionException(cause = ex)
 }
 
 /**
@@ -42,7 +50,7 @@ private fun String.json() = """{"${DescriptionParameters.structure}":[${toLowerC
   .replace(Regex("\\s+"), "")                                              // remove all spaces, \n
   .replace(Regex("([xX])([\\d]+)"), "${DescriptionParameters.repeat}:$2;") // x42 -> repeat:42
   // add artificial d param required for description parsing: medium: { -> medium: { d: 0,
-  .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "${DescriptionParameters.medium}:{d:0,")                                                                        
+  .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "${DescriptionParameters.medium}:{d:0,")
   .replace(Regex("n:\\("), "\"n\":\"(")                                    // n:( -> "n":"(    for (n:(3.6,0.1),)
   .replace(Regex("k/n"), "k_to_n")                                         // k/n -> "k_to_n"
   .replace(Regex("\\),"), ")\",")                                          // ), -> )",    for (n:(3.6,0.1),)
@@ -59,14 +67,26 @@ private fun String.asArray() = mapper.readTree(this)
   .map { it }
 
 /**
+ * Builds structure of a list of blocks or of a single block with no repeat descriptors specified.
+ * The active state is currently being built and not available yet,
+ * so there's no way to check the mode and validate the necessity of presence of repeat descriptors
+ *
  * [adjacentPositionsOfRepeatDescriptors] serve as bounds
  * when slicing into chunks to be converted to block descriptions
  */
 private fun List<JsonNode>.toStructure(): Structure {
-  val blocks = adjacentPositionsOfRepeatDescriptors().map { (position, nextPosition) ->
-    slice(position until nextPosition).toBlock()
+  val nodes = when {
+    // no repeat descriptor is found, insert an artificial node before the node with a single layer description
+    !first().isRepeatDescription() -> listOf(repeatDescriptorNode()) + this
+    else -> this
   }
-  return blocks.toStructure()
+  val blocks = nodes.adjacentPositionsOfRepeatDescriptors()
+    .map { (position, nextPosition) ->
+      nodes.slice(position until nextPosition).toBlock()
+    }
+    // exclude blocks with 0 repeats (e.g. a user in structure description prints x0 to exclude a block from computation
+    .filterNot { it.repeat == 0 }
+  return Structure(blocks)
 }
 
 /**
@@ -84,7 +104,7 @@ private fun List<JsonNode>.adjacentPositionsOfRepeatDescriptors() = with(repeatD
 }
 
 /**
- * @return positions of repeat descriptors in list of tokenized lines
+ * @return positions of repeat descriptors
  * e.g.
  *
  * 0: x10           <-- repeat descriptor
@@ -102,6 +122,8 @@ private fun List<JsonNode>.adjacentPositionsOfRepeatDescriptors() = with(repeatD
  */
 private fun List<JsonNode>.repeatDescriptorsPositions() =
   mapIndexed { idx, node -> if (node.isRepeatDescription()) idx else -1 }.filterNot { it == -1 }
+
+private fun repeatDescriptorNode() = mapper.readTree("""{"repeat":"1"}""")
 
 fun JsonNode.isRepeatDescription() = size() == 1 && has("repeat")
 

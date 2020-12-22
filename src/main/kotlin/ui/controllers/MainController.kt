@@ -20,10 +20,10 @@ class MainController {
   lateinit var rootController: RootController
 
   @FXML
-  lateinit var structureDescriptionController: StructureDescriptionController
+  lateinit var opticalParamsController: OpticalParamsController
 
   @FXML
-  lateinit var opticalParamsController: OpticalParamsController
+  lateinit var structureDescriptionController: StructureDescriptionController
 
   @FXML
   lateinit var lineChartController: LineChartController

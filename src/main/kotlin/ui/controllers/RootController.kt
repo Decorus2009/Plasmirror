@@ -26,11 +26,10 @@ class RootController {
     Platform.runLater {
       activeState().compute()
       chartController().importActiveStateExternalData()
-      chartController().updateChart()
+      chartController().updateChart(rescale = true)
       computeButton().setShortcut()
       chartController().updateLegendListener()
     }
-
   }
 
   @FXML

@@ -7,19 +7,11 @@ import core.layers.semiconductor.*
 import core.optics.PermittivityModel
 import core.optics.particles.LorentzOscillator
 import core.util.*
-import core.validators.alert
 
 /**
  * Structure is a sequence of blocks
  */
 class Structure(val blocks: List<Block>)
-
-fun List<Block>.toStructure() = runCatching {
-  Structure(this)
-}.getOrElse { ex ->
-  alert(header = "Structure description error", content = ex.message ?: "")
-  throw ex
-}
 
 /**
  * Block is a sequence of layers with repeat descriptor
@@ -28,14 +20,14 @@ fun List<Block>.toStructure() = runCatching {
 class Block(val repeat: Int, val layers: List<Layer>)
 
 fun List<JsonNode>.toBlock() = Block(
-  repeat = first().requirePositiveInt(DescriptionParameters.repeat),
+  repeat = first().requireNonNegativeInt(DescriptionParameters.repeat),
   layers = remaining().map { it.toLayer() }
 )
 
 /** See possible layer configurations in the big comment block below */
 private fun JsonNode.toLayer(): Layer {
   val layerType = requireLayerType()
-  val d = requirePositiveDouble(DescriptionParameters.d)
+  val d = requireNonNegativeDouble(DescriptionParameters.d)
 
   return when (layerType) {
     LayerType.GAAS -> GaAs(
@@ -46,13 +38,13 @@ private fun JsonNode.toLayer(): Layer {
     LayerType.ALGAAS -> AlGaAs(
       d = d,
       kToN = requireDouble(DescriptionParameters.kToN),
-      cAl = requirePositiveDouble(DescriptionParameters.cAl),
+      cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
       permittivityModel = requirePermittivityModelFor(layerType)
     )
     LayerType.ALGAASSB -> AlGaAsSb(
       d = d,
-      cAl = requirePositiveDouble(DescriptionParameters.cAl),
-      cAs = requirePositiveDouble(DescriptionParameters.cAs)
+      cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
+      cAs = requireNonNegativeDouble(DescriptionParameters.cAs)
     )
     LayerType.CONST_N -> ConstRefractiveIndexLayer(
       d = d,
@@ -61,7 +53,7 @@ private fun JsonNode.toLayer(): Layer {
     LayerType.GAAS_X -> GaAsExcitonic(
       d = d,
       kToN = requireDouble(DescriptionParameters.kToN),
-      w0 = requirePositiveDouble(DescriptionParameters.w0),
+      w0 = requireNonNegativeDouble(DescriptionParameters.w0),
       G0 = requireDouble(DescriptionParameters.g0),
       G = requireDouble(DescriptionParameters.g),
       permittivityModel = requirePermittivityModelFor(layerType)
@@ -69,8 +61,8 @@ private fun JsonNode.toLayer(): Layer {
     LayerType.ALGAAS_X -> AlGaAsExcitonic(
       d = d,
       kToN = requireDouble(DescriptionParameters.kToN),
-      cAl = requirePositiveDouble(DescriptionParameters.cAl),
-      w0 = requirePositiveDouble(DescriptionParameters.w0),
+      cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
+      w0 = requireNonNegativeDouble(DescriptionParameters.w0),
       G0 = requireDouble(DescriptionParameters.g0),
       G = requireDouble(DescriptionParameters.g),
       permittivityModel = requirePermittivityModelFor(layerType)
@@ -78,7 +70,7 @@ private fun JsonNode.toLayer(): Layer {
     LayerType.CONST_N_X -> ConstRefractiveIndexLayerExcitonic(
       d = d,
       n = requireComplex(DescriptionParameters.n),
-      w0 = requirePositiveDouble(DescriptionParameters.w0),
+      w0 = requireNonNegativeDouble(DescriptionParameters.w0),
       G0 = requireDouble(DescriptionParameters.g0),
       G = requireDouble(DescriptionParameters.g)
     )
@@ -86,20 +78,20 @@ private fun JsonNode.toLayer(): Layer {
       d = d,
       medium = requireMedium().toLayer(),
       particles = requireParticlesFor(layerType),
-      f = requirePositiveDouble(DescriptionParameters.f)
+      f = requireNonNegativeDouble(DescriptionParameters.f)
     )
     LayerType.MIE -> Mie(
       d = d,
       medium = requireMedium().toLayer(),
       particles = requireParticlesFor(layerType),
-      f = requirePositiveDouble(DescriptionParameters.f),
+      f = requireNonNegativeDouble(DescriptionParameters.f),
       orders = requireOrders()
     )
     LayerType.SPHERES_LATTICE -> SpheresLattice(
       d = d,
       medium = requireMedium().toLayer(),
       particles = requireParticlesFor(layerType),
-      latticeFactor = requirePositiveDouble(DescriptionParameters.latticeFactor)
+      latticeFactor = requireNonNegativeDouble(DescriptionParameters.latticeFactor)
     )
   }
 }
@@ -122,7 +114,7 @@ private fun JsonNode.requirePermittivityModelFor(layerType: LayerType): Permitti
   val maybeModel = requireText(DescriptionParameters.n).toUpperCase()
 
   check(PermittivityModel.values().map { it.name }.contains(maybeModel)) {
-    "Unknown permittivity model in \"$this\""
+    "Unknown permittivity model"
   }
   return PermittivityModel.valueOf(maybeModel).also { it.checkIsAllowedFor(layerType) }
 }
@@ -160,7 +152,7 @@ private fun JsonNode.requireMedium() = requireNode(DescriptionParameters.medium)
 
 private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(DescriptionParameters.particles).run {
   val r = when (layerType) {
-    LayerType.MIE -> requirePositiveDouble(DescriptionParameters.r)
+    LayerType.MIE -> requireNonNegativeDouble(DescriptionParameters.r)
     // "r" parameter can be provided only for Mie layer
     else -> requirePositiveDoubleOrNull(DescriptionParameters.r)?.let {
       error("Particle radius should be provided only for Mie layer")
@@ -169,14 +161,14 @@ private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Des
   when (requireParticlesPermittivityModel()) {
     ParticlesPermittivityModel.DRUDE -> DrudeParticles(
       r = r,
-      wPl = requirePositiveDouble(DescriptionParameters.w),
+      wPl = requireNonNegativeDouble(DescriptionParameters.w),
       g = requireDouble(DescriptionParameters.g),
       epsInf = requireDouble(DescriptionParameters.epsInf)
     )
     ParticlesPermittivityModel.DRUDE_LORENTZ -> DrudeLorentzParticles(
       // Drude params
       r = r,
-      wPl = requirePositiveDouble(DescriptionParameters.w),
+      wPl = requireNonNegativeDouble(DescriptionParameters.w),
       g = requireDouble(DescriptionParameters.g),
       epsInf = requireDouble(DescriptionParameters.epsInf),
       oscillators = requireOscillators()
@@ -235,7 +227,7 @@ private fun JsonNode.requireOscillators() = requireNode(DescriptionParameters.os
   .toList()
 
 
-enum class LayerType {
+private enum class LayerType {
   GAAS,
   ALGAAS,
   ALGAASSB,

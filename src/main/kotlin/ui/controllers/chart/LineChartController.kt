@@ -4,11 +4,11 @@ import core.optics.Mode
 import core.state.ComputationUnit
 import core.state.activeState
 import javafx.application.Platform
+import javafx.collections.ListChangeListener
 import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.geometry.Pos
-import javafx.scene.chart.LineChart
-import javafx.scene.chart.NumberAxis
+import javafx.scene.chart.*
 import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
@@ -23,6 +23,7 @@ import org.gillius.jfxutils.chart.ChartPanManager
 import org.gillius.jfxutils.chart.ChartZoomManager
 import ui.controllers.MainController
 import ui.controllers.chart.LineChartState.allExtendedSeries
+import ui.controllers.chart.LineChartState.computed
 import ui.controllers.chart.LineChartState.importIntoChartState
 import ui.controllers.chart.LineChartState.imported
 import java.io.File
@@ -61,13 +62,16 @@ class LineChartController {
     setDoubleMouseClickRescaling()
   }
 
-  fun updateChart() {
+  fun updateChart(rescale: Boolean = false) {
     updateComputed()
     updateYAxisLabel()
     updateLegendListener()
     updateStyleOfAll()
+    if (rescale) {
+      rescale()
+    }
 
-//    updateModeAndRescale()  TODO fix rescaling problem
+    //    updateModeAndRescale()  TODO fix rescaling problem
   }
 
   fun updateStyleOf(extendedSeries: ExtendedSeries) = with(extendedSeries) {
@@ -99,18 +103,23 @@ class LineChartController {
      */
     Platform.runLater {
       chart.lookupAll(".chart-legend-item-symbol").forEach { node ->
-        node.styleClass.filter { it.startsWith("series") }.forEach {
-          val i = it.substring("series".length).toInt()
-          val color = allExtendedSeries().find { it.series.name == chartData()[i].name }!!.color
-          node.style = "-fx-background-color: $color;"
-        }
+        node.styleClass
+          .filter { it.startsWith("series") }
+          .forEach {
+            val i = it.substring("series".length).toInt()
+            val color = allExtendedSeries().find { it.series.name == chartData()[i].name }!!.color
+            node.style = "-fx-background-color: $color;"
+          }
       }
     }
   }
 
   fun updateStyleOfAll() = allExtendedSeries().forEach { updateStyleOf(it) }
 
-  /* TODO vertical scaling works separately for re_y and im_y of the imported complex data */
+  /* TODO
+      1. vertical scaling works separately for re_y and im_y of the imported complex data
+      2. Avoid importing the same data, many bugs
+  */
   fun importFrom(file: File) {
     file.importIntoChartState()
     addLastImportedToChart()
@@ -131,6 +140,10 @@ class LineChartController {
     LineChartState.updateComputed()
     removePreviouslyComputed()
     addComputed()
+
+    chartData().addListener(ListChangeListener<XYChart.Series<Number, Number>> { change ->
+      println("Some item added: ${change.list}")
+    })
   }
 
   private fun removePreviouslyComputed() {
@@ -262,21 +275,21 @@ class LineChartController {
           tickUnit = 0.1
         }
         Mode.PERMITTIVITY -> {
-          lowerBound = -10.0
-          upperBound = 30.0
+          lowerBound = -15.0
+          upperBound = 35.0
           tickUnit = 5.0
           isAutoRanging = false
         }
         Mode.REFRACTIVE_INDEX -> {
-          lowerBound = -1.0
-          upperBound = 4.5
+          lowerBound = -1.5
+          upperBound = 5.0
           tickUnit = 0.5
           isAutoRanging = false
         }
         Mode.EXTINCTION_COEFFICIENT, Mode.SCATTERING_COEFFICIENT -> {
           lowerBound = 0.0
           upperBound = 2E4
-          tickUnit = 2E3
+          tickUnit = 5E3
           isAutoRanging = false
         }
       }

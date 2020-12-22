@@ -1,8 +1,7 @@
 package core.util
 
 import com.fasterxml.jackson.databind.JsonNode
-import core.Complex
-import core.checkIsNotNegative
+import core.*
 
 
 fun JsonNode.requireInt() = requireIntOrNull() ?: error("Cannot read integer value in node \"$this\"")
@@ -29,7 +28,7 @@ fun JsonNode.requireText() = when {
 }
 
 fun JsonNode.requireNode(field: String) = requireNodeOrNull(field)
-  ?: error("Absent or null or missing $field node in node $this")
+  ?: error("Absent or null or missing $field node")
 
 fun JsonNode.requireNodeOrNull(field: String): JsonNode? {
   if (!has(field) || get(field).isNullOrMissing) {
@@ -40,13 +39,14 @@ fun JsonNode.requireNodeOrNull(field: String): JsonNode? {
 
 fun JsonNode.requireInt(field: String) = requireNode(field).requireInt()
 fun JsonNode.requireIntOrNull(field: String) = requireNodeOrNull(field)?.requireIntOrNull()
-fun JsonNode.requirePositiveInt(field: String) = requireInt(field).also { it.checkIsNotNegative() }
-fun JsonNode.requirePositiveIntOrNull(field: String) = requireIntOrNull(field)?.also { it.checkIsNotNegative() }
+fun JsonNode.requireNonNegativeInt(field: String) = requireInt(field).also { it.checkIsNonNegative(field) }
+fun JsonNode.requirePositiveInt(field: String) = requireInt(field).also { it.checkIsPositive(field) }
+fun JsonNode.requirePositiveIntOrNull(field: String) = requireIntOrNull(field)?.also { it.checkIsPositive(field) }
 
 fun JsonNode.requireDouble(field: String) = requireNode(field).requireDouble()
 fun JsonNode.requireDoubleOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleOrNull()
-fun JsonNode.requirePositiveDouble(field: String) = requireDouble(field).also { it.checkIsNotNegative() }
-fun JsonNode.requirePositiveDoubleOrNull(field: String) = requireDoubleOrNull(field)?.also { it.checkIsNotNegative() }
+fun JsonNode.requireNonNegativeDouble(field: String) = requireDouble(field).also { it.checkIsNonNegative(field) }
+fun JsonNode.requirePositiveDoubleOrNull(field: String) = requireDoubleOrNull(field)?.also { it.checkIsPositive(field) }
 
 fun JsonNode.requireText(field: String) = requireNode(field).requireText()
 fun JsonNode.requireTextOrNull(field: String) = requireNodeOrNull(field)?.requireText()
