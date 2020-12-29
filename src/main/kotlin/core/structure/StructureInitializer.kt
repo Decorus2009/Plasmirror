@@ -1,21 +1,10 @@
 package core.structure
 
-import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonNode
 import core.state.mapper
 import core.util.requireNode
 
-fun String.toStructure() = runCatching {
-  json().asArray().let {
-    it.preValidate()
-    it.toStructure().apply { postValidate() }
-  }
-}.getOrElse { ex ->
-  if (ex is JsonParseException) {
-    throw StructureDescriptionException(message = "Check the usage of '. , : ; + - * / ( )' symbols", cause = ex)
-  }
-  throw StructureDescriptionException(cause = ex)
-}
+fun String.toStructure() = json().asArray().toStructure()
 
 /**
  * Maps structure string representation to a json object
@@ -44,10 +33,11 @@ fun String.toStructure() = runCatching {
  *
  * @return structure representation as json object containing array of "layer objects"
  */
-private fun String.json() = """{"${DescriptionParameters.structure}":[${toLowerCase()
+fun String.json() = """{"${DescriptionParameters.structure}":[${toLowerCase()
   .replace(Regex("(?s)/\\*.*\\*/"), "")                                    // exclude multi-line comments
   .replace(Regex("\\s*[/]{2,}.*"), "")                                     // exclude single-line comments
   .replace(Regex("\\s+"), "")                                              // remove all spaces, \n
+  .replace(Regex("^([^xX])"), "x1$1")                                      // insert x1 into the beginning if description starts without it
   .replace(Regex("([xX])([\\d]+)"), "${DescriptionParameters.repeat}:$2;") // x42 -> repeat:42
   // add artificial d param required for description parsing: medium: { -> medium: { d: 0,
   .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "${DescriptionParameters.medium}:{d:0,")
@@ -61,7 +51,7 @@ private fun String.json() = """{"${DescriptionParameters.structure}":[${toLowerC
   .replace(",{}", "")                                                      // remove empty trailing nodes
 }]}"""
 
-private fun String.asArray() = mapper.readTree(this)
+fun String.asArray() = mapper.readTree(this)
   .requireNode(DescriptionParameters.structure)
   .also { require(it.isArray) }
   .map { it }
@@ -74,7 +64,7 @@ private fun String.asArray() = mapper.readTree(this)
  * [adjacentPositionsOfRepeatDescriptors] serve as bounds
  * when slicing into chunks to be converted to block descriptions
  */
-private fun List<JsonNode>.toStructure(): Structure {
+fun List<JsonNode>.toStructure(): Structure {
   val nodes = when {
     // no repeat descriptor is found, insert an artificial node before the node with a single layer description
     !first().isRepeatDescription() -> listOf(repeatDescriptorNode()) + this

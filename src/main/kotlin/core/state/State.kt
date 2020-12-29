@@ -4,6 +4,7 @@ import core.Complex
 import core.optics.Mode
 import core.util.normalized
 import rootController
+import java.lang.Exception
 import java.lang.IllegalStateException
 
 data class State(
@@ -12,21 +13,21 @@ data class State(
   val externalData: MutableSet<ExternalData>,
   var active: Boolean
 ) {
-  fun compute() {
+  fun compute() = with(generateWavelengths()) {
+    when (mode()) {
+      Mode.REFLECTANCE -> reflectance()
+      Mode.TRANSMITTANCE -> transmittance()
+      Mode.ABSORBANCE -> absorbance()
+      Mode.EXTINCTION_COEFFICIENT -> extinctionCoefficient()
+      Mode.SCATTERING_COEFFICIENT -> scatteringCoefficient()
+      Mode.PERMITTIVITY -> permittivity()
+      Mode.REFRACTIVE_INDEX -> refractiveIndex()
+    }
+  }
+
+  fun prepare() {
     updateFromUI()
     clearData()
-
-    with(generateWavelengths()) {
-      when (mode()) {
-        Mode.REFLECTANCE -> reflectance()
-        Mode.TRANSMITTANCE -> transmittance()
-        Mode.ABSORBANCE -> absorbance()
-        Mode.EXTINCTION_COEFFICIENT -> extinctionCoefficient()
-        Mode.SCATTERING_COEFFICIENT -> scatteringCoefficient()
-        Mode.PERMITTIVITY -> permittivity()
-        Mode.REFRACTIVE_INDEX -> refractiveIndex()
-      }
-    }
   }
 
   fun activate() {
@@ -124,3 +125,7 @@ data class State(
 enum class ComputationUnit { NM, EV }
 
 fun opticalParamsController() = rootController.mainController.opticalParamsController
+
+fun lightParamsController() = opticalParamsController().lightParamsController
+
+fun temperatureController() = opticalParamsController().temperatureController

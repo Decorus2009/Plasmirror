@@ -2,7 +2,8 @@ package ui.controllers
 
 import core.state.*
 import core.structure.StructureDescriptionException
-import core.validators.alert
+import core.validators.StateException
+import ui.controllers.alert
 import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javafx.scene.control.Label
@@ -14,15 +15,16 @@ class ControlsController {
   fun initialize() {
     computeButton.setOnAction {
       try {
+        activeState().prepare()
         withClock { activeState().compute() }
         saveStates()
         /*
-          this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
-          (including rootController)
-          */
+        this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
+        (including rootController)
+        */
         chartController().updateChart()
       } catch (ex: Exception) {
-        ex.handle()
+        handle(ex)
       }
     }
   }
@@ -34,20 +36,20 @@ class ControlsController {
     computationTimeLabel.text = "Computation time: ${String.format(Locale.US, "%.2f", (stop - start).toDouble() / 1E6)}ms"
   }
 
-  private fun Exception.handle() {
-    when (this) {
-      is StructureDescriptionException -> {
-        alert(
-          header = "Structure description error",
-          content = message ?: cause?.message ?: "Error description is absent"
-        )
-      }
-      else -> {
-        alert(
-          header = "Unknown error",
-          content = cause?.message ?: message ?: "Error description is absent"
-        )
-      }
+  private fun handle(ex: Exception) {
+    when (ex) {
+      is StructureDescriptionException -> alert(
+        header = "Structure description error",
+        content = ex.message ?: ex.cause?.message ?: "Unknown error"
+      )
+      is StateException -> alert(
+        header = ex.headerMessage,
+        content = ex.contentMessage
+      )
+      else -> alert(
+        header = "Unknown error",
+        content = ex.cause?.message ?: ex.message ?: "Unknown error"
+      )
     }
   }
 

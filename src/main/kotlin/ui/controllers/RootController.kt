@@ -24,6 +24,7 @@ class RootController {
      * There is a need to minimize a number of calls of [Platform.runLater] (see its docs).
      */
     Platform.runLater {
+      activeState().prepare()
       activeState().compute()
       chartController().importActiveStateExternalData()
       chartController().updateChart(rescale = true)
@@ -42,5 +43,7 @@ class RootController {
 }
 
 fun chartController() = rootController.mainController.lineChartController
+
+fun structureDescriptionController() = rootController.mainController.structureDescriptionController
 
 fun computeButton() = rootController.mainController.controlsController.computeButton

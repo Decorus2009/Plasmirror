@@ -140,10 +140,6 @@ class LineChartController {
     LineChartState.updateComputed()
     removePreviouslyComputed()
     addComputed()
-
-    chartData().addListener(ListChangeListener<XYChart.Series<Number, Number>> { change ->
-      println("Some item added: ${change.list}")
-    })
   }
 
   private fun removePreviouslyComputed() {

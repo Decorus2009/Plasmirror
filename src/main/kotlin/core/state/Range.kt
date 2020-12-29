@@ -1,5 +1,7 @@
 package core.state
 
+import core.validators.RangeValidator
+
 data class Range(
   var unit: ComputationUnit,
   var start: Double,
@@ -8,7 +10,7 @@ data class Range(
 ) {
   // TODO NM, EV selector
   fun updateFromUI() = computationRangeController().values().let { (startText, endText, stepText) ->
-    validate(ComputationUnit.NM, startText, endText, stepText)
+    RangeValidator.validateRange(startText, endText, stepText)
     start = startText.toDouble()
     end = endText.toDouble()
     step = stepText.toDouble()

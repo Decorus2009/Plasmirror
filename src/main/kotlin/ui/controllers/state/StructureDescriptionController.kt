@@ -42,6 +42,9 @@ class StructureDescriptionController {
       "(\\b${PermittivityModel.ADACHI_T}\\b)?" +
       "(\\b${PermittivityModel.ADACHI_GAUSS}\\b)?" +
       "(\\b${PermittivityModel.ADACHI_GAUSS_MOD}\\b)?"
+    val LAYER_PATTERN =
+      "(\\bGaAs\\b)?"// + "(\\bAlGaAs\\b)?"
+    val STUB_PATTERN = "(\\bStub\\b)?"
 
     /**
      * This makes highlight GaAs and permittivity model, however if write (?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)
@@ -54,8 +57,8 @@ class StructureDescriptionController {
 //    )
 
     val PATTERN = Pattern.compile(
-      "(?<COMMENT>$COMMENT_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<REPEAT>$REPEAT_PATTERN)|(?<MODEL>$MODEL_PATTERN)",
-      Pattern.CASE_INSENSITIVE
+      "(?<REPEAT>$REPEAT_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<STUB>$STUB_PATTERN)"
+      ,  Pattern.CASE_INSENSITIVE
     )
 
     val matcher = PATTERN.matcher(text)
@@ -68,6 +71,7 @@ class StructureDescriptionController {
         matcher.group("REPEAT") != null -> "repeat"
         matcher.group("MODEL") != null -> "permittivity_model"
         matcher.group("LAYER") != null -> "layer"
+        matcher.group("STUB") != null -> "stub"
         else -> null
       })!! /* never happens */
       spansBuilder.add(emptyList(), matcher.start() - lastKwEnd)

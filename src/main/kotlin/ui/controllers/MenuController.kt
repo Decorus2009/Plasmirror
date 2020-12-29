@@ -1,6 +1,7 @@
 package ui.controllers
 
 import MainApp
+import core.util.KnownPaths.export
 import core.util.exportFileName
 import core.util.writeComputedDataTo
 import javafx.fxml.FXML
@@ -35,7 +36,7 @@ class MenuController {
     }
 
     exportMenuItem.setOnAction {
-      initFileChooser(".")
+      initFileChooser(export)
         .let { chooser ->
           chooser.initialFileName = exportFileName()
           chooser.showSaveDialog(rootController.mainApp.primaryStage)

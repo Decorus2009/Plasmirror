@@ -9,11 +9,13 @@ import java.util.*
 
 object KnownPaths {
   val config = "data${sep}internal${sep}state${sep}config.json"
+  val export = "data${sep}for_export"
+  val import = "data${sep}for_import"
   val permittivitySbCardonaAdachi = "data${sep}internal${sep}interpolations${sep}eps_Sb_Cardona_Adachi.txt"
   val help = "data${sep}help.txt"
 }
 
-private val sep: String = File.separator
+val sep: String = File.separator
 
 fun String.requireFile(): File = Paths.get(this).toFile().also {
   if (!it.exists()) {
@@ -37,8 +39,10 @@ fun exportFileName() = with(activeState()) {
 
     append("computation_${mode}_${start}_${end}")
     if (mode == Mode.REFLECTANCE || mode == Mode.TRANSMITTANCE || mode == Mode.ABSORBANCE) {
-      append("_${polarization()}-POL_^${String.format(Locale.US, "%04.1f", angle())}_deg")
+      append("_${polarization()}-POL")
+      append("_${String.format(Locale.US, "%04.1f", angle())}deg")
     }
+    append("_${String.format(Locale.US, "%04.1f", temperature())}K")
   }.toString()
 }
 

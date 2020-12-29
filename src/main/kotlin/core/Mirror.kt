@@ -16,7 +16,7 @@ import kotlin.Double.Companion.POSITIVE_INFINITY
 /**
  * Mirror: left medium layer + structure + right medium layer
  */
-// TODO all properties are vars? the can be changed on UI
+// TODO all properties are vars? they can be changed on UI
 class Mirror(
   var structure: Structure,
   var leftMediumLayer: Layer,

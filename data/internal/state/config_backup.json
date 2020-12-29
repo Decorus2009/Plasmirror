@@ -4,34 +4,34 @@
     "computationState": {
       "range": {
         "unit": "NM",
-        "start": 50.0,
+        "start": 400.0,
         "end": 1200.0,
-        "step": 2.0
+        "step": 1.0
       },
       "opticalParams": {
         "mode": "REFLECTANCE",
-        "temperature": 300.0,
+        "temperature": 10.0,
         "angle": 0.0,
         "polarization": "S",
         "leftMedium": {
           "type": "AIR",
           "nReal": 1.0,
-          "nImaginary": 1.0
+          "nImaginary": 0.0
         },
         "rightMedium": {
-          "type": "GAAS_GAUSS",
-          "nReal": 3.6,
+          "type": "GAAS_ADACHI",
+          "nReal": 3.4,
           "nImaginary": 0.0
         }
       },
       "textDescriptions": {
-        "absorbance": "// absorbance\nlayer: GaAs, n: Adachi_T, k/n: 0.0, d: 2;",
-        "scattering coefficient": "// scattering\nlayer: GaAs, n: Adachi_T, k/n: 0.0, d: 600;",
-        "permittivity": "layer: AlGaAs, n: Adachi_T, k/n: 0.0, cAl: 0, d: 300;",
-        "reflectance": "x11\nlayer: AlGaAs, n: Adachi_T, k/n: 0.0, cAl: 0.3, d: 1000;\n/*\nlayer: eff_medium,\nmedium: { material: AlGaAs, n: Adachi_gauss, k/n: 0.0, cAl: 0.0 },\nparticles: { n: Drude_Lorentz, w: 10, g: 0.1, epsInf: 1.0,\n  oscillators: {\n    1: { w: 12, f: 1, g: 0.1 },\n    2: { w: 32, f: 10, g: 0.2 }\n  }\n},\nd: 1000, f: 0.005\n*/\n",
-        "refractive index": "// refractive index\nlayer: AlGaAs, n: Adachi_T, k/n: 0, cAl: 0.3, d: 400;",
-        "extinction coefficient": "// extinction\nlayer: GaAs, n: Adachi_gauss, k/n: 1.0, d: 5;",
-        "transmittance": "// transmittance\nlayer: GaAs, n: Adachi_T, k/n: 0.0, d: 300;"
+        "absorbance": "\nmaterial: GaAs, n: ADACHI_GAUSS, k/n: 0.0, cAl: 0.60, d: 500\n\n/*\nx0\nlayer: GaAs, n: Adachi_T, k/n: 0.0, d: 1000;\n*/",
+        "scattering coefficient": "",
+        "permittivity": "x1\nlayer: AlGaAs, n: Adachi_simple, d: 0, k/n: , cAl: 0.3;",
+        "reflectance": "// ST1279-7 P06 R0 modeling\n// Custom: 3.4, 0.0 coef = 0.9\n// 25 periods and n_right = 3.4\n// Using Drude model\nx1\nmaterial: GaAs, n: ADACHI_T, d: 2, k/n: 0.0;\nmaterial: AlGaAs, n: ADACHI_T, d: 64.5, k/n: 0.0, cAl: 0.35;\nmaterial: AlGaAs, n: ADACHI_T, d: 110, k/n: 0.0, cAl: 0.35;\n\nx25\nlayer: spheres_lattice,\nmedium: { material: AlGaAs, n: Adachi_T, d: 15, k/n: 0.05, cAl: 0.35 },\nparticles: { n: Drude, w: 13.6, G: 1.55, epsInf: 1.0 },\nd: 40, lattice_factor: 6.1;\n// layer thickness is considered as double average size of NI (4 radii)\n\nmaterial: AlGaAs, n: ADACHI_T, d: 111.1, k/n: 0.002, cAl: 0.35;\n",
+        "refractive index": "x1\nmaterial: AlGaAs, n: adachi_T, k/n: 0.0, cAl: 0.6, d: 1000",
+        "extinction coefficient": "\n// BP2928 LT-AlGaAs:Sb\n\nlayer: mie,\norders: all,\nmedium: { material: AlGaAs, n: adachi_gauss, k/n: 0.0, cAl: 0.6 },\nparticles: { n: Drude, w: 13.6, G: 1.58, epsInf: 1.0, r: 7.5 },\nd: 1000, f: 0.0025\n\n\n// BP2914 LT-GaAs:Sb\n// Sb \n/*\nx1\nlayer: mie,\norders: all,\nmedium: { material: AlGaAs, n: Adachi_gauss, k/n: 0.0, cAl: 0.0 },\nparticles: { n: Sb, r: 7.5 },\nd: 1000, f: 0.0044\n*/\n// Drude\n/*\nx1\nlayer: mie,\norders: all,\nmedium: { material: AlGaAs, n: Adachi_gauss, k/n: 0.0, cAl: 0.0 },\nparticles: { n: Drude, w: 13.6, G: 1.58, epsInf: 1.0, r: 7.5 },\nd: 1000, f: 0.0054\n*/\n",
+        "transmittance": ""
       }
     },
     "externalData": [],

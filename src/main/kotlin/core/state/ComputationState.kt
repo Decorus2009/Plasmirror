@@ -2,6 +2,7 @@ package core.state
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import core.Mirror
+import core.validators.StructureDescriptionValidator
 import rootController
 
 /**
@@ -23,7 +24,10 @@ data class ComputationState(
   fun updateFromUI() {
     range.updateFromUI()
     opticalParams.updateFromUI()
-    updateStructureDescription(opticalParams.mode.toString(), currentStructureTextDescription())
+    updateStructureDescription(
+      opticalParams.mode.toString(),
+      currentStructureTextDescription().also { StructureDescriptionValidator.validate(it) }
+    )
     mirror.updateVia(opticalParams, currentStructureTextDescription())
   }
 

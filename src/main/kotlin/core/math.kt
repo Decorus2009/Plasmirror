@@ -129,6 +129,8 @@ fun Int.checkIsPositive(field: String) = check(this > 0) { "Parameter value \"$f
 
 fun Double.isAllowedTemperature() = this > 0.0
 
+fun Double.isNotAllowedTemperature() = !isAllowedTemperature()
+
 fun Double.isAllowedAngle() = this in 0.0..89.99999999
 
 fun Double.isNotAllowedAngle() = !isAllowedAngle()

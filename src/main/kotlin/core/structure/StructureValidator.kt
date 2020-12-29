@@ -13,15 +13,10 @@ fun Structure.postValidate() {
   allBlocksHaveLayers()
 }
 
-private fun Structure.nonEmpty() {
-  if (blocks.isEmpty() || (blocks.size == 1 && blocks.first().repeat == 0)) {
-    throw StructureDescriptionException("Empty structure description")
-  }
-}
-
-private fun Structure.allBlocksHaveLayers() {
-  if (blocks.any { it.layers.isEmpty() }) {
-    throw StructureDescriptionException("Each block of layers should have at least one layer")
+/** More than 1 consecutive repeat description */
+private fun List<JsonNode>.noConsecutiveRepeatDescriptors() {
+  if (hasConsecutiveRepeatDescriptors()) {
+    throw StructureDescriptionException("Multiple consecutive repeat descriptors")
   }
 }
 
@@ -32,12 +27,15 @@ private fun List<JsonNode>.notEmpty() {
   }
 }
 
-/**
- * More than 1 consecutive repeat description
- */
-private fun List<JsonNode>.noConsecutiveRepeatDescriptors() {
-  if (hasConsecutiveRepeatDescriptors()) {
-    throw StructureDescriptionException("Multiple consecutive repeat descriptors")
+private fun Structure.nonEmpty() {
+  if (blocks.isEmpty() || (blocks.size == 1 && blocks.first().repeat == 0)) {
+    throw StructureDescriptionException("Empty structure description")
+  }
+}
+
+private fun Structure.allBlocksHaveLayers() {
+  if (blocks.any { it.layers.isEmpty() }) {
+    throw StructureDescriptionException("Each block of layers should have at least one layer")
   }
 }
 

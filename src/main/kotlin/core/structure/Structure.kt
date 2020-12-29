@@ -2,11 +2,14 @@ package core.structure
 
 import com.fasterxml.jackson.databind.JsonNode
 import core.layers.composite.*
+import core.layers.excitonic.Exciton
+import core.layers.excitonic.Excitonic
 import core.layers.particles.*
 import core.layers.semiconductor.*
 import core.optics.PermittivityModel
 import core.optics.particles.LorentzOscillator
 import core.util.*
+import ui.controllers.structureDescriptionController
 
 /**
  * Structure is a sequence of blocks
@@ -24,7 +27,12 @@ fun List<JsonNode>.toBlock() = Block(
   layers = remaining().map { it.toLayer() }
 )
 
-/** See possible layer configurations in the big comment block below */
+/**
+ * See possible layer configurations in the big comment block below
+ *
+ * In case if [d] param is visually missing (e.g. in medium: { ... } node), it's actually added artificially before in
+ * [StructureInitializer.json]
+ * */
 private fun JsonNode.toLayer(): Layer {
   val layerType = requireLayerType()
   val d = requireNonNegativeDouble(DescriptionParameters.d)
@@ -50,6 +58,11 @@ private fun JsonNode.toLayer(): Layer {
       d = d,
       n = requireComplex(DescriptionParameters.n)
     )
+//    LayerType.EXCITONIC -> Excitonic(
+//      d = d,
+//      medium = requireMedium().toLayer(),
+//      exciton = requireExciton()
+//    )
     LayerType.GAAS_X -> GaAsExcitonic(
       d = d,
       kToN = requireDouble(DescriptionParameters.kToN),
@@ -104,11 +117,22 @@ private fun JsonNode.requireLayerType(): LayerType {
 }
 
 private fun String.requireLayerType(): LayerType {
-  check(LayerType.values().map { it.name }.contains(this.toUpperCase())) {
-    "Unknown layer \"$this\""
+  check(LayerType.values().map { it.name }.contains(toUpperCase())) {
+    "Unknown layer \"${findWrongLayerTypeInDescriptionText()}\""
   }
   return LayerType.valueOf(this.toUpperCase())
 }
+
+// finds properly capitalized wrong layer type in actual (i.e. visible to a user) structure description text
+// nb: [this] is of lower case
+private fun String.findWrongLayerTypeInDescriptionText(): String {
+  val wrongLayerType = this
+  val actualStructureDescriptionText = structureDescriptionController().structureDescriptionCodeArea.text
+  val startPos = actualStructureDescriptionText.replace(" ", "").toLowerCase().indexOf(wrongLayerType)
+
+  return actualStructureDescriptionText.substring(startPos, startPos + wrongLayerType.length)
+}
+
 
 private fun JsonNode.requirePermittivityModelFor(layerType: LayerType): PermittivityModel {
   val maybeModel = requireText(DescriptionParameters.n).toUpperCase()
@@ -122,7 +146,8 @@ private fun JsonNode.requirePermittivityModelFor(layerType: LayerType): Permitti
 private fun PermittivityModel.checkIsAllowedFor(layerType: LayerType) {
   check(layerType in listOf(
     LayerType.GAAS,
-    LayerType.ALGAAS,
+    LayerType.ALGAAS
+    ,
     LayerType.GAAS_X,
     LayerType.ALGAAS_X
   ) && this in PermittivityModel.values()) {
@@ -148,6 +173,14 @@ private fun JsonNode.requireMedium() = requireNode(DescriptionParameters.medium)
   )) {
     "Medium material/layer can be only GaAs, AlGaAs, AlGaAsSb or const_n"
   }
+}
+
+private fun JsonNode.requireExciton(): Exciton = requireNode(DescriptionParameters.exciton).run {
+  Exciton(
+    w0 = requireNonNegativeDouble(DescriptionParameters.w0),
+    G0 = requireDouble(DescriptionParameters.g0),
+    G = requireDouble(DescriptionParameters.g)
+  )
 }
 
 private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(DescriptionParameters.particles).run {
@@ -232,6 +265,7 @@ private enum class LayerType {
   ALGAAS,
   ALGAASSB,
   CONST_N,
+//  EXCITONIC,
   GAAS_X,
   ALGAAS_X,
   CONST_N_X,
@@ -240,6 +274,8 @@ private enum class LayerType {
   SPHERES_LATTICE
 }
 
+private val excitonicLayerTypes = listOf(LayerType.GAAS, LayerType.ALGAAS, LayerType.ALGAASSB, LayerType.CONST_N)
+
 object DescriptionParameters {
   const val structure = "structure"
   const val repeat = "repeat"
@@ -247,6 +283,7 @@ object DescriptionParameters {
   const val layer = "layer"
   const val medium = "medium"
   const val particles = "particles"
+  const val exciton = "exciton"
   const val material = "material"
   const val orders = "orders"
   const val oscillators = "oscillators"

@@ -1,6 +1,8 @@
 package core.state
 
 import core.optics.*
+import core.validators.MediumParamValidator
+import core.validators.OpticalParamsValidator
 
 data class OpticalParams(
   var mode: Mode,
@@ -35,14 +37,14 @@ data class OpticalParams(
   private fun updateUIMode() = modeController().setMode(mode.toString())
 
   private fun updateTemperatureFromUI() = temperatureController().temperatureText().let { text ->
-    validateTemperature(text)
+    OpticalParamsValidator.validateTemperature(text)
     temperature = text.toDouble()
   }
 
   private fun updateUITemperature() = temperatureController().setTemperature(temperature.toString())
 
   private fun updateAngleFromUI() = lightParamsController().angleText().let { text ->
-    validateAngle(text)
+    OpticalParamsValidator.validateAngle(text)
     angle = text.toDouble()
   }
 
@@ -57,7 +59,7 @@ data class OpticalParams(
   // TODO if medium type is e.g. AIR, then values for (n.real, n.imag) may be different from (1, 0)
   //  if set on UI to something different before
   private fun updateLeftMediumFromUI() = mediumParamsController().leftMedium().let { (text, nRealText, nImaginaryText) ->
-    validateMediumRefractiveIndex(nRealText, nImaginaryText)
+    MediumParamValidator.validateRefractiveIndex(nRealText, nImaginaryText)
     leftMedium = Medium(text.toMediumType(), nRealText.toDouble(), nImaginaryText.toDouble())
   }
 
@@ -66,7 +68,7 @@ data class OpticalParams(
   // TODO if medium type is e.g. AIR, then values for (n.real, n.imag) may be different from (1, 0)
   //  if set on UI to something different before
   private fun updateRightMediumFromUI() = mediumParamsController().rightMedium().let { (text, nRealText, nImaginaryText) ->
-    validateMediumRefractiveIndex(nRealText, nImaginaryText)
+    MediumParamValidator.validateRefractiveIndex(nRealText, nImaginaryText)
     rightMedium = Medium(text.toMediumType(), nRealText.toDouble(), nImaginaryText.toDouble())
   }
 

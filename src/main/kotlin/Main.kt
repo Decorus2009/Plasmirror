@@ -51,9 +51,5 @@ class MainApp : Application() {
       primaryStage.isMaximized = true
       primaryStage.show()
     }
-
-
   }
-
-  override fun stop() = saveStates()
 }

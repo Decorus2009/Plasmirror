@@ -12,13 +12,13 @@
     -fx-fill: #ffa812;
 }
 .layer {
-    -fx-fill: #cd5c5c;
-}
-.material {
     -fx-font-weight: bold;
     -fx-fill: #1E90FF;
 }
-
+.stub {
+    -fx-font-weight: bold;
+    -fx-fill: #1E90FF;
+}
 
 .chart-vertical-grid-lines {
     -fx-stroke: #898887;
