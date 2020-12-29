@@ -1,4 +1,4 @@
-package core.layers.semiconductor
+package core.layers
 
 import core.Complex
 import core.TransferMatrix

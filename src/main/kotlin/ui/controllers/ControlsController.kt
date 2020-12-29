@@ -1,9 +1,9 @@
 package ui.controllers
 
-import core.state.*
+import core.state.activeState
+import core.state.saveStates
 import core.structure.StructureDescriptionException
 import core.validators.StateException
-import ui.controllers.alert
 import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javafx.scene.control.Label

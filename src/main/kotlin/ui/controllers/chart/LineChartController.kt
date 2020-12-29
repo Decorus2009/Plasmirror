@@ -4,7 +4,6 @@ import core.optics.Mode
 import core.state.ComputationUnit
 import core.state.activeState
 import javafx.application.Platform
-import javafx.collections.ListChangeListener
 import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.geometry.Pos
@@ -23,7 +22,6 @@ import org.gillius.jfxutils.chart.ChartPanManager
 import org.gillius.jfxutils.chart.ChartZoomManager
 import ui.controllers.MainController
 import ui.controllers.chart.LineChartState.allExtendedSeries
-import ui.controllers.chart.LineChartState.computed
 import ui.controllers.chart.LineChartState.importIntoChartState
 import ui.controllers.chart.LineChartState.imported
 import java.io.File

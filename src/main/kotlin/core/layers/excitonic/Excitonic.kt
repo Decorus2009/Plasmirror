@@ -2,7 +2,7 @@ package core.layers.excitonic
 
 import core.Complex
 import core.TransferMatrix
-import core.layers.semiconductor.Layer
+import core.layers.Layer
 import core.optics.*
 import org.apache.commons.math3.complex.Complex.I
 import java.lang.Math.PI

@@ -1,7 +1,6 @@
 package core.structure
 
 import com.fasterxml.jackson.databind.JsonNode
-import java.lang.Exception
 
 fun List<JsonNode>.preValidate() {
   notEmpty()

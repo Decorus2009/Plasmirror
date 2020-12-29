@@ -4,8 +4,6 @@ import core.Complex
 import core.optics.Mode
 import core.util.normalized
 import rootController
-import java.lang.Exception
-import java.lang.IllegalStateException
 
 data class State(
   val id: StateId,

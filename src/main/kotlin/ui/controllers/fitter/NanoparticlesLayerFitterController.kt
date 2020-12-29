@@ -1,6 +1,6 @@
 //package ui.controllers.fitter
 //
-//import core.layers.semiconductor.Layer
+//import core.layers.Layer
 //import core.layers.metal.particles.TwoDimensionalLayerOfDrudeMetalParticlesAlGaAs
 //import javafx.application.Platform
 //import javafx.fxml.FXML

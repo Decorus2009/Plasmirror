@@ -1,7 +1,5 @@
 package core.validators
 
-import java.lang.Exception
-
 abstract class ValidationException(
   val headerMessage: String,
   val contentMessage: String,

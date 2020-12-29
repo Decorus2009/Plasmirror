@@ -2,8 +2,8 @@ package core.state
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import core.Complex
-import core.layers.semiconductor.ConstRefractiveIndexLayer
-import core.layers.semiconductor.GaAs
+import core.layers.ConstRefractiveIndexLayer
+import core.layers.GaAs
 import core.optics.ExternalMediumType
 import core.optics.PermittivityModel
 

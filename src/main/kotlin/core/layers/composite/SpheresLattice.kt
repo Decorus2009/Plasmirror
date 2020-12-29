@@ -2,8 +2,8 @@ package core.layers.composite
 
 import core.Complex
 import core.TransferMatrix
+import core.layers.Layer
 import core.layers.particles.Particles
-import core.layers.semiconductor.Layer
 import core.optics.Polarization
 import core.optics.composite.SpheresLattice
 

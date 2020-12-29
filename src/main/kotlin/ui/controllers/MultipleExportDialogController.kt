@@ -194,7 +194,6 @@ class MultipleExportDialogController {
     showAndWait()
   }
 
-
   @FXML
   private lateinit var polarizationChoiceBox: ChoiceBox<String>
 

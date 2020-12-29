@@ -1,11 +1,11 @@
 package core.structure
 
 import com.fasterxml.jackson.databind.JsonNode
+import core.layers.*
 import core.layers.composite.*
 import core.layers.excitonic.Exciton
 import core.layers.excitonic.Excitonic
 import core.layers.particles.*
-import core.layers.semiconductor.*
 import core.optics.PermittivityModel
 import core.optics.particles.LorentzOscillator
 import core.util.*
@@ -58,34 +58,10 @@ private fun JsonNode.toLayer(): Layer {
       d = d,
       n = requireComplex(DescriptionParameters.n)
     )
-//    LayerType.EXCITONIC -> Excitonic(
-//      d = d,
-//      medium = requireMedium().toLayer(),
-//      exciton = requireExciton()
-//    )
-    LayerType.GAAS_X -> GaAsExcitonic(
+    LayerType.EXCITONIC -> Excitonic(
       d = d,
-      kToN = requireDouble(DescriptionParameters.kToN),
-      w0 = requireNonNegativeDouble(DescriptionParameters.w0),
-      G0 = requireDouble(DescriptionParameters.g0),
-      G = requireDouble(DescriptionParameters.g),
-      permittivityModel = requirePermittivityModelFor(layerType)
-    )
-    LayerType.ALGAAS_X -> AlGaAsExcitonic(
-      d = d,
-      kToN = requireDouble(DescriptionParameters.kToN),
-      cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
-      w0 = requireNonNegativeDouble(DescriptionParameters.w0),
-      G0 = requireDouble(DescriptionParameters.g0),
-      G = requireDouble(DescriptionParameters.g),
-      permittivityModel = requirePermittivityModelFor(layerType)
-    )
-    LayerType.CONST_N_X -> ConstRefractiveIndexLayerExcitonic(
-      d = d,
-      n = requireComplex(DescriptionParameters.n),
-      w0 = requireNonNegativeDouble(DescriptionParameters.w0),
-      G0 = requireDouble(DescriptionParameters.g0),
-      G = requireDouble(DescriptionParameters.g)
+      medium = requireMedium().toLayer(),
+      exciton = requireExciton()
     )
     LayerType.EFF_MEDIUM -> EffectiveMedium(
       d = d,
@@ -147,9 +123,6 @@ private fun PermittivityModel.checkIsAllowedFor(layerType: LayerType) {
   check(layerType in listOf(
     LayerType.GAAS,
     LayerType.ALGAAS
-    ,
-    LayerType.GAAS_X,
-    LayerType.ALGAAS_X
   ) && this in PermittivityModel.values()) {
     "Layers must correspond to their permittivity models specified in \"n\" parameter"
   }
@@ -265,10 +238,7 @@ private enum class LayerType {
   ALGAAS,
   ALGAASSB,
   CONST_N,
-//  EXCITONIC,
-  GAAS_X,
-  ALGAAS_X,
-  CONST_N_X,
+  EXCITONIC,
   EFF_MEDIUM,
   MIE, // TODO remove "layer: mie" from computation if activeState().mode() is Scattering or Extinction
   SPHERES_LATTICE
@@ -319,14 +289,10 @@ object DescriptionParameters {
  * layer: const_n, n: (3.6, 0.1), d: 5;
  *
  *
- * layer: GaAs_X, n: Adachi_simple, d: 5, w0: 1.52, G0: 0.005, G: 0.5;
- *
- *
- * layer: GaAs_X, n: Adachi_simple, d: 5, k/n: 0.0, cAl: 0.3, w0: 1.52, G0: 0.005, G: 0.5;
- *
- *
- * layer: const_n, n: 3.6, d: 5, w0: 1.52, G0: 0.005, G: 0.5;
- * layer: const_n, n: (3.6, 0.1), d: 5, w0: 1.52, G0: 0.005, G: 0.5;
+ * layer: excitonic,
+ * medium: { material: GaAs, n: adachi_simple, k/n: 0.0 },
+ * exciton: { w0: 1.5, G0: 0.0005, G: 0.1 },
+ * d: 12;
  *
  *
  * layer: eff_medium,

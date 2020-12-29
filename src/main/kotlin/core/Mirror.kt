@@ -1,8 +1,8 @@
 package core
 
+import core.layers.ConstRefractiveIndexLayer
+import core.layers.Layer
 import core.layers.composite.Mie
-import core.layers.semiconductor.ConstRefractiveIndexLayer
-import core.layers.semiconductor.Layer
 import core.optics.*
 import core.optics.Polarization.P
 import core.optics.Polarization.S

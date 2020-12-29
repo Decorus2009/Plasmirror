@@ -101,6 +101,13 @@ class TransferMatrix(
       setAntiDiagonal(Complex(ZERO))
     }
   }
+
+  override fun toString() = "Matrix[" +
+    "(0, 0): ${get(0, 0)}, " +
+    "(0, 1): ${get(0, 1)}, " +
+    "(1, 0): ${get(1, 0)}, " +
+    "(1, 1): ${get(1, 1)}, " +
+    "]"
 }
 
 fun interpolateComplex(x: List<Double>, y: List<Complex>) =
