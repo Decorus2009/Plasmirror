@@ -1,6 +1,6 @@
 package core.optics.particles
 
-import core.Complex
+import core.math.Complex
 import core.optics.toEnergy
 
 /**

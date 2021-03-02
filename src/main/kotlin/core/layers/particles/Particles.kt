@@ -1,6 +1,6 @@
 package core.layers.particles
 
-import core.Complex
+import core.math.Complex
 import core.optics.particles.*
 
 /**

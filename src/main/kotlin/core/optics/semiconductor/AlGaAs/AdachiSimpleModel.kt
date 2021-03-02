@@ -1,6 +1,6 @@
 package core.optics.semiconductor.AlGaAs
 
-import core.Complex
+import core.math.Complex
 import core.optics.toRefractiveIndex
 import kotlin.math.pow
 import kotlin.math.sqrt

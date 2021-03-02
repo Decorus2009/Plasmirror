@@ -1,7 +1,7 @@
 package core.validators
 
-import core.isNotAllowedAngle
-import core.isNotAllowedTemperature
+import core.math.isNotAllowedAngle
+import core.math.isNotAllowedTemperature
 import core.state.OpticalParams
 
 object OpticalParamsValidator {

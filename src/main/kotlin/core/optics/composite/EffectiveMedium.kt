@@ -1,6 +1,6 @@
 package core.optics.composite
 
-import core.Complex
+import core.math.Complex
 
 object EffectiveMedium {
   fun permittivity(mediumPermittivity: Complex, metalPermittivity: Complex, f: Double): Complex {

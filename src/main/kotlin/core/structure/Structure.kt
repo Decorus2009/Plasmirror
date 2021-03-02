@@ -9,6 +9,7 @@ import core.layers.particles.*
 import core.optics.PermittivityModel
 import core.optics.particles.LorentzOscillator
 import core.util.*
+import rootController
 import ui.controllers.structureDescriptionController
 
 /**
@@ -54,10 +55,19 @@ private fun JsonNode.toLayer(): Layer {
       cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
       cAs = requireNonNegativeDouble(DescriptionParameters.cAs)
     )
-    LayerType.CONST_N -> ConstRefractiveIndexLayer(
-      d = d,
-      n = requireComplex(DescriptionParameters.n)
-    )
+    LayerType.CUSTOM -> {
+      // CUSTOM layer type may contain n as a number (e.g. n: 3.6 or n: (3.6, -0.1)) or as an expression
+      when (val maybeExpr = requireNode(DescriptionParameters.n).requireTextOrNull(DescriptionParameters.expr)) {
+        null -> ConstRefractiveIndexLayer(
+          d = d,
+          n = requireComplex(DescriptionParameters.n)
+        )
+        else -> ExpressionBasedRefractiveIndexLayer(
+          d = d,
+          nExpr = maybeExpr
+        )
+      }
+    }
     LayerType.EXCITONIC -> Excitonic(
       d = d,
       medium = requireMedium().toLayer(),
@@ -69,18 +79,18 @@ private fun JsonNode.toLayer(): Layer {
       particles = requireParticlesFor(layerType),
       f = requireNonNegativeDouble(DescriptionParameters.f)
     )
+    LayerType.SPHERES_LATTICE -> SpheresLattice(
+      d = d,
+      medium = requireMedium().toLayer(),
+      particles = requireParticlesFor(layerType),
+      latticeFactor = requireNonNegativeDouble(DescriptionParameters.latticeFactor)
+    )
     LayerType.MIE -> Mie(
       d = d,
       medium = requireMedium().toLayer(),
       particles = requireParticlesFor(layerType),
       f = requireNonNegativeDouble(DescriptionParameters.f),
       orders = requireOrders()
-    )
-    LayerType.SPHERES_LATTICE -> SpheresLattice(
-      d = d,
-      medium = requireMedium().toLayer(),
-      particles = requireParticlesFor(layerType),
-      latticeFactor = requireNonNegativeDouble(DescriptionParameters.latticeFactor)
     )
   }
 }
@@ -96,7 +106,7 @@ private fun String.requireLayerType(): LayerType {
   check(LayerType.values().map { it.name }.contains(toUpperCase())) {
     "Unknown layer \"${findWrongLayerTypeInDescriptionText()}\""
   }
-  return LayerType.valueOf(this.toUpperCase())
+  return LayerType.valueOf(toUpperCase())
 }
 
 // finds properly capitalized wrong layer type in actual (i.e. visible to a user) structure description text
@@ -129,7 +139,7 @@ private fun PermittivityModel.checkIsAllowedFor(layerType: LayerType) {
 }
 
 private fun JsonNode.requireParticlesPermittivityModel(): ParticlesPermittivityModel {
-  val maybeModel = requireText(DescriptionParameters.n).toUpperCase()
+  val maybeModel = requireText(DescriptionParameters.eps).toUpperCase()
 
   check(ParticlesPermittivityModel.values().map { it.name }.contains(maybeModel)) {
     "Unknown particles permittivity model \"$this\""
@@ -142,13 +152,16 @@ private fun JsonNode.requireMedium() = requireNode(DescriptionParameters.medium)
     LayerType.GAAS,
     LayerType.ALGAAS,
     LayerType.ALGAASSB,
-    LayerType.CONST_N
+    LayerType.CUSTOM
   )) {
     "Medium material/layer can be only GaAs, AlGaAs, AlGaAsSb or const_n"
   }
 }
 
-private fun JsonNode.requireExciton(): Exciton = requireNode(DescriptionParameters.exciton).run {
+private fun JsonNode.requireRefractiveIndexExpression() =
+  requireNode(DescriptionParameters.n).requireText(DescriptionParameters.expr)
+
+private fun JsonNode.requireExciton() = requireNode(DescriptionParameters.exciton).run {
   Exciton(
     w0 = requireNonNegativeDouble(DescriptionParameters.w0),
     G0 = requireDouble(DescriptionParameters.g0),
@@ -180,6 +193,7 @@ private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Des
       oscillators = requireOscillators()
     )
     ParticlesPermittivityModel.SB -> SbParticles(r)
+    // TODO custom
   }
 }
 
@@ -237,14 +251,12 @@ private enum class LayerType {
   GAAS,
   ALGAAS,
   ALGAASSB,
-  CONST_N,
+  CUSTOM,
   EXCITONIC,
   EFF_MEDIUM,
   MIE, // TODO remove "layer: mie" from computation if activeState().mode() is Scattering or Extinction
   SPHERES_LATTICE
 }
-
-private val excitonicLayerTypes = listOf(LayerType.GAAS, LayerType.ALGAAS, LayerType.ALGAASSB, LayerType.CONST_N)
 
 object DescriptionParameters {
   const val structure = "structure"
@@ -258,7 +270,8 @@ object DescriptionParameters {
   const val orders = "orders"
   const val oscillators = "oscillators"
   const val latticeFactor = "lattice_factor"
-  const val epsInf = "epsinf"
+  const val eps = "eps"
+  const val epsInf = "eps_inf"
   const val d = "d"
   const val n = "n"
   const val kToN = "k_to_n"
@@ -270,6 +283,9 @@ object DescriptionParameters {
   const val g0 = "g0"
   const val f = "f"
   const val r = "r"
+  const val expr = "expr"
+  const val exprLeftKWBoundary = "@"
+  const val exprRightKWBoundary = "#"
 }
 
 /**
@@ -326,4 +342,39 @@ object DescriptionParameters {
  * medium: { material: AlGaAs, n: Adachi_simple, k/n: 0.0, cAl: 0.3 },
  * particles: { n: Drude, w: 14.6, G: 0.5, epsInf: 1.0 },
  * d: 40, lattice_factor: 8.1;
+ *
+ *
+ *
+ * material: custom, d: 90, n: {
+ *   val w0 = 1.5
+ *   val gamma = 0.1
+ *   return gamma / ((x - w0)^2 + gamma^2)
+ * };
+ *
+material: custom, d: 90, n: {
+fun f(x) = sin(x)
+val offset = 1.0
+return f(x) * offset
+};
+
+
+FAILS
+x1
+layer: excitonic,
+medium: { material: GaAs, n: adachi_simple, k/n: 0.0 },
+exciton: { w0: 1.7, G0: 0.0005, G: 0.01 },
+d: 10;
+material: custom, d: 90, n: {
+fun f(x) = sin(x * 0.1) * 0.5
+fun g(x) = cos(x * 0.1) * 0.5
+return (f(x), g(x))
+};
+
+material: custom, d: 90, n: {
+  fun f(x) = sin(x * 0.1) * 0.5
+  fun g(x) = cos(x * 0.1) * 0.5
+  return (f(x), g(x))
+};
  */
+
+

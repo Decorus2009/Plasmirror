@@ -1,7 +1,7 @@
 package core.optics.semiconductor.AlGaAsSb
 
-import core.Complex
-import core.isZero
+import core.math.Complex
+import core.math.isZero
 import core.optics.toRefractiveIndex
 import kotlin.math.pow
 

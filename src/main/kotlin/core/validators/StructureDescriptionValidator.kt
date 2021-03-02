@@ -11,6 +11,7 @@ object StructureDescriptionValidator {
         it.toStructure().postValidate()
       }
     } catch (ex: Exception) {
+      println("Structure description error:\n$ex")
       when (ex) {
         is JsonParseException -> {
           throw StructureDescriptionException(message = "Check the usage of '. , : ; + - * / ( )' symbols", cause = ex)

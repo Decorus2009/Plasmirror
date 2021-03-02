@@ -1,8 +1,8 @@
 package core.optics.composite.mie
 
-import core.Complex
+import core.math.Complex
 import core.optics.toRefractiveIndex
-import core.toCm
+import core.math.toCm
 import java.lang.Math.*
 import kotlin.math.pow
 

@@ -9,16 +9,22 @@
     -fx-font-style: italic;
 }
 .permittivity_model {
-    -fx-fill: #ffa812;
+    -fx-fill: #a65e2b;
 }
 .layer {
-    -fx-font-weight: bold;
-    -fx-fill: #1E90FF;
+    -fx-font-style: italic;
+    -fx-fill: #7fa674;
 }
-.stub {
-    -fx-font-weight: bold;
-    -fx-fill: #1E90FF;
+.expression {
+	-fx-fill: #F28614;
 }
+
+.selection {
+    -fx-fill: #e5e5e5;
+    -fx-stroke: #e5e5e5;
+    -fx-stroke-width: 2;
+}
+
 
 .chart-vertical-grid-lines {
     -fx-stroke: #898887;
@@ -78,8 +84,6 @@
     -fx-tick-length: 10;
     -fx-minor-tick-length: 10;
 }
-
-
 
 
 

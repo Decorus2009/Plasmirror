@@ -1,7 +1,6 @@
 package core.layers
 
-import core.Complex
-import core.TransferMatrix
+import core.math.*
 import core.optics.*
 import core.optics.semiconductor.AlGaAs.AdachiFullWithGaussianBroadeningModel
 import core.optics.semiconductor.AlGaAs.AdachiSimpleModel
@@ -63,12 +62,47 @@ abstract class AlGaAsBase(
   private val cAl: Double,
   private val permittivityModel: PermittivityModel
 ) : Layer {
-  override fun n(wl: Double, temperature: Double) = refractiveIndex(wl, kToN, cAl, temperature, permittivityModel)
+  override fun n(wl: Double, temperature: Double) = refractiveIndex(wl, temperature)
 
   override fun permittivity(wl: Double, temperature: Double) = n(wl, temperature).pow(2.0)
+
+  /**
+   * Refractive index of Al(x)Ga(1-x)As alloy with user defined imaginary part (via [kToN] coefficient)
+   * for certain permittivity models (see the `when` branch below)
+   */
+  private fun refractiveIndex(
+    wl: Double,
+    temperature: Double
+  ): Complex {
+    val w = wl.toEnergy()
+    return when (permittivityModel) {
+      PermittivityModel.ADACHI_GAUSS -> {
+        AdachiFullWithGaussianBroadeningModel(w, cAl).refractiveIndex()
+      }
+      PermittivityModel.ADACHI_T -> {
+        AdachiFullTemperatureDependentModel(w, cAl, cAs = 1.0, temperature = temperature).refractiveIndex()
+      }
+      PermittivityModel.ADACHI_SIMPLE -> {
+        AdachiSimpleModel.refractiveIndex(w, cAl).let { refInd ->
+          Complex(
+            refInd.real,
+            refInd.real * kToN
+          )
+        }
+      }
+      PermittivityModel.ADACHI_MOD_GAUSS -> {
+        AdachiFullWithGaussianBroadeningModel(w, cAl).refractiveIndex().let { refInd ->
+          Complex(
+            refInd.real,
+            if (w >= AdachiFullWithGaussianBroadeningModel.E0(cAl)) refInd.imaginary else refInd.real * kToN
+          )
+        }
+      }
+    }
+  }
 }
 
-open class GaAs(
+class GaAs(
   d: Double,
   kToN: Double = 0.0,
   cAl: Double = 0.0,
@@ -79,20 +113,12 @@ open class GaAs(
 /**
  * [kToN] for Adachi computation n = (Re(n); Im(n) = k * Re(n)), see [refractiveIndex]
  */
-open class AlGaAs(
+class AlGaAs(
   d: Double,
   kToN: Double,
   cAl: Double,
   permittivityModel: PermittivityModel
 ) : AlGaAsBase(d, kToN, cAl, permittivityModel)
-
-open class ConstRefractiveIndexLayer(
-  override val d: Double,
-  val n: Complex
-) : Layer {
-  /** [temperature] is unused but required */
-  override fun permittivity(wl: Double, temperature: Double) = n * n
-}
 
 class AlGaAsSb(
   override val d: Double,
@@ -102,40 +128,26 @@ class AlGaAsSb(
   override fun permittivity(wl: Double, temperature: Double) = AlGaAsSb.permittivity(wl, cAl, cAs, temperature)
 }
 
-/**
- * Refractive index of Al(x)Ga(1-x)As alloy with user defined imaginary part (via [kToN] coefficient)
- * for certain permittivity models (see the `when` branch below)
- */
-private fun refractiveIndex(
-  wl: Double,
-  kToN: Double,
-  cAl: Double,
-  temperature: Double,
-  permittivityModel: PermittivityModel
-): Complex {
-  val w = wl.toEnergy()
-  return when (permittivityModel) {
-    PermittivityModel.ADACHI_GAUSS -> {
-      AdachiFullWithGaussianBroadeningModel(w, cAl).refractiveIndex()
-    }
-    PermittivityModel.ADACHI_T -> {
-      AdachiFullTemperatureDependentModel(w, cAl, cAs = 1.0, temperature = temperature).refractiveIndex()
-    }
-    PermittivityModel.ADACHI_SIMPLE -> {
-      AdachiSimpleModel.refractiveIndex(w, cAl).let { refInd ->
-        Complex(
-          refInd.real,
-          refInd.real * kToN
-        )
-      }
-    }
-    PermittivityModel.ADACHI_GAUSS_MOD -> {
-      AdachiFullWithGaussianBroadeningModel(w, cAl).refractiveIndex().let { refInd ->
-        Complex(
-          refInd.real,
-          if (w >= AdachiFullWithGaussianBroadeningModel.E0(cAl)) refInd.imaginary else refInd.real * kToN
-        )
-      }
-    }
+class ConstRefractiveIndexLayer(
+  override val d: Double,
+  val n: Complex
+) : Layer {
+  /** [temperature] is unused but required */
+  override fun permittivity(wl: Double, temperature: Double) = n * n
+}
+
+class ExpressionBasedRefractiveIndexLayer(
+  override val d: Double,
+  nExpr: String
+) : Layer {
+  private val expressionEvaluator = ExpressionEvaluator()
+
+  init {
+    expressionEvaluator.prepare(nExpr)
   }
+
+  override fun permittivity(wl: Double, temperature: Double) = refractiveIndex(wl).let { it * it }
+
+  private fun refractiveIndex(wl: Double) =
+    expressionEvaluator.compute(x = wl).let { Complex(it.yReal, it.yImaginary ?: 0.0) }
 }

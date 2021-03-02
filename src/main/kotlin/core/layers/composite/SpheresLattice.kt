@@ -1,7 +1,7 @@
 package core.layers.composite
 
-import core.Complex
-import core.TransferMatrix
+import core.math.Complex
+import core.math.TransferMatrix
 import core.layers.Layer
 import core.layers.particles.Particles
 import core.optics.Polarization

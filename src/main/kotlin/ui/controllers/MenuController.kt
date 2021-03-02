@@ -65,22 +65,30 @@ class MenuController {
       }
     }
 
-    helpMenuItem.setOnAction {
-      val page = with(FXMLLoader()) {
-        location = MainApp::class.java.getResource("fxml/HelpInfo.fxml")
-        load<AnchorPane>()
-      }
-      with(Stage()) {
-        title = "Help"
-        scene = Scene(page)
-        /* works after pressing directory button or switching between angle and T modes. Why? */
-        addEventHandler(KeyEvent.KEY_RELEASED) { event: KeyEvent ->
-          if (KeyCode.ESCAPE == event.code) {
-            close()
-          }
+    helpInfoMenuItem.setOnAction {
+      helpWindowHandler(fxmlPath = "fxml/help/HelpInfo.fxml", titleToShow = "Help Info")
+    }
+
+    expressionsHelpMenuItem.setOnAction {
+      helpWindowHandler(fxmlPath = "fxml/help/ExpressionsHelp.fxml", titleToShow = "Expressions Help")
+    }
+  }
+
+  private fun helpWindowHandler(fxmlPath: String, titleToShow: String) {
+    val page = with(FXMLLoader()) {
+      location = MainApp::class.java.getResource(fxmlPath)
+      load<AnchorPane>()
+    }
+    with(Stage()) {
+      title = titleToShow
+      scene = Scene(page)
+      /* works after pressing directory button or switching between angle and T modes. Why? */
+      addEventHandler(KeyEvent.KEY_RELEASED) { event: KeyEvent ->
+        if (KeyCode.ESCAPE == event.code) {
+          close()
         }
-        showAndWait()
       }
+      showAndWait()
     }
   }
 
@@ -104,7 +112,10 @@ class MenuController {
   private lateinit var exportMultipleMenuItem: MenuItem
 
   @FXML
-  private lateinit var helpMenuItem: MenuItem
+  private lateinit var helpInfoMenuItem: MenuItem
+
+  @FXML
+  private lateinit var expressionsHelpMenuItem: MenuItem
 
   @FXML
   private lateinit var fitterMenuItem: MenuItem

@@ -1,6 +1,6 @@
 package core.optics.composite
 
-import core.Complex
+import core.math.Complex
 import core.optics.*
 import kotlin.math.pow
 

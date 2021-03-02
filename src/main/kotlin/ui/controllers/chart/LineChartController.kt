@@ -7,6 +7,7 @@ import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.chart.*
 import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
@@ -388,10 +389,20 @@ class LineChartController {
     }
   }
 
-  private fun setDoubleMouseClickRescaling() = chart.lookup(".chart-plot-background").setOnMouseClicked { event ->
-    if (event.button == PRIMARY && event.clickCount == 2) {
-      rescale()
+  /**
+   * A mouse might double click on a grid line, not on the chart background.
+   * (especially if there are a lot of grid lines for a strong zooming out).
+   * In this case rescaling should work as well
+   */
+  private fun setDoubleMouseClickRescaling() {
+    fun Node.setDoubleClickRescaleHandler() = setOnMouseClicked { event ->
+      if (event.button == PRIMARY && event.clickCount == 2) {
+        rescale()
+      }
     }
+    chart.lookup(".chart-plot-background").setDoubleClickRescaleHandler()
+    chart.lookup(".chart-vertical-grid-lines").setDoubleClickRescaleHandler()
+    chart.lookup(".chart-horizontal-grid-lines").setDoubleClickRescaleHandler()
   }
 
   private fun labels() = chart.lookupAll(".chart-legend-item").filterIsInstance<Label>()

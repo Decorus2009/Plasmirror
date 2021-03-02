@@ -3,6 +3,8 @@ package core
 import core.layers.ConstRefractiveIndexLayer
 import core.layers.Layer
 import core.layers.composite.Mie
+import core.math.Complex
+import core.math.TransferMatrix
 import core.optics.*
 import core.optics.Polarization.P
 import core.optics.Polarization.S

@@ -1,6 +1,6 @@
 package core.state
 
-import core.Complex
+import core.math.Complex
 import core.optics.Mode
 import core.util.normalized
 import rootController
@@ -11,6 +11,11 @@ data class State(
   val externalData: MutableSet<ExternalData>,
   var active: Boolean
 ) {
+  fun prepare() {
+    updateFromUI()
+    clearData()
+  }
+
   fun compute() = with(generateWavelengths()) {
     when (mode()) {
       Mode.REFLECTANCE -> reflectance()
@@ -21,11 +26,6 @@ data class State(
       Mode.PERMITTIVITY -> permittivity()
       Mode.REFRACTIVE_INDEX -> refractiveIndex()
     }
-  }
-
-  fun prepare() {
-    updateFromUI()
-    clearData()
   }
 
   fun activate() {

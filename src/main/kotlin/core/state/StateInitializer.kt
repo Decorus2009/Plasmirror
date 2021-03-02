@@ -27,7 +27,7 @@ private fun JsonNode.toComputationState(): ComputationState {
     Data(),
     opticalParams,
     Mirror(
-      structure = currentTextDescription.toStructure(),
+      structure = currentTextDescription.toStructure().also {     println("ComputationState toStructure") },
       leftMediumLayer = opticalParams.leftMedium.toLayer(),
       rightMediumLayer = opticalParams.rightMedium.toLayer()
     ),

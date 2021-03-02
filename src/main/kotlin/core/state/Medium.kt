@@ -1,7 +1,7 @@
 package core.state
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import core.Complex
+import core.math.Complex
 import core.layers.ConstRefractiveIndexLayer
 import core.layers.GaAs
 import core.optics.ExternalMediumType

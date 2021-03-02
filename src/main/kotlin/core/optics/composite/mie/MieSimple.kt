@@ -1,11 +1,11 @@
 package core.optics.composite.mie
 
-import core.Complex
-import core.Complex.Companion.I
-import core.Complex.Companion.ONE
-import core.Complex.Companion.ZERO
+import core.math.Complex
+import core.math.Complex.Companion.I
+import core.math.Complex.Companion.ONE
+import core.math.Complex.Companion.ZERO
 import core.optics.toRefractiveIndex
-import core.toCm
+import core.math.toCm
 import java.lang.Math.PI
 import kotlin.math.pow
 

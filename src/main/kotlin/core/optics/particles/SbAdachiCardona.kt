@@ -1,7 +1,7 @@
 package core.optics.particles
 
-import core.Complex
-import core.interpolateComplex
+import core.math.Complex
+import core.math.interpolateComplex
 import core.util.KnownPaths
 import core.util.importComplexData
 

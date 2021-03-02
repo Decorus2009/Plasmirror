@@ -43,3 +43,5 @@ private fun List<JsonNode>.hasConsecutiveRepeatDescriptors() =
 
 
 class StructureDescriptionException(message: String? = null, cause: Throwable? = null) : Exception(message, cause)
+
+fun fail(message: String): Nothing = throw StructureDescriptionException(message)

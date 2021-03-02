@@ -1,4 +1,4 @@
-package ui.controllers
+package ui.controllers.help
 
 import core.util.KnownPaths
 import core.util.requireFile

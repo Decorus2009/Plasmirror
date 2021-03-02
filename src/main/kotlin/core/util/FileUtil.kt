@@ -1,6 +1,6 @@
 package core.util
 
-import core.Complex
+import core.math.Complex
 import core.optics.Mode
 import core.state.*
 import java.io.File

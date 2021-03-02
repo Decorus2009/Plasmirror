@@ -1,34 +1,35 @@
 package core.util
 
 import com.fasterxml.jackson.databind.JsonNode
-import core.*
+import core.math.*
+import core.structure.fail
 
 
-fun JsonNode.requireInt() = requireIntOrNull() ?: error("Cannot read integer value in node \"$this\"")
+fun JsonNode.requireInt() = requireIntOrNull() ?: fail("Cannot read integer value in node \"$this\"")
 
 fun JsonNode.requireIntOrNull() = when {
   isNumber -> asInt()
   isTextual -> asText().toIntOrNull()
   isNullOrMissing -> null
-  else -> error("Cannot read integer value in node \"$this\"")
+  else -> fail("Cannot read integer value in node \"$this\"")
 }
 
-fun JsonNode.requireDouble() = requireDoubleOrNull() ?: error("Cannot read floating point value in node \"$this\"")
+fun JsonNode.requireDouble() = requireDoubleOrNull() ?: fail("Cannot read floating point value in node \"$this\"")
 
 fun JsonNode.requireDoubleOrNull() = when {
   isNumber -> asDouble()
   isTextual -> asText().toDoubleOrNull()
   isNullOrMissing -> null
-  else -> error("Cannot read floating point value in node \"$this\"")
+  else -> fail("Cannot read floating point value in node \"$this\"")
 }
 
 fun JsonNode.requireText() = when {
   isTextual -> asText()
-  else -> error("Cannot read text value in node \"$this\"")
+  else -> fail("Cannot read text value in node \"$this\"")
 }
 
 fun JsonNode.requireNode(field: String) = requireNodeOrNull(field)
-  ?: error("Absent or null or missing $field node")
+  ?: fail("Absent or null or missing \"$field\" node")
 
 fun JsonNode.requireNodeOrNull(field: String): JsonNode? {
   if (!has(field) || get(field).isNullOrMissing) {

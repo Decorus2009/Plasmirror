@@ -10,12 +10,15 @@ object StatesManager {
   private val states = HashMap<StateId, State>()
 
   init {
+    println("StatesManager init start")
     requireStates().forEachIndexed { index, state ->
       add(state)
       if (index == 0) {
         activate(state)
       }
     }
+    println("StatesManager init end")
+
   }
 
   fun add(state: State) {

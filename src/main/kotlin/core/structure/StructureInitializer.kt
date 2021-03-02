@@ -33,27 +33,41 @@ fun String.toStructure() = json().asArray().toStructure()
  *
  * @return structure representation as json object containing array of "layer objects"
  */
-fun String.json() = """{"${DescriptionParameters.structure}":[${toLowerCase()
-  .replace(Regex("(?s)/\\*.*\\*/"), "")                                    // exclude multi-line comments
-  .replace(Regex("\\s*[/]{2,}.*"), "")                                     // exclude single-line comments
-  .replace(Regex("\\s+"), "")                                              // remove all spaces, \n
-  .replace(Regex("^([^xX])"), "x1$1")                                      // insert x1 into the beginning if description starts without it
-  .replace(Regex("([xX])([\\d]+)"), "${DescriptionParameters.repeat}:$2;") // x42 -> repeat:42
-  // add artificial d param required for description parsing: medium: { -> medium: { d: 0,
-  .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "${DescriptionParameters.medium}:{d:0,")
-  .replace(Regex("n:\\("), "\"n\":\"(")                                    // n:( -> "n":"(    for (n:(3.6,0.1),)
-  .replace(Regex("k/n"), "k_to_n")                                         // k/n -> "k_to_n"
-  .replace(Regex("\\),"), ")\",")                                          // ), -> )",    for (n:(3.6,0.1),)
-  .replace(Regex("(\\w+):(\\w+\\.*[0-9]*)"), "\"$1\":\"$2\"")              // n: drude -> "n": "drude"
-  .replace(Regex("(\\w+):\\{"), "\"$1\":{")                                // particles: { -> "particles": {
-  .split(";")
-  .joinToString(",") { "{$it}" }                                           // surround with {} to convert to json node 
-  .replace(",{}", "")                                                      // remove empty trailing nodes
-}]}"""
+fun String.json(): String {
+  val numberRegex = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?"
+  return """{"${DescriptionParameters.structure}":[${toLowerCase()
+    .replace(Regex("(?s)/\\*.*\\*/"), "")                                            // exclude multi-line comments
+    .replace(Regex("\\s*[/]{2,}.*"), "")                                             // exclude single-line comments
+
+    .replace(
+      Regex("\\s*\\b(val|fun|return)\\b\\s+"),
+      "${DescriptionParameters.exprLeftKWBoundary}$1${DescriptionParameters.exprRightKWBoundary}"
+    )                                                                                // surround val, fun and return with '@' to avoid expr break after spaces deletion
+    .replace(Regex("\\s+"), "")                                                      // remove all spaces, \n
+      
+    .replace(Regex("^([^xX])"), "x1$1")                                              // insert x1 into the beginning if description starts without it
+    .replace(Regex("([xX])([\\d]+)"), "${DescriptionParameters.repeat}:$2;")         // x42 -> repeat:42
+      
+    .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "$1d:0,")               // add artificial d if not specified: medium: { -> medium: { d: 0,
+      
+    .replace(Regex("\\bn\\b:\\{([\\w\\W\\s]*)}"), "\"n\":{\"expr\":\"$1\"}")         // n: { some expr } -> "n": { "expr":"some expr" }
+    .replace(Regex("k/n:"), "k_to_n:")                                               // k/n -> "k_to_n"
+    .replace(Regex("\\bn\\b:($numberRegex)"), "\"n\":\"$1\"")                        // n:-3.6E6 -> "n":"-3.6E6"
+    .replace(Regex("\\bn\\b:(\\(($numberRegex),($numberRegex)\\))"), "\"n\":\"$1\"") // n:(3.6E6,-0.1695) -> "n":"(3.6E6,-0.1695)"
+
+    .replace(Regex("(\\w+):(\\w+\\.*[0-9]*)"), "\"$1\":\"$2\"")                      // n: drude -> "n": "drude", w0: 1.0 -> "w0": "1.0"
+    .replace(Regex("(\\w+):\\{"), "\"$1\":{")                                        // particles: { -> "particles": {
+
+    .split(";")
+    .joinToString(",") { "{$it}" }                                                   // surround with {} to convert to json node 
+    .replace(",{}", "")                                                              // remove empty trailing nodes
+  }]}"""
+}
 
 fun String.asArray() = mapper.readTree(this)
   .requireNode(DescriptionParameters.structure)
   .also { require(it.isArray) }
+  .filterNot { it.isEmpty }
   .map { it }
 
 /**

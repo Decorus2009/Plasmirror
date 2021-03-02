@@ -1,6 +1,6 @@
 package core.optics.composite.mie
 
-import core.Complex
+import core.math.Complex
 
 interface Mie {
   fun extinctionCoefficient(

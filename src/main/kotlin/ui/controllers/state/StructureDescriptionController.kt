@@ -1,6 +1,5 @@
 package ui.controllers.state
 
-import core.optics.PermittivityModel
 import core.state.activeState
 import javafx.fxml.FXML
 import javafx.scene.layout.AnchorPane
@@ -37,28 +36,13 @@ class StructureDescriptionController {
     val COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/"
     val PARAM_PATTERN = "\\w+(\\s*/\\s*\\w+)?\\s*:\\s*"
     val REPEAT_PATTERN = "\\s*[xX]\\s*[0-9]+\\s*"
-    val MODEL_PATTERN =
-      "(\\b${PermittivityModel.ADACHI_SIMPLE}\\b)?" +
-      "(\\b${PermittivityModel.ADACHI_T}\\b)?" +
-      "(\\b${PermittivityModel.ADACHI_GAUSS}\\b)?" +
-      "(\\b${PermittivityModel.ADACHI_GAUSS_MOD}\\b)?"
-    val LAYER_PATTERN =
-      "(\\bGaAs\\b)?"// + "(\\bAlGaAs\\b)?"
-    val STUB_PATTERN = "(\\bStub\\b)?"
-
-    /**
-     * This makes highlight GaAs and permittivity model, however if write (?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)
-     * everything fails to highlight
-     */
-//    val LAYER_PATTERN = "\\bGaAs\\b"
-//    val PATTERN = Pattern.compile(
-//      "(?<COMMENT>$COMMENT_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<REPEAT>$REPEAT_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<MODEL>$MODEL_PATTERN)",
-//      Pattern.CASE_INSENSITIVE
-//    )
+    val MODEL_PATTERN = "(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss)" ; Regex("(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss)")
+    val LAYER_PATTERN = "(GaAs|AlGaAs|AlGaAsSb)"                                 // Regex("(GaAs|AlGaAs|AlGaAsSb)")
+    val EXPRESSION_KW_PATTERN = "(val|fun|return)"                               // Regex("(val|fun|return)")
 
     val PATTERN = Pattern.compile(
-      "(?<REPEAT>$REPEAT_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<STUB>$STUB_PATTERN)"
-      ,  Pattern.CASE_INSENSITIVE
+      "(?<REPEAT>$REPEAT_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<EXPRESSION>$EXPRESSION_KW_PATTERN)",
+      Pattern.CASE_INSENSITIVE
     )
 
     val matcher = PATTERN.matcher(text)
@@ -71,7 +55,7 @@ class StructureDescriptionController {
         matcher.group("REPEAT") != null -> "repeat"
         matcher.group("MODEL") != null -> "permittivity_model"
         matcher.group("LAYER") != null -> "layer"
-        matcher.group("STUB") != null -> "stub"
+        matcher.group("EXPRESSION") != null -> "expression"
         else -> null
       })!! /* never happens */
       spansBuilder.add(emptyList(), matcher.start() - lastKwEnd)

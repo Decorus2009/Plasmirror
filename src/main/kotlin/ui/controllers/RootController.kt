@@ -24,6 +24,8 @@ class RootController {
      * There is a need to minimize a number of calls of [Platform.runLater] (see its docs).
      */
     Platform.runLater {
+      println("Root controller Platform.runLater")
+
       activeState().prepare()
       activeState().compute()
       chartController().importActiveStateExternalData()
@@ -31,6 +33,7 @@ class RootController {
       computeButton().setShortcut()
       chartController().updateLegendListener()
     }
+    println("Root controller INITIALIZED")
   }
 
   @FXML

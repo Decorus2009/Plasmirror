@@ -1,9 +1,9 @@
 package core.optics
 
-import core.Complex
-import core.Complex.Companion.ONE
+import core.math.Complex
+import core.math.Complex.Companion.ONE
 import core.state.activeState
-import core.toCm
+import core.math.toCm
 import java.lang.Math.PI
 import kotlin.math.cos
 import kotlin.math.sqrt
@@ -35,7 +35,7 @@ enum class PermittivityModel {
   ADACHI_SIMPLE,
   ADACHI_T,
   ADACHI_GAUSS,
-  ADACHI_GAUSS_MOD;
+  ADACHI_MOD_GAUSS;
 }
 
 enum class Mode {
