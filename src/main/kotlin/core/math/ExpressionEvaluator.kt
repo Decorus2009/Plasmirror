@@ -232,7 +232,7 @@ private fun Argument.debugInfo() = StringBuilder().apply {
   }
   append(", ")
   append("correctness check: ${checkSyntax()}")
-  appendln()
+  appendLine()
 }.toString().also { print(it) }
 
 private fun Function.debugInfo() = StringBuilder().apply {
@@ -241,7 +241,7 @@ private fun Function.debugInfo() = StringBuilder().apply {
   append("expression: $functionExpressionString")
   append(", ")
   append("correctness check: ${checkSyntax()}")
-  appendln()
+  appendLine()
 }.toString().also { print(it) }
 
 private fun Expression.debugInfo() = StringBuilder().apply {
@@ -249,9 +249,9 @@ private fun Expression.debugInfo() = StringBuilder().apply {
   append("expression: $expressionString")
   append(", ")
   append("correctness check: ${checkSyntax()}  ${checkLexSyntax()}")
-  appendln()
+  appendLine()
   append("result: ${calculate()}")
-  appendln()
+  appendLine()
 }.toString().also { print(it) }
 
 private fun String.startsWithKnownPrefix() = KNOWN_PREFIXES.any { startsWith(it) }

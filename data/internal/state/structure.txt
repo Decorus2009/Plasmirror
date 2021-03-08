@@ -1,7 +1,0 @@
-x1
-type = 1-2, d = 2
-type = 2-1, d = 45, k = 0.0, x = 0.6
-
-x18
-type = 9-2-2, d = 40, k = 0., x = 0.6, lattice_factor = 8.1
-type = 2-3, d = 92., k = 0.01, x = 0.6
