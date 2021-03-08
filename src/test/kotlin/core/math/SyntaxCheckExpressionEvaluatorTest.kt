@@ -4,7 +4,8 @@ import core.structure.StructureDescriptionException
 import org.junit.Test
 
 class SyntaxCheckExpressionEvaluatorTest {
-  private val parser = ExpressionEvaluator()
+  private lateinit var parser: ExpressionEvaluator
+
 
   @Test
   fun `empty expression`() {
@@ -12,7 +13,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("Empty expression") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -24,7 +27,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("Return expression not found") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -35,7 +40,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("Return expression not found") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -47,7 +54,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("""Unknown format in line 1: "f(a) = a + 1". Line should start with 'val', 'fun' or 'return'""") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -60,7 +69,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("Return expression must be the last statement") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -71,7 +82,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("Return expression not found") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -82,7 +95,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("Return expression not found") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -94,7 +109,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("""Unknown function format in line 1: "fun f(a) = 10 - 2 +"""") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -105,7 +122,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("""Unknown expression format 1, in line 1: "return 1,"""") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -116,7 +135,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("""Unknown expression format , 1 in line 1: "return , 1"""") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -129,7 +150,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("""Unknown expression format f(1, 2, 3), g(2, 3, 4)) in line 3: "return f(1, 2, 3), g(2, 3, 4))"""") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -142,7 +165,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("""Incorrect syntax in "return" expression. Check the brackets""") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -155,7 +180,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("""Unknown expression format f(1, 2, 3), g(2, 3, 4) in line 3: "return f(1, 2, 3), g(2, 3, 4)"""") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -168,7 +195,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("""Unknown expression format f(1, 2, 3) g(2, 3, 4) in line 3: "return f(1, 2, 3) g(2, 3, 4)"""") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -181,7 +210,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("""Unknown expression format f(1, 2, 3); g(2, 3, 4) in line 3: "return f(1, 2, 3); g(2, 3, 4)"""") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 
@@ -194,7 +225,9 @@ class SyntaxCheckExpressionEvaluatorTest {
     """.trimIndent()
 
     expectException<StructureDescriptionException>("""Unknown expression format f(1, 2, 3, g(2, 3, 4) in line 3: "return f(1, 2, 3, g(2, 3, 4)"""") {
-      parser.prepare(expression)
+      parser = ExpressionEvaluator(expression)
+      parser.prepare()
+
     }
   }
 }

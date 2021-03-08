@@ -7,7 +7,7 @@ import org.mariuszgromada.math.mxparser.Argument
 import org.mariuszgromada.math.mxparser.Expression
 
 internal class ExpressionEvaluatorArgumentsTest {
-  private val parser = ExpressionEvaluator()
+  private lateinit var parser: ExpressionEvaluator
 
   @Test
   fun `single argument only`() {
@@ -15,7 +15,8 @@ internal class ExpressionEvaluatorArgumentsTest {
       val a = 1
       return a
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
     val result = parser.compute(x = 0.0).yReal
 
     assertThat(result, equalTo(1.0))
@@ -27,7 +28,8 @@ internal class ExpressionEvaluatorArgumentsTest {
       val a = 1
       return a
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
     val result = parser.compute(x = 0.0).yReal
 
     val a = Argument("a = 1")
@@ -44,7 +46,8 @@ internal class ExpressionEvaluatorArgumentsTest {
       val b = a^2
       return b
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
     val result = parser.compute(x = 0.0).yReal
 
     assertThat(result, equalTo(25.0))
@@ -57,7 +60,8 @@ internal class ExpressionEvaluatorArgumentsTest {
       val b = a^2
       return b
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
     val result = parser.compute(x = 0.0).yReal
 
     val a = Argument("a = 5")
@@ -77,7 +81,8 @@ internal class ExpressionEvaluatorArgumentsTest {
       val d = a^4 + b^3 + c^2
       return d
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
     val result = parser.compute(x = 0.0).yReal
 
     assertThat(result, equalTo(34.0))
@@ -92,7 +97,8 @@ internal class ExpressionEvaluatorArgumentsTest {
       val d = a^4 + b^3 + c^2
       return d
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
     val result = parser.compute(x = 0.0).yReal
 
     val a = Argument("a = 1")
@@ -112,7 +118,8 @@ internal class ExpressionEvaluatorArgumentsTest {
       val b = 1 + 15 - 6 * 9  / a^2 - 4 * 3 * 2
       return b
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
     val result = parser.compute(x = 0.0).yReal
 
     assertThat(result, equalTo(-10.16))
@@ -125,7 +132,8 @@ internal class ExpressionEvaluatorArgumentsTest {
       val b = 1 + 15 - 6 * 9  / a^2 - 4 * 3 * 2
       return b
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
     val result = parser.compute(x = 0.0).yReal
 
     val a = Argument("a = 5")
@@ -144,7 +152,8 @@ internal class ExpressionEvaluatorArgumentsTest {
       val c = b + 15 - 6 * 9  / a^2 - 4 * b * 2
       return c
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
     val result = parser.compute(x = 0.0).yReal
 
     assertThat(result, equalTo(-197.16))
@@ -158,7 +167,8 @@ internal class ExpressionEvaluatorArgumentsTest {
       val c = b + 15 - 6 * 9  / a^2 - 4 * b * 2
       return c
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
     val result = parser.compute(x = 0.0).yReal
 
     val a = Argument("a = 5")

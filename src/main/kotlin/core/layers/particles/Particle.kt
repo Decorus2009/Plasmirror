@@ -6,7 +6,7 @@ import core.optics.particles.*
 /**
  * [r] is not used for [LayerType.SPHERES_LATTICE] layer
  * */
-interface Particles {
+interface Particle {
   val r: Double?
 
   fun permittivity(wl: Double): Complex
@@ -18,26 +18,26 @@ interface Particles {
  * [g] gamma plasma
  * [epsInf] high-frequency permittivity
  */
-class DrudeParticles(
+class DrudeParticle(
   override val r: Double? = null,
   private val wPl: Double,
   private val g: Double,
   private val epsInf: Double
-) : Particles {
+) : Particle {
   override fun permittivity(wl: Double) = DrudeModel.permittivity(wl, wPl, g, epsInf)
 }
 
-class DrudeLorentzParticles(
+class DrudeLorentzParticle(
   override val r: Double? = null,
   private val wPl: Double,
   private val g: Double,
   private val epsInf: Double,
   private val oscillators: List<LorentzOscillator>
-) : Particles {
+) : Particle {
   override fun permittivity(wl: Double) = DrudeLorentzModel.permittivity(wl, wPl, g, epsInf, oscillators)
 }
 
-class SbParticles(override val r: Double? = null) : Particles {
+class SbParticle(override val r: Double? = null) : Particle {
   override fun permittivity(wl: Double) = SbAdachiCardona.permittivity(wl)
 }
 

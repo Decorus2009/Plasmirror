@@ -1,9 +1,9 @@
 package core.state
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import core.math.Complex
-import core.layers.ConstRefractiveIndexLayer
+import core.layers.ConstPermittivityLayer
 import core.layers.GaAs
+import core.math.Complex
 import core.optics.ExternalMediumType
 import core.optics.PermittivityModel
 
@@ -21,7 +21,7 @@ data class Medium(
    */
   fun toLayer() = when (type) {
     ExternalMediumType.AIR -> {
-      ConstRefractiveIndexLayer(d = Double.POSITIVE_INFINITY, n = Complex.ONE)
+      ConstPermittivityLayer(d = Double.POSITIVE_INFINITY, eps = Complex.ONE)
     }
     ExternalMediumType.GAAS_ADACHI -> {
       GaAs(d = Double.POSITIVE_INFINITY, permittivityModel = PermittivityModel.ADACHI_SIMPLE)
@@ -30,7 +30,7 @@ data class Medium(
       GaAs(d = Double.POSITIVE_INFINITY, permittivityModel = PermittivityModel.ADACHI_GAUSS)
     }
     ExternalMediumType.CUSTOM -> {
-      ConstRefractiveIndexLayer(d = Double.POSITIVE_INFINITY, n = Complex(nReal, nImaginary))
+      ConstPermittivityLayer(d = Double.POSITIVE_INFINITY, eps = Complex(nReal, nImaginary))
     }
   }
 }

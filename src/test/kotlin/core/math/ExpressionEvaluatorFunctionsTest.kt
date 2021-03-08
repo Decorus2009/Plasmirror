@@ -7,7 +7,8 @@ import org.mariuszgromada.math.mxparser.*
 import org.mariuszgromada.math.mxparser.Function
 
 internal class ExpressionEvaluatorFunctionsTest {
-  private val parser = ExpressionEvaluator()
+  private lateinit var parser: ExpressionEvaluator
+
 
   @Test
   fun `single function returning const`() {
@@ -15,7 +16,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       fun f(a) = 1
       return f(10)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     Assert.assertThat(result, CoreMatchers.equalTo(1.0))
@@ -27,7 +30,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       fun f(a) = 1
       return f(10)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     val f = Function("f(x) = 1")
@@ -43,7 +48,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       fun f(a, b, c) = a * b + c
       return f(10, 5, 2)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     Assert.assertThat(result, CoreMatchers.equalTo(52.0))
@@ -55,7 +62,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       fun f(a, b, c) = a * b + c
       return f(10, 5, 2)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     val f = Function("f(a, b, c) = a * b + c")
@@ -74,7 +83,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       val c = b^2
       return f(a, b, c)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     Assert.assertThat(result, CoreMatchers.equalTo(35.0))
@@ -89,7 +100,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       val c = b^2
       return f(a, b, c)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     val a = Argument("a = 2")
@@ -109,7 +122,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       fun g(a) = a^2 + f(a)
       return g(10)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     Assert.assertThat(result, CoreMatchers.equalTo(200.0))
@@ -122,7 +137,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       fun g(a) = a^2 + f(a)
       return g(10)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     val f = Function("f(a) = a^2")
@@ -143,7 +160,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       val c = b^2
       return g(a, b, c)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     Assert.assertThat(result, CoreMatchers.equalTo(7250.0))
@@ -159,7 +178,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       val c = b^2
       return g(a, b, c)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     val a = Argument("a = 2")
@@ -180,7 +201,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       fun g(a) = a^2
       return g(f(5))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     Assert.assertThat(result, CoreMatchers.equalTo(2500.0))
@@ -193,7 +216,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       fun g(a) = a^2
       return g(f(5))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     val f = Function("f(a) = a * 10")
@@ -214,7 +239,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       val c = b^2
       return g(f(a), f(b), f(c))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     Assert.assertThat(result, CoreMatchers.equalTo(1250.0))
@@ -230,7 +257,9 @@ internal class ExpressionEvaluatorFunctionsTest {
       val c = b^2
       return g(f(a), f(b), f(c))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 0.0).yReal
 
     val a = Argument("a = 2")

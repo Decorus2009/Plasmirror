@@ -1,6 +1,6 @@
 package core
 
-import core.layers.ConstRefractiveIndexLayer
+import core.layers.ConstPermittivityLayer
 import core.layers.Layer
 import core.layers.composite.Mie
 import core.math.Complex
@@ -92,9 +92,9 @@ class Mirror(
   private fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double): TransferMatrix {
     var prev = leftMediumLayer
     /* blank layer (for formal initialization) */
-    var first: Layer = ConstRefractiveIndexLayer(d = POSITIVE_INFINITY, n = Complex(NaN))
+    var first: Layer = ConstPermittivityLayer(d = POSITIVE_INFINITY, eps = Complex(NaN))
     /* blank layer (for formal initialization) */
-    var beforeFirst: Layer = ConstRefractiveIndexLayer(d = POSITIVE_INFINITY, n = Complex(NaN))
+    var beforeFirst: Layer = ConstPermittivityLayer(d = POSITIVE_INFINITY, eps = Complex(NaN))
 
     var periodMatrix: TransferMatrix
     var tempMatrix: TransferMatrix
@@ -107,7 +107,7 @@ class Mirror(
         periodMatrix = TransferMatrix.unaryMatrix()
 
         isFirst = true
-        var cur: Layer = ConstRefractiveIndexLayer(d = POSITIVE_INFINITY, n = Complex(NaN))  // blank layer (for formal initialization)
+        var cur: Layer = ConstPermittivityLayer(d = POSITIVE_INFINITY, eps = Complex(NaN))  // blank layer (for formal initialization)
         for (j in 0..layers.size - 1) {
 
           cur = layers[j]

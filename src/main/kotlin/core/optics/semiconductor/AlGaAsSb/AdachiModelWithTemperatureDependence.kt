@@ -10,7 +10,7 @@ import kotlin.math.pow
  * of computation stack below. It's much more convenient to keep this values within an internal state of the class instance,
  * however initialized each time the permittivity computation is needed
  */
-class AdachiFullTemperatureDependentModel(
+class AdachiModelWithTemperatureDependence(
   private val w: Double,
   private val cAl: Double,
   private val cAs: Double,

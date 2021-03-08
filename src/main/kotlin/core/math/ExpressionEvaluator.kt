@@ -17,7 +17,7 @@ data class RangeEvaluationData(val yReal: List<Double>, val yImaginary: List<Dou
 
 data class EvaluationData(val yReal: Double, val yImaginary: Double? = null)
 
-class ExpressionEvaluator(private val isDebug: Boolean = false) {
+class ExpressionEvaluator(private val expr: String) {
   private val xArgument = Argument(X, 0.0) // initial value for x is 0.0
   private val previousArguments = mutableListOf<Argument>()
   private val previousFunctions = mutableListOf<Function>()
@@ -27,7 +27,7 @@ class ExpressionEvaluator(private val isDebug: Boolean = false) {
    * '@val@', '@fun@' and '@return@' came from [core.structure.StructureInitializerKt.json] method which surrounded these
    * keywords with @ in order to keep expression correct before removing all whitespaces and line-breaks
    */
-  fun prepare(expr: String) {
+  fun prepare() {
     clearState()
     previousArguments += xArgument
 
@@ -43,8 +43,6 @@ class ExpressionEvaluator(private val isDebug: Boolean = false) {
       .apply { preValidate() }
       .filter { it.line.startsWithKnownPrefix() }
       .forEach { descriptor ->
-        if (isDebug) println("""Line ${descriptor.lineNumber}: "${descriptor.line}""")
-
         val line = descriptor.line
         when {
           /**
@@ -103,10 +101,6 @@ class ExpressionEvaluator(private val isDebug: Boolean = false) {
 
     requireSyntaxCorrectness(argumentCandidate, descriptor)
     previousArguments += argumentCandidate
-
-    if (isDebug) {
-      argumentCandidate.debugInfo()
-    }
   }
 
   private fun prepareFunction(descriptor: LineDescriptor) {
@@ -116,9 +110,6 @@ class ExpressionEvaluator(private val isDebug: Boolean = false) {
 
     requireSyntaxCorrectness(functionCandidate, descriptor)
     previousFunctions += functionCandidate
-    if (isDebug) {
-      functionCandidate.debugInfo()
-    }
   }
 
   private fun prepareExpression(descriptor: LineDescriptor) {
@@ -145,9 +136,6 @@ class ExpressionEvaluator(private val isDebug: Boolean = false) {
     val calcExpressionCandidate = Expression(this, *(dependencyArgs + dependencyFunctions).toTypedArray())
 
     requireSyntaxCorrectness(calcExpressionCandidate, descriptor)
-    if (isDebug) {
-      calcExpressionCandidate.debugInfo()
-    }
     return calcExpressionCandidate
   }
 

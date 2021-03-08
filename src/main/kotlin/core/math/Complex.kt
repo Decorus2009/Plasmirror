@@ -40,6 +40,8 @@ class Complex(real: Double, imaginary: Double) : ApacheComplex(real, imaginary) 
   operator fun unaryMinus() = Complex(-real, -imaginary)
 
   override fun pow(x: Double) = of(ApacheComplex(real, imaginary).pow(x))
+
+  override fun sqrt() = of(super.sqrt())
 }
 
 fun interpolateComplex(x: List<Double>, y: List<Complex>) =

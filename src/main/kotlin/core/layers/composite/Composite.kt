@@ -1,15 +1,12 @@
 package core.layers.composite
 
 import core.layers.Layer
-import core.layers.particles.Particles
-import core.optics.toRefractiveIndex
+import core.layers.particles.Particle
 
 abstract class Composite(
   protected open val medium: Layer,
-  protected open val particles: Particles
+  protected open val particle: Particle
 ) : Layer {
-  override fun n(wl: Double, temperature: Double) = permittivity(wl, temperature).toRefractiveIndex()
-
   /**
    * By default composite permittivity equals to medium permittivity
    */
@@ -17,5 +14,5 @@ abstract class Composite(
 
   fun mediumPermittivity(wl: Double, temperature: Double) = medium.permittivity(wl, temperature)
 
-  fun particlePermittivity(wl: Double) = particles.permittivity(wl)
+  fun particlePermittivity(wl: Double) = particle.permittivity(wl)
 }

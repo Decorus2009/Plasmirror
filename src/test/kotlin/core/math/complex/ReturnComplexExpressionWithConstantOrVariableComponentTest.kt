@@ -8,14 +8,17 @@ import org.mariuszgromada.math.mxparser.*
 import org.mariuszgromada.math.mxparser.Function
 
 internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
-  private val parser = ExpressionEvaluator()
+  private lateinit var parser: ExpressionEvaluator
+
 
   @Test
   fun `two constants`() {
     val expression = """
       return (1, 2)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -29,7 +32,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       val re = 1
       return (re, 2)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
 
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
@@ -44,7 +49,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       val im = 2
       return (1, im)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
 
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
@@ -60,7 +67,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       val im = 2
       return (re, im)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
 
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
@@ -77,7 +86,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a) = a * 10
       return (1, f(2))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -91,7 +102,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a) = a * 10
       return (f(1), 2)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -105,7 +118,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a, b) = a * b
       return (1, f(2, 3))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -119,7 +134,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a, b) = a * b
       return (f(2, 3), 1)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -133,7 +150,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a, b, c) = a * b * c
       return (1, f(2, 3, 4))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -147,7 +166,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a, b, c) = a * b * c
       return (f(2, 3, 4), 1)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -164,7 +185,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a) = a * 10
       return (1, f(2))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -179,7 +202,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       val a = 2
       return (f(1), a)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -194,7 +219,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a, b) = a * b
       return (a, f(2, 3))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -209,7 +236,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a, b) = a * b
       return (f(2, 3), a)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -224,7 +253,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a, b, c) = a * b * c
       return (a, f(2, 3, 4))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -239,7 +270,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun f(a, b, c) = a * b * c
       return (f(2, 3, 4), a)
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -256,7 +289,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun g(b) = b * 10
       return (f(1), g(2))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -271,7 +306,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun g(b, c) = b * 10 + c
       return (f(1), g(2, 3))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -286,7 +323,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun g(b, c) = b * 10 + c
       return (g(2, 3), f(1))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -301,7 +340,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun g(b, c) = b * 10 + c
       return (f(1, 2), g(2, 3))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -316,7 +357,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun g(b, c, d) = b * 10 + c + d
       return (f(1), g(2, 3, 4))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -331,7 +374,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun g(b, c, d) = b * 10 + c + d
       return (g(2, 3, 4), f(1))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -346,7 +391,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun g(b, c, d) = b * 10 + c + d
       return (f(1, 2), g(2, 3, 4))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -361,7 +408,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun g(b, c, d) = b * 10 + c + d
       return (g(2, 3, 4), f(1, 2))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -376,7 +425,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun g(b, c, d) = b * 10 + c + d
       return (f(1, 2, 3), g(2, 3, 4))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -391,7 +442,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun g(b, c, d) = b * 10 + c + d
       return (f(g(2, 3, 4), 2, g(3, 4, 5)), g(2, f(1, 2, 3), 4))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 0.0).yReal
     val resultImaginary = parser.compute(x = 0.0).yImaginary
 
@@ -410,7 +463,9 @@ internal class ReturnComplexExpressionWithConstantOrVariableComponentTest {
       fun im(a, b) = b * cos(-a)
       return (re(x, im(x, c)), g * im(x, c))
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val resultReal = parser.compute(x = 5.0).yReal
     val resultImaginary = parser.compute(x = 5.0).yImaginary
 

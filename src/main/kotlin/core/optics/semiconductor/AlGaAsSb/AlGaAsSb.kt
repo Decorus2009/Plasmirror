@@ -13,5 +13,5 @@ object AlGaAsSb {
    * [cAs] As concentration (y)
    */
   fun permittivity(wl: Double, cAl: Double, cAs: Double, temperature: Double) =
-    AdachiFullTemperatureDependentModel(wl.toEnergy(), cAl, cAs, temperature).permittivity()
+    AdachiModelWithTemperatureDependence(wl.toEnergy(), cAl, cAs, temperature).permittivity()
 }

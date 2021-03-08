@@ -1,7 +1,6 @@
 package core.optics.semiconductor.AlGaAs
 
 import core.math.Complex
-import core.optics.toRefractiveIndex
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -9,8 +8,6 @@ import kotlin.math.sqrt
  * J. Appl. Phys. 58, R1 (1985) - simple Adachi model for AlGaAs
  */
 object AdachiSimpleModel {
-  fun refractiveIndex(w: Double, cAl: Double) = permittivity(w, cAl).toRefractiveIndex()
-
   fun permittivity(w: Double, cAl: Double): Complex {
     var energy = w
     val Eg = 1.425 + 1.155 * cAl + 0.37 * cAl * cAl
@@ -29,4 +26,7 @@ object AdachiSimpleModel {
 
     return Complex(A * (f(hi) + 0.5 * (Eg / (Eg + Delta)).pow(1.5) * f(hiSo)) + B)
   }
+
+  fun permittivityWithScaledImaginaryPart(w: Double, cAl: Double, scalingCoefficient: Double) =
+    permittivity(w, cAl).let { eps -> Complex(eps.real, eps.real * scalingCoefficient) }
 }

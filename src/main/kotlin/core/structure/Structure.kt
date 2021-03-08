@@ -9,7 +9,6 @@ import core.layers.particles.*
 import core.optics.PermittivityModel
 import core.optics.particles.LorentzOscillator
 import core.util.*
-import rootController
 import ui.controllers.structureDescriptionController
 
 /**
@@ -58,13 +57,13 @@ private fun JsonNode.toLayer(): Layer {
     LayerType.CUSTOM -> {
       // CUSTOM layer type may contain n as a number (e.g. n: 3.6 or n: (3.6, -0.1)) or as an expression
       when (val maybeExpr = requireNode(DescriptionParameters.n).requireTextOrNull(DescriptionParameters.expr)) {
-        null -> ConstRefractiveIndexLayer(
+        null -> ConstPermittivityLayer(
           d = d,
-          n = requireComplex(DescriptionParameters.n)
+          eps = requireComplex(DescriptionParameters.n)
         )
-        else -> ExpressionBasedRefractiveIndexLayer(
+        else -> ExpressionBasedPermittivityLayer(
           d = d,
-          nExpr = maybeExpr
+          epsExpr = maybeExpr
         )
       }
     }
@@ -76,19 +75,19 @@ private fun JsonNode.toLayer(): Layer {
     LayerType.EFF_MEDIUM -> EffectiveMedium(
       d = d,
       medium = requireMedium().toLayer(),
-      particles = requireParticlesFor(layerType),
+      particle = requireParticlesFor(layerType),
       f = requireNonNegativeDouble(DescriptionParameters.f)
     )
     LayerType.SPHERES_LATTICE -> SpheresLattice(
       d = d,
       medium = requireMedium().toLayer(),
-      particles = requireParticlesFor(layerType),
+      particle = requireParticlesFor(layerType),
       latticeFactor = requireNonNegativeDouble(DescriptionParameters.latticeFactor)
     )
     LayerType.MIE -> Mie(
       d = d,
       medium = requireMedium().toLayer(),
-      particles = requireParticlesFor(layerType),
+      particle = requireParticlesFor(layerType),
       f = requireNonNegativeDouble(DescriptionParameters.f),
       orders = requireOrders()
     )
@@ -178,13 +177,13 @@ private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Des
     }
   }
   when (requireParticlesPermittivityModel()) {
-    ParticlesPermittivityModel.DRUDE -> DrudeParticles(
+    ParticlesPermittivityModel.DRUDE -> DrudeParticle(
       r = r,
       wPl = requireNonNegativeDouble(DescriptionParameters.w),
       g = requireDouble(DescriptionParameters.g),
       epsInf = requireDouble(DescriptionParameters.epsInf)
     )
-    ParticlesPermittivityModel.DRUDE_LORENTZ -> DrudeLorentzParticles(
+    ParticlesPermittivityModel.DRUDE_LORENTZ -> DrudeLorentzParticle(
       // Drude params
       r = r,
       wPl = requireNonNegativeDouble(DescriptionParameters.w),
@@ -192,7 +191,7 @@ private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Des
       epsInf = requireDouble(DescriptionParameters.epsInf),
       oscillators = requireOscillators()
     )
-    ParticlesPermittivityModel.SB -> SbParticles(r)
+    ParticlesPermittivityModel.SB -> SbParticle(r)
     // TODO custom
   }
 }

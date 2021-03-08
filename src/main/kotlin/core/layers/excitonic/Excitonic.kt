@@ -1,8 +1,8 @@
 package core.layers.excitonic
 
+import core.layers.Layer
 import core.math.Complex
 import core.math.TransferMatrix
-import core.layers.Layer
 import core.optics.*
 import org.apache.commons.math3.complex.Complex.I
 import java.lang.Math.PI
@@ -14,8 +14,6 @@ class Excitonic(
   val medium: Layer,
   val exciton: Exciton
 ) : Layer {
-  override fun n(wl: Double, temperature: Double) = permittivity(wl, temperature).toRefractiveIndex()
-
   override fun permittivity(wl: Double, temperature: Double) = medium.permittivity(wl, temperature)
 
   override fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {

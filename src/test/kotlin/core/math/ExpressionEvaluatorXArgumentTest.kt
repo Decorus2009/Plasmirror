@@ -7,7 +7,8 @@ import org.mariuszgromada.math.mxparser.Argument
 import org.mariuszgromada.math.mxparser.Expression
 
 internal class ExpressionEvaluatorXArgumentTest {
-  private val parser = ExpressionEvaluator()
+  private lateinit var parser: ExpressionEvaluator
+
 
   @Test
   fun `single dependent argument`() {
@@ -15,7 +16,9 @@ internal class ExpressionEvaluatorXArgumentTest {
       val a = 5 * x
       return a
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 10.0).yReal
 
     assertThat(result, equalTo(50.0))
@@ -27,7 +30,9 @@ internal class ExpressionEvaluatorXArgumentTest {
       val a = 5 * x
       return a
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result1 = parser.compute(x = 10.0).yReal
     val result2 = parser.compute(x = 20.0).yReal
     assertThat(result1, equalTo(50.0))
@@ -40,7 +45,9 @@ internal class ExpressionEvaluatorXArgumentTest {
       val a = 5 * x
       return a
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 10.0).yReal
 
     val x = Argument("x = 10")
@@ -57,7 +64,9 @@ internal class ExpressionEvaluatorXArgumentTest {
       val a = 5 * x
       return a
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result1 = parser.compute(x = 10.0).yReal
     val result2 = parser.compute(x = 20.0).yReal
 
@@ -80,7 +89,9 @@ internal class ExpressionEvaluatorXArgumentTest {
       val d = a^4 + b^3 + c^2 * x
       return d
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 10.0).yReal
 
     assertThat(result, equalTo(259.0))
@@ -95,7 +106,9 @@ internal class ExpressionEvaluatorXArgumentTest {
       val d = a^4 + b^3 + c^2 * x
       return d
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result1 = parser.compute(x = 10.0).yReal
     val result2 = parser.compute(x = 20.0).yReal
 
@@ -112,7 +125,9 @@ internal class ExpressionEvaluatorXArgumentTest {
       val d = a^4 + b^3 + c^2 * x
       return d
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 10.0).yReal
 
     val x = Argument("x = 10")
@@ -135,7 +150,9 @@ internal class ExpressionEvaluatorXArgumentTest {
       val d = a^4 + b^3 + c^2 * x
       return d
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result1 = parser.compute(x = 10.0).yReal
     val result2 = parser.compute(x = 20.0).yReal
 
@@ -159,7 +176,9 @@ internal class ExpressionEvaluatorXArgumentTest {
       val b = 1 + 15 - 6 * 9  / a^2 - 4 * 3 * 2 * x
       return b
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 10.0).yReal
 
     assertThat(result, equalTo(-226.16))
@@ -172,7 +191,9 @@ internal class ExpressionEvaluatorXArgumentTest {
       val b = 1 + 15 - 6 * 9  / a^2 - 4 * 3 * 2 * x
       return b
     """.trimIndent()
-    parser.prepare(expression)
+    parser = ExpressionEvaluator(expression)
+    parser.prepare()
+
     val result = parser.compute(x = 10.0).yReal
 
     val x = Argument("x = 10")
