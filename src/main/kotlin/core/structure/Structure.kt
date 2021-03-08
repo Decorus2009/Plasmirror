@@ -55,11 +55,11 @@ private fun JsonNode.toLayer(): Layer {
       cAs = requireNonNegativeDouble(DescriptionParameters.cAs)
     )
     LayerType.CUSTOM -> {
-      // CUSTOM layer type may contain n as a number (e.g. n: 3.6 or n: (3.6, -0.1)) or as an expression
-      when (val maybeExpr = requireNode(DescriptionParameters.n).requireTextOrNull(DescriptionParameters.expr)) {
+      // CUSTOM layer type may contain eps as a number (e.g. eps: 3.6 or eps: (3.6, -0.1)) or as an expression
+      when (val maybeExpr = requireNode(DescriptionParameters.eps).requireTextOrNull(DescriptionParameters.expr)) {
         null -> ConstPermittivityLayer(
           d = d,
-          eps = requireComplex(DescriptionParameters.n)
+          eps = requireComplex(DescriptionParameters.eps)
         )
         else -> ExpressionBasedPermittivityLayer(
           d = d,
@@ -120,7 +120,7 @@ private fun String.findWrongLayerTypeInDescriptionText(): String {
 
 
 private fun JsonNode.requirePermittivityModelFor(layerType: LayerType): PermittivityModel {
-  val maybeModel = requireText(DescriptionParameters.n).toUpperCase()
+  val maybeModel = requireText(DescriptionParameters.eps).toUpperCase()
 
   check(PermittivityModel.values().map { it.name }.contains(maybeModel)) {
     "Unknown permittivity model"
@@ -156,9 +156,6 @@ private fun JsonNode.requireMedium() = requireNode(DescriptionParameters.medium)
     "Medium material/layer can be only GaAs, AlGaAs, AlGaAsSb or const_n"
   }
 }
-
-private fun JsonNode.requireRefractiveIndexExpression() =
-  requireNode(DescriptionParameters.n).requireText(DescriptionParameters.expr)
 
 private fun JsonNode.requireExciton() = requireNode(DescriptionParameters.exciton).run {
   Exciton(

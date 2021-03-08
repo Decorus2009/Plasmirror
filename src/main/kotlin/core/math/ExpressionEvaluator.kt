@@ -190,6 +190,10 @@ private fun List<LineDescriptor>.preValidate() {
     fail("Return expression not found")
   }
 
+  if (filter { it.line.startsWith(RET_PREFIX) }.size != 1) {
+    fail("Only one return expression is allowed")
+  }
+
   forEachIndexed { idx, descriptor ->
     if (!descriptor.line.startsWithKnownPrefix()) {
       fail("""Unknown format in line ${descriptor.lineNumber}: "${descriptor.line}". Line should start with 'val', 'fun' or 'return'""")

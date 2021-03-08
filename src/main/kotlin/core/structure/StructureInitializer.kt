@@ -22,8 +22,8 @@ fun String.toStructure() = json().asArray().toStructure()
  * */
  * x20
  * layer: spheres_lattice,
- * medium: { material: AlGaAs, n: Adachi_simple, k/n: 0.0, cAl: 0.3 },
- * particles: { n: Drude,      w: 14.6, G: 0.5, epsInf: 1.0 },
+ * medium: { material: AlGaAs, eps: Adachi_simple, k/n: 0.0, cAl: 0.3 },
+ * particles: { eps: Drude,      w: 14.6, G: 0.5, epsInf: 1.0 },
  * d: 40, lattice_factor: 8.1       ;
  *
  * ;
@@ -50,12 +50,21 @@ fun String.json(): String {
       
     .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "$1d:0,")               // add artificial d if not specified: medium: { -> medium: { d: 0,
       
-    .replace(Regex("\\bn\\b:\\{([\\w\\W\\s]*)}"), "\"n\":{\"expr\":\"$1\"}")         // n: { some expr } -> "n": { "expr":"some expr" }
-    .replace(Regex("k/n:"), "k_to_n:")                                               // k/n -> "k_to_n"
-    .replace(Regex("\\bn\\b:($numberRegex)"), "\"n\":\"$1\"")                        // n:-3.6E6 -> "n":"-3.6E6"
-    .replace(Regex("\\bn\\b:(\\(($numberRegex),($numberRegex)\\))"), "\"n\":\"$1\"") // n:(3.6E6,-0.1695) -> "n":"(3.6E6,-0.1695)"
+    .replace(
+      Regex("\\b${DescriptionParameters.eps}\\b:\\{([\\w\\W\\s]*)}"),
+      "\"${DescriptionParameters.eps}\":{\"expr\":\"$1\"}"
+    )                                                                                // eps: { some expr } -> "eps": { "expr":"some expr" }
+    .replace(Regex("k/n:"), "${DescriptionParameters.kToN}:")                        // k/n -> "k_to_n"
+    .replace(
+      Regex("\\b${DescriptionParameters.eps}\\b:($numberRegex)"),
+      "\"${DescriptionParameters.eps}\":\"$1\""
+    )                                                                                // eps:-3.6E6 -> "eps":"-3.6E6"
+    .replace(
+      Regex("\\b${DescriptionParameters.eps}\\b:(\\(($numberRegex),($numberRegex)\\))"),
+      "\"${DescriptionParameters.eps}\":\"$1\""
+    )                                                                                // eps:(13.6E6,-0.1695) -> "eps":"(13.6E6,-0.1695)"
 
-    .replace(Regex("(\\w+):(\\w+\\.*[0-9]*)"), "\"$1\":\"$2\"")                      // n: drude -> "n": "drude", w0: 1.0 -> "w0": "1.0"
+    .replace(Regex("(\\w+):(\\w+\\.*[0-9]*)"), "\"$1\":\"$2\"")                      // eps: drude -> "eps": "drude", w0: 1.0 -> "w0": "1.0"
     .replace(Regex("(\\w+):\\{"), "\"$1\":{")                                        // particles: { -> "particles": {
 
     .split(";")
