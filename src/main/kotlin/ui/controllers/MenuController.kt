@@ -1,9 +1,7 @@
 package ui.controllers
 
 import MainApp
-import core.util.KnownPaths.export
-import core.util.exportFileName
-import core.util.writeComputedDataTo
+import core.util.*
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
@@ -21,7 +19,6 @@ class MenuController {
     importMultipleMenuItem.accelerator = KeyCodeCombination(KeyCode.I, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
     exportMenuItem.accelerator = KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN)
     exportMultipleMenuItem.accelerator = KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
-    fitterMenuItem.accelerator = KeyCodeCombination(KeyCode.F, KeyCombination.SHORTCUT_DOWN)
 
     importMenuItem.setOnAction {
       initFileChooser(".").showOpenDialog(rootController.mainApp.primaryStage)?.let { file ->
@@ -36,7 +33,7 @@ class MenuController {
     }
 
     exportMenuItem.setOnAction {
-      initFileChooser(export)
+      initFileChooser(exportPath())
         .let { chooser ->
           chooser.initialFileName = exportFileName()
           chooser.showSaveDialog(rootController.mainApp.primaryStage)
@@ -65,37 +62,19 @@ class MenuController {
       }
     }
 
+    expressionsEvaluatorMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml/expressions/ExpressionsEvaluator.fxml", titleToShow = "Expressions Evaluator")
+    }
+
     helpInfoMenuItem.setOnAction {
-      helpWindowHandler(fxmlPath = "fxml/help/HelpInfo.fxml", titleToShow = "Help Info")
+      showWindow(fxmlPath = "fxml/help/HelpInfo.fxml", titleToShow = "Help Info")
     }
 
     expressionsHelpMenuItem.setOnAction {
-      helpWindowHandler(fxmlPath = "fxml/help/ExpressionsHelp.fxml", titleToShow = "Expressions Help")
+      showWindow(fxmlPath = "fxml/help/ExpressionsHelp.fxml", titleToShow = "Expressions Help")
     }
   }
 
-  private fun helpWindowHandler(fxmlPath: String, titleToShow: String) {
-    val page = with(FXMLLoader()) {
-      location = MainApp::class.java.getResource(fxmlPath)
-      load<AnchorPane>()
-    }
-    with(Stage()) {
-      title = titleToShow
-      scene = Scene(page)
-      /* works after pressing directory button or switching between angle and T modes. Why? */
-      addEventHandler(KeyEvent.KEY_RELEASED) { event: KeyEvent ->
-        if (KeyCode.ESCAPE == event.code) {
-          close()
-        }
-      }
-      showAndWait()
-    }
-  }
-
-  private fun initFileChooser(dir: String) = FileChooser().apply {
-    extensionFilters.add(FileChooser.ExtensionFilter("Data Files", "*.txt", "*.dat"))
-    initialDirectory = File(dir)
-  }
 
   lateinit var rootController: RootController
 
@@ -119,4 +98,12 @@ class MenuController {
 
   @FXML
   private lateinit var fitterMenuItem: MenuItem
+
+  @FXML
+  private lateinit var expressionsEvaluatorMenuItem: MenuItem
+}
+
+private fun initFileChooser(dir: String) = FileChooser().apply {
+  extensionFilters.add(FileChooser.ExtensionFilter("Data Files", "*.txt", "*.dat"))
+  initialDirectory = File(dir)
 }

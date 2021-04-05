@@ -28,3 +28,6 @@ fun Double.isAllowedAngle() = this in 0.0..89.99999999
 fun Double.isNotAllowedAngle() = !isAllowedAngle()
 
 fun Double.isZero() = abs(this) < 1E-15
+
+
+fun complexList(yReal: List<Double>, yImaginary: List<Double>) = yReal.zip(yImaginary).map { Complex(it.first, it.second) }

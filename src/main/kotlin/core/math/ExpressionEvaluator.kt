@@ -15,7 +15,9 @@ data class LineDescriptor(val line: String, val lineNumber: Int)
 
 data class RangeEvaluationData(val yReal: List<Double>, val yImaginary: List<Double> = emptyList())
 
-data class EvaluationData(val yReal: Double, val yImaginary: Double? = null)
+data class EvaluationData(val yReal: Double, val yImaginary: Double? = null) {
+  fun toComplex() = Complex(yReal, yImaginary ?: 0.0)
+}
 
 class ExpressionEvaluator(private val expr: String) {
   private val xArgument = Argument(X, 0.0) // initial value for x is 0.0
@@ -214,38 +216,6 @@ private fun String.hasFunctionExpressionFor(function: Function) = Regex(".*(\\W)
 
 private fun String.returnsComplex() = Regex("^return\\s*\\(.*,.*\\)").matches(this.trim())
 
-private fun Argument.debugInfo() = StringBuilder().apply {
-  append("argument: $argumentName")
-  append(", ")
-  if (argumentExpressionString.isBlank()) {
-    append("value: $argumentValue")
-  } else {
-    append("expression: $argumentExpressionString")
-  }
-  append(", ")
-  append("correctness check: ${checkSyntax()}")
-  appendLine()
-}.toString().also { print(it) }
-
-private fun Function.debugInfo() = StringBuilder().apply {
-  append("function: $functionName")
-  append(", ")
-  append("expression: $functionExpressionString")
-  append(", ")
-  append("correctness check: ${checkSyntax()}")
-  appendLine()
-}.toString().also { print(it) }
-
-private fun Expression.debugInfo() = StringBuilder().apply {
-  missingUserDefinedArguments
-  append("expression: $expressionString")
-  append(", ")
-  append("correctness check: ${checkSyntax()}  ${checkLexSyntax()}")
-  appendLine()
-  append("result: ${calculate()}")
-  appendLine()
-}.toString().also { print(it) }
-
 private fun String.startsWithKnownPrefix() = KNOWN_PREFIXES.any { startsWith(it) }
 
 /**
@@ -281,3 +251,35 @@ private fun delimiterPosition(maybeComplexPair: String): Int {
   }
   return positions.first()
 }
+
+private fun Argument.debugInfo() = StringBuilder().apply {
+  append("argument: $argumentName")
+  append(", ")
+  if (argumentExpressionString.isBlank()) {
+    append("value: $argumentValue")
+  } else {
+    append("expression: $argumentExpressionString")
+  }
+  append(", ")
+  append("correctness check: ${checkSyntax()}")
+  appendLine()
+}.toString().also { print(it) }
+
+private fun Function.debugInfo() = StringBuilder().apply {
+  append("function: $functionName")
+  append(", ")
+  append("expression: $functionExpressionString")
+  append(", ")
+  append("correctness check: ${checkSyntax()}")
+  appendLine()
+}.toString().also { print(it) }
+
+private fun Expression.debugInfo() = StringBuilder().apply {
+  missingUserDefinedArguments
+  append("expression: $expressionString")
+  append(", ")
+  append("correctness check: ${checkSyntax()}  ${checkLexSyntax()}")
+  appendLine()
+  append("result: ${calculate()}")
+  appendLine()
+}.toString().also { print(it) }

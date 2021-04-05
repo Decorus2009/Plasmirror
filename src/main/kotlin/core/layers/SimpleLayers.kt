@@ -43,16 +43,17 @@ interface Layer {
 
 /**
  * Base class for AlGaAs-based layers (excluding AlGaAsSb).
- * [kToN] argument is the coefficient between the imaginary and real parts of permittivities.
+ * [dampingFactor] - coefficient between the imaginary and real part of permittivity:
+ * im(eps) = [dampingFactor] * re(eps).
  *
  * Optical properties of AlGaAs-based layers are computed via permittivity models.
  * So computation of [n] is provided with 2 steps (see [permittivity]):
- *   1. compute the permittivity obtained from models (maybe with modification of im(eps) part via [kToN]
+ *   1. compute the permittivity obtained from models (maybe with modification of im(eps) part via [dampingFactor]
  *   2. convert it to refractive index
  */
 abstract class AlGaAsBase(
   override val d: Double,
-  private val kToN: Double,
+  private val dampingFactor: Double,
   private val cAl: Double,
   private val permittivityModel: PermittivityModel
 ) : Layer {
@@ -60,13 +61,13 @@ abstract class AlGaAsBase(
     val w = wl.toEnergy()
     return when (permittivityModel) {
       PermittivityModel.ADACHI_SIMPLE -> {
-        AdachiSimpleModel.permittivityWithScaledImaginaryPart(w, cAl, kToN)
+        AdachiSimpleModel.permittivityWithScaledImaginaryPart(w, cAl, dampingFactor)
       }
       PermittivityModel.ADACHI_GAUSS -> {
         AdachiModelWithGaussianBroadening.permittivity(w, cAl)
       }
       PermittivityModel.ADACHI_MOD_GAUSS -> {
-        AdachiModelWithGaussianBroadening.permittivityWithScaledImaginaryPart(w, cAl, kToN)
+        AdachiModelWithGaussianBroadening.permittivityWithScaledImaginaryPart(w, cAl, dampingFactor)
       }
       PermittivityModel.ADACHI_T -> {
         AdachiModelWithTemperatureDependence(w, cAl, cAs = 1.0, temperature = temperature).permittivity()
@@ -77,21 +78,18 @@ abstract class AlGaAsBase(
 
 class GaAs(
   d: Double,
-  kToN: Double = 0.0,
+  dampingFactor: Double = 0.0,
   cAl: Double = 0.0,
   /** default value for external media initialization in [core.state.Medium.toLayer] */
   permittivityModel: PermittivityModel
-) : AlGaAsBase(d, kToN, cAl, permittivityModel)
+) : AlGaAsBase(d, dampingFactor, cAl, permittivityModel)
 
-/**
- * [kToN] for Adachi computation n = (Re(n); Im(n) = k * Re(n)), see [refractiveIndex]
- */
 class AlGaAs(
   d: Double,
-  kToN: Double,
+  dampingFactor: Double,
   cAl: Double,
   permittivityModel: PermittivityModel
-) : AlGaAsBase(d, kToN, cAl, permittivityModel)
+) : AlGaAsBase(d, dampingFactor, cAl, permittivityModel)
 
 class AlGaAsSb(
   override val d: Double,
@@ -120,5 +118,6 @@ class ExpressionBasedPermittivityLayer(
   }
 
   override fun permittivity(wl: Double, temperature: Double) =
+    // TODO think of .let { Complex(it.yReal, it.yImaginary ?: 0.0) } -> toComplex
     expressionEvaluator.compute(x = wl).let { Complex(it.yReal, it.yImaginary ?: 0.0) }
 }

@@ -56,11 +56,11 @@
                     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                   </rowConstraints>
                   <children>
-                    <TextField fx:id="nRealLeftMediumTextField" alignment="CENTER"
+                    <TextField fx:id="epsRealLeftMediumTextField" alignment="CENTER"
                                disable="true" prefHeight="40.0" prefWidth="187.0"
                                AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
                                AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
-                    <TextField fx:id="nImaginaryLeftMediumTextField"
+                    <TextField fx:id="epsImaginaryLeftMediumTextField"
                                alignment="CENTER" disable="true" GridPane.columnIndex="1"
                                prefHeight="40.0" prefWidth="187.0" AnchorPane.bottomAnchor="0.0"
                                AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
@@ -97,7 +97,7 @@
                     <RowConstraints minHeight="10.0" vgrow="SOMETIMES"/>
                   </rowConstraints>
                   <children>
-                    <TextField fx:id="nRealRightMediumTextField"
+                    <TextField fx:id="epsRealRightMediumTextField"
                                alignment="CENTER"
                                disable="true"
                                prefHeight="40.0" prefWidth="187.0"
@@ -105,7 +105,7 @@
                                AnchorPane.leftAnchor="0.0"
                                AnchorPane.rightAnchor="0.0"
                                AnchorPane.topAnchor="0.0"/>
-                    <TextField fx:id="nImaginaryRightMediumTextField"
+                    <TextField fx:id="epsImaginaryRightMediumTextField"
                                alignment="CENTER"
                                disable="true"
                                GridPane.columnIndex="1"
@@ -188,15 +188,15 @@
     </AnchorPane>
     <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.rowIndex="2">
       <children>
-        <Label fx:id="leftMediumRefractiveIndexLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="46.0"
-               layoutY="10.0" prefHeight="36.0" prefWidth="125.0" text="n" AnchorPane.bottomAnchor="0.0"
+        <Label fx:id="leftMediumEpsLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="46.0"
+               layoutY="10.0" prefHeight="36.0" prefWidth="125.0" text="Permittivity" AnchorPane.bottomAnchor="0.0"
                AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
       </children>
     </AnchorPane>
     <AnchorPane prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
       <children>
-        <Label fx:id="rightMediumRefractiveIndexLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="46.0"
-               layoutY="10.0" prefHeight="36.0" prefWidth="125.0" text="n" AnchorPane.bottomAnchor="0.0"
+        <Label fx:id="rightMediumEpsLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="46.0"
+               layoutY="10.0" prefHeight="36.0" prefWidth="125.0" text="Permittivity" AnchorPane.bottomAnchor="0.0"
                AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
       </children>
     </AnchorPane>

@@ -25,6 +25,7 @@ import ui.controllers.MainController
 import ui.controllers.chart.LineChartState.allExtendedSeries
 import ui.controllers.chart.LineChartState.importIntoChartState
 import ui.controllers.chart.LineChartState.imported
+import ui.controllers.chart.util.setChartSettings
 import java.io.File
 import java.util.*
 
@@ -43,13 +44,11 @@ class LineChartController {
       override fun fromString(string: String) = 0
     }
 
-    with(chart) {
-      createSymbols = false
-      animated = false
-      isLegendVisible = true
-      /* force a css layout pass to ensure that subsequent lookup calls work */
-      applyCss()
+    setChartSettings(chart).also {
+      // force a css layout pass to ensure that subsequent lookup calls work
+      it.applyCss()
     }
+
     xAxis.label = when (activeState().computationUnit()) {
       ComputationUnit.NM -> "Wavelength, nm"
       ComputationUnit.EV -> TODO()

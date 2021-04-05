@@ -2,7 +2,7 @@ package core.structure
 
 import com.fasterxml.jackson.databind.JsonNode
 import core.state.mapper
-import core.util.requireNode
+import core.util.*
 
 fun String.toStructure() = json().asArray().toStructure()
 
@@ -12,17 +12,17 @@ fun String.toStructure() = json().asArray().toStructure()
  * Expand each layer description named tokens to single line:
  *
  * x1
- * layer: GaAs, d: 5;
+ * type: GaAs, d: 5;
  * // comment
- * layer: AlGaAs, d: 1000, k/n: 0.0, cAl: 0.3;
+ * type: AlGaAs, d: 1000, df: 0.0, cAl: 0.3;
  *
  * /*
  * multiline comment 1
  * multiline comment 2
  * */
  * x20
- * layer: spheres_lattice,
- * medium: { material: AlGaAs, eps: Adachi_simple, k/n: 0.0, cAl: 0.3 },
+ * type: spheres_lattice,
+ * medium: { material: AlGaAs, eps: Adachi_simple, df: 0.0, cAl: 0.3 },
  * particles: { eps: Drude,      w: 14.6, G: 0.5, epsInf: 1.0 },
  * d: 40, lattice_factor: 8.1       ;
  *
@@ -35,41 +35,60 @@ fun String.toStructure() = json().asArray().toStructure()
  */
 fun String.json(): String {
   val numberRegex = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?"
-  return """{"${DescriptionParameters.structure}":[${toLowerCase()
-    .replace(Regex("(?s)/\\*.*\\*/"), "")                                            // exclude multi-line comments
-    .replace(Regex("\\s*[/]{2,}.*"), "")                                             // exclude single-line comments
-
-    .replace(
-      Regex("\\s*\\b(val|fun|return)\\b\\s+"),
-      "${DescriptionParameters.exprLeftKWBoundary}$1${DescriptionParameters.exprRightKWBoundary}"
-    )                                                                                // surround val, fun and return with '@' to avoid expr break after spaces deletion
-    .replace(Regex("\\s+"), "")                                                      // remove all spaces, \n
-      
-    .replace(Regex("^([^xX])"), "x1$1")                                              // insert x1 into the beginning if description starts without it
-    .replace(Regex("([xX])([\\d]+)"), "${DescriptionParameters.repeat}:$2;")         // x42 -> repeat:42
-      
-    .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "$1d:0,")               // add artificial d if not specified: medium: { -> medium: { d: 0,
-      
-    .replace(
-      Regex("\\b${DescriptionParameters.eps}\\b:\\{([\\w\\W\\s]*)}"),
-      "\"${DescriptionParameters.eps}\":{\"expr\":\"$1\"}"
-    )                                                                                // eps: { some expr } -> "eps": { "expr":"some expr" }
-    .replace(Regex("k/n:"), "${DescriptionParameters.kToN}:")                        // k/n -> "k_to_n"
-    .replace(
-      Regex("\\b${DescriptionParameters.eps}\\b:($numberRegex)"),
-      "\"${DescriptionParameters.eps}\":\"$1\""
-    )                                                                                // eps:-3.6E6 -> "eps":"-3.6E6"
-    .replace(
-      Regex("\\b${DescriptionParameters.eps}\\b:(\\(($numberRegex),($numberRegex)\\))"),
-      "\"${DescriptionParameters.eps}\":\"$1\""
-    )                                                                                // eps:(13.6E6,-0.1695) -> "eps":"(13.6E6,-0.1695)"
-
-    .replace(Regex("(\\w+):(\\w+\\.*[0-9]*)"), "\"$1\":\"$2\"")                      // eps: drude -> "eps": "drude", w0: 1.0 -> "w0": "1.0"
-    .replace(Regex("(\\w+):\\{"), "\"$1\":{")                                        // particles: { -> "particles": {
-
-    .split(";")
-    .joinToString(",") { "{$it}" }                                                   // surround with {} to convert to json node 
-    .replace(",{}", "")                                                              // remove empty trailing nodes
+  return """{"${DescriptionParameters.structure}":[${
+    toLowerCase()
+      .removeMultiLineComments()
+      .removeSingleLineComments()
+      // surround val, fun and return with '@' to avoid expr break after spaces deletion
+      .replace(
+        Regex("\\s*\\b(val|fun|return)\\b\\s+"),
+        "${DescriptionParameters.exprLeftKWBoundary}$1${DescriptionParameters.exprRightKWBoundary}"
+      )
+      // remove all spaces, \n
+      .replace(Regex("\\s+"), "")
+      // insert x1 into the beginning if description starts without it
+      .replace(Regex("^([^xX])"), "x1$1")
+      // x42 -> repeat:42
+      .replace(Regex("([xX])([\\d]+)"), "${DescriptionParameters.repeat}:$2;")
+      // add artificial d if not specified: medium: { -> medium: { d: 0,
+      .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "$1d:0,")
+      /**
+       * "?" in regex is responsible for non-greedy/reluctant evaluation
+       * so that it matches right after it meets the first "}" character that closes expression.
+       * All the following "}" are skipped (we need to find only expression-related "}").
+       * Can't check that this regex is evaluated lazily in Idea checker (need to use online checker)
+       */
+      .replace(
+        Regex("\\b${DescriptionParameters.eps}\\b:\\{([\\w\\W\\s]*?)}"),
+        "\"${DescriptionParameters.eps}\":{\"expr\":\"$1\"}"
+      )
+      // eps: { some expr } -> "eps": { "expr":"some expr" }
+      .replace(
+        Regex("\\b${DescriptionParameters.eps}\\b:($numberRegex)"),
+        "\"${DescriptionParameters.eps}\":\"$1\""
+      )
+      /**
+       * e.g.: 
+       *  eps:-3.6E6 -> "eps":"-3.6E6"
+       *  eps:(13.6E6,-0.1695) -> "eps":"(13.6E6,-0.1695)"
+       *  C:(13.6E6,-0.1695) -> "C":"(13.6E6,-0.1695)"
+       */
+      .replace(
+        Regex("\\b(\\w+)\\b:(\\(($numberRegex),($numberRegex)\\))"),
+        "\"$1\":\"$2\""
+      )
+      /**
+       * eps: drude -> "eps": "drude"
+       * w0: 1.0 -> "w0": "1.0"
+       */
+      .replace(Regex("\\b(\\w+)\\b:(\\w+\\.*[0-9]*)"), "\"$1\":\"$2\"")
+      // particles: { -> "particles": {
+      .replace(Regex("\\b(\\w+)\\b:\\{"), "\"$1\":{")
+      .split(";")
+      // surround with {} to convert to json node 
+      .joinToString(",") { "{$it}" }
+      // remove empty trailing nodes
+      .replace(",{}", "")                                                              
   }]}"""
 }
 
@@ -99,6 +118,9 @@ fun List<JsonNode>.toStructure(): Structure {
     }
     // exclude blocks with 0 repeats (e.g. a user in structure description prints x0 to exclude a block from computation
     .filterNot { it.repeat == 0 }
+
+  Regex("\\bA.*?B\\b")
+
   return Structure(blocks)
 }
 

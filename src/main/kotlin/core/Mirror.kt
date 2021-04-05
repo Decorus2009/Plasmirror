@@ -53,9 +53,9 @@ class Mirror(
   fun absorbance(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
     1.0 - reflectance(wl, pol, angle, temperature) - transmittance(wl, pol, angle, temperature)
 
-  fun refractiveIndex(wl: Double, temperature: Double) = structure.firstLayer().n(wl, temperature)
+  fun refractiveIndex(wl: Double, temperature: Double) = structure.firstLayer().n(wl, temperature) // TODO fiststLayer check
 
-  fun permittivity(wl: Double, temperature: Double) = refractiveIndex(wl, temperature).let { it * it }
+  fun permittivity(wl: Double, temperature: Double) = structure.firstLayer().permittivity(wl, temperature) // TODO fiststLayer check
 
   fun extinctionCoefficient(wl: Double, temperature: Double) =
     structure.firstLayer().extinctionCoefficient(wl, temperature)

@@ -36,8 +36,8 @@ class StructureDescriptionController {
     val COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/"
     val PARAM_PATTERN = "\\w+(\\s*/\\s*\\w+)?\\s*:\\s*"
     val REPEAT_PATTERN = "\\s*[xX]\\s*[0-9]+\\s*"
-    val MODEL_PATTERN = "(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss)" ; Regex("(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss)")
-    val LAYER_PATTERN = "(GaAs|AlGaAs|AlGaAsSb)"                                 // Regex("(GaAs|AlGaAs|AlGaAsSb)")
+    val MODEL_PATTERN = "(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss)" // Regex("(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss)")
+    val LAYER_PATTERN = "(AlGaAsSb|GaAs|AlGaAs|custom)"                          // Regex("(AlGaAsSb|GaAs|AlGaAs|custom)")
     val EXPRESSION_KW_PATTERN = "(val|fun|return)"                               // Regex("(val|fun|return)")
 
     val PATTERN = Pattern.compile(

@@ -16,7 +16,7 @@ class ControlsController {
     computeButton.setOnAction {
       try {
         activeState().prepare()
-        withClock { activeState().compute() }
+        withClock { activeState().compute() }.also { showComputationTime(it) }
         saveStates()
         /*
         this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
@@ -29,11 +29,8 @@ class ControlsController {
     }
   }
 
-  private fun withClock(block: () -> Unit) {
-    val start = System.nanoTime()
-    block()
-    val stop = System.nanoTime()
-    computationTimeLabel.text = "Computation time: ${String.format(Locale.US, "%.2f", (stop - start).toDouble() / 1E6)}ms"
+  private fun showComputationTime(time: Double) {
+    computationTimeLabel.text = "Computation time: ${String.format(Locale.US, "%.2f", time)}ms"
   }
 
   private fun handle(ex: Exception) {

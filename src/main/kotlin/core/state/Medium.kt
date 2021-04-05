@@ -11,10 +11,10 @@ data class Medium(
   val type: ExternalMediumType,
   // explicit annotation for property naming:
   // Jackson marshals "nReal" as "nreal" and it can no longer be read from json
-  @get:JsonProperty("nReal")
-  val nReal: Double,
-  @get:JsonProperty("nImaginary")
-  val nImaginary: Double
+  @get:JsonProperty("epsReal")
+  val epsReal: Double,
+  @get:JsonProperty("epsImaginary")
+  val epsImaginary: Double
 ) {
   /**
    * Negative refractive index values are allowed
@@ -30,7 +30,7 @@ data class Medium(
       GaAs(d = Double.POSITIVE_INFINITY, permittivityModel = PermittivityModel.ADACHI_GAUSS)
     }
     ExternalMediumType.CUSTOM -> {
-      ConstPermittivityLayer(d = Double.POSITIVE_INFINITY, eps = Complex(nReal, nImaginary))
+      ConstPermittivityLayer(d = Double.POSITIVE_INFINITY, eps = Complex(epsReal, epsImaginary))
     }
   }
 }

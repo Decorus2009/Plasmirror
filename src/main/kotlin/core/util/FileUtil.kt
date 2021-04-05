@@ -1,9 +1,9 @@
 package core.util
 
-import core.math.Complex
 import core.optics.Mode
 import core.state.*
 import java.io.File
+import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
 
@@ -17,7 +17,7 @@ object KnownPaths {
 
 val sep: String = File.separator
 
-fun String.requireFile(): File = Paths.get(this).toFile().also {
+fun String.requireFile(): File = File(this).also {
   if (!it.exists()) {
     error("Missing or inaccessible file $this")
   }
@@ -30,21 +30,6 @@ fun String.writeTo(file: File) = file.writeText(this)
 fun String.importComplexData() = requireFile().importComplexData()
 
 fun File.importComplexData() = ExternalData(name, readThreeColumns())
-
-fun exportFileName() = with(activeState()) {
-  StringBuilder().apply {
-    val mode = computationState.opticalParams.mode
-    val start = computationState.range.start
-    val end = computationState.range.end
-
-    append("computation_${mode}_${start}_${end}")
-    if (mode == Mode.REFLECTANCE || mode == Mode.TRANSMITTANCE || mode == Mode.ABSORBANCE) {
-      append("_${polarization()}-POL")
-      append("_${String.format(Locale.US, "%04.1f", angle())}deg")
-    }
-    append("_${String.format(Locale.US, "%04.1f", temperature())}K")
-  }.toString()
-}
 
 fun writeComputedDataTo(file: File) {
   val activeState = activeState()
@@ -116,4 +101,25 @@ fun String.normalized(): String {
   }
 }
 
-fun complexList(yReal: List<Double>, yImaginary: List<Double>) = yReal.zip(yImaginary).map { Complex(it.first, it.second) }
+
+fun exportFileName() = with(activeState()) {
+  StringBuilder().apply {
+    val mode = computationState.opticalParams.mode
+    val start = computationState.range.start
+    val end = computationState.range.end
+
+    append("computation_${mode}_${start}_${end}")
+    if (mode == Mode.REFLECTANCE || mode == Mode.TRANSMITTANCE || mode == Mode.ABSORBANCE) {
+      append("_${polarization()}-POL")
+      append("_${String.format(Locale.US, "%04.1f", angle())}deg")
+    }
+    append("_${String.format(Locale.US, "%04.1f", temperature())}K")
+  }.toString()
+}
+
+fun exportPath() = if (Files.isDirectory(Paths.get(KnownPaths.export))) {
+  KnownPaths.export
+} else {
+  // use current directory as a fallback if export directory is not found in a filesystem
+  Paths.get("").toAbsolutePath().toString()
+}

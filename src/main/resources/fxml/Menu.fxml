@@ -22,7 +22,7 @@
             </Menu>
             <Menu mnemonicParsing="false" text="Tools">
               <items>
-                <MenuItem fx:id="fitterMenuItem" mnemonicParsing="false" text="Fitter" />
+                <MenuItem fx:id="expressionsEvaluatorMenuItem" mnemonicParsing="false" text="Expressions Evaluator" />
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">

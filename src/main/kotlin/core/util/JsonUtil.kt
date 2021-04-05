@@ -28,8 +28,13 @@ fun JsonNode.requireText() = when {
   else -> fail("Cannot read text value in node \"$this\"")
 }
 
+fun JsonNode.requireTextOrNull() = when {
+  isTextual -> asText()
+  else -> null
+}
+
 fun JsonNode.requireNode(field: String) = requireNodeOrNull(field)
-  ?: fail("Absent or null or missing \"$field\" node")
+  ?: fail("Absent or null or missing \"$field\" parameter")
 
 fun JsonNode.requireNodeOrNull(field: String): JsonNode? {
   if (!has(field) || get(field).isNullOrMissing) {
@@ -50,10 +55,10 @@ fun JsonNode.requireNonNegativeDouble(field: String) = requireDouble(field).also
 fun JsonNode.requirePositiveDoubleOrNull(field: String) = requireDoubleOrNull(field)?.also { it.checkIsPositive(field) }
 
 fun JsonNode.requireText(field: String) = requireNode(field).requireText()
-fun JsonNode.requireTextOrNull(field: String) = requireNodeOrNull(field)?.requireText()
+fun JsonNode.requireTextOrNull(field: String) = requireNodeOrNull(field)?.requireTextOrNull()
 
 /**
- * Try to read a double value first, then try to read a complex number from string with expected format "(1.0, 2.0)"
+ * Try to read a double value first, then try to read a complex number from string with predefined format "(1.0, 2.0)"
  */
 fun JsonNode.requireComplex(field: String): Complex {
   requireDoubleOrNull(field)?.let { return Complex.of(it) }

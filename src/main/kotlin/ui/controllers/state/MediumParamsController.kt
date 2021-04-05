@@ -15,55 +15,55 @@ class MediumParamsController {
       setLeftMedium(leftMedium())
       setRightMedium(rightMedium())
     }
-    leftMediumChoiceBox.setListener(nRealLeftMediumTextField, nImaginaryLeftMediumTextField)
-    rightMediumChoiceBox.setListener(nRealRightMediumTextField, nImaginaryRightMediumTextField)
+    leftMediumChoiceBox.setListenerFor(epsRealLeftMediumTextField, epsImaginaryLeftMediumTextField)
+    rightMediumChoiceBox.setListenerFor(epsRealRightMediumTextField, epsImaginaryRightMediumTextField)
   }
 
   fun disableAll() {
-    disable(leftMediumLabel, rightMediumLabel, leftMediumRefractiveIndexLabel, rightMediumRefractiveIndexLabel)
+    disable(leftMediumLabel, rightMediumLabel, leftMediumEpsLabel, rightMediumEpsLabel)
     disable(leftMediumChoiceBox, rightMediumChoiceBox)
-    disable(nRealLeftMediumTextField, nImaginaryLeftMediumTextField, nRealRightMediumTextField, nImaginaryRightMediumTextField)
+    disable(epsRealLeftMediumTextField, epsImaginaryLeftMediumTextField, epsRealRightMediumTextField, epsImaginaryRightMediumTextField)
   }
 
   fun enableAll() {
-    enable(leftMediumLabel, rightMediumLabel, leftMediumRefractiveIndexLabel, rightMediumRefractiveIndexLabel)
+    enable(leftMediumLabel, rightMediumLabel, leftMediumEpsLabel, rightMediumEpsLabel)
     enable(leftMediumChoiceBox, rightMediumChoiceBox)
 
     if (leftMediumChoiceBox.value.isCustom()) {
-      enable(nRealLeftMediumTextField, nImaginaryLeftMediumTextField)
+      enable(epsRealLeftMediumTextField, epsImaginaryLeftMediumTextField)
     }
     if (rightMediumChoiceBox.value.isCustom()) {
-      enable(nRealRightMediumTextField, nImaginaryRightMediumTextField)
+      enable(epsRealRightMediumTextField, epsImaginaryRightMediumTextField)
     }
   }
 
   fun leftMedium() = Triple(
     leftMediumChoiceBox.value,
-    nRealLeftMediumTextField.text,
-    nImaginaryLeftMediumTextField.text
+    epsRealLeftMediumTextField.text,
+    epsImaginaryLeftMediumTextField.text
   )
 
   fun rightMedium() = Triple(
     rightMediumChoiceBox.value,
-    nRealRightMediumTextField.text,
-    nImaginaryRightMediumTextField.text
+    epsRealRightMediumTextField.text,
+    epsImaginaryRightMediumTextField.text
   )
 
   fun setLeftMedium(medium: Medium) = with(medium) {
     leftMediumChoiceBox.value = type.toString()
-    nRealLeftMediumTextField.text = nReal.toString()
-    nImaginaryLeftMediumTextField.text = nImaginary.toString()
-    enableOrDisable(leftMediumChoiceBox, nRealLeftMediumTextField, nImaginaryLeftMediumTextField)
+    epsRealLeftMediumTextField.text = epsReal.toString()
+    epsImaginaryLeftMediumTextField.text = epsImaginary.toString()
+    enableOrDisable(leftMediumChoiceBox, epsRealLeftMediumTextField, epsImaginaryLeftMediumTextField)
   }
 
   fun setRightMedium(medium: Medium) = with(medium) {
     rightMediumChoiceBox.value = type.toString()
-    nRealRightMediumTextField.text = nReal.toString()
-    nImaginaryRightMediumTextField.text = nImaginary.toString()
-    enableOrDisable(rightMediumChoiceBox, nRealRightMediumTextField, nImaginaryRightMediumTextField)
+    epsRealRightMediumTextField.text = epsReal.toString()
+    epsImaginaryRightMediumTextField.text = epsImaginary.toString()
+    enableOrDisable(rightMediumChoiceBox, epsRealRightMediumTextField, epsImaginaryRightMediumTextField)
   }
 
-  private fun ChoiceBox<String>.setListener(nRealTextField: TextField, nImaginaryTextField: TextField) =
+  private fun ChoiceBox<String>.setListenerFor(nRealTextField: TextField, nImaginaryTextField: TextField) =
     selectionModel.selectedItemProperty().addListener { _, _, newValue ->
       when (newValue) {
         "Custom" -> enable(nRealTextField, nImaginaryTextField)
@@ -87,22 +87,22 @@ class MediumParamsController {
   private lateinit var rightMediumLabel: Label
 
   @FXML
-  private lateinit var leftMediumRefractiveIndexLabel: Label
+  private lateinit var leftMediumEpsLabel: Label
 
   @FXML
-  private lateinit var rightMediumRefractiveIndexLabel: Label
+  private lateinit var rightMediumEpsLabel: Label
 
   @FXML
-  lateinit var nRealLeftMediumTextField: TextField
+  lateinit var epsRealLeftMediumTextField: TextField
 
   @FXML
-  lateinit var nImaginaryLeftMediumTextField: TextField
+  lateinit var epsImaginaryLeftMediumTextField: TextField
 
   @FXML
-  lateinit var nRealRightMediumTextField: TextField
+  lateinit var epsRealRightMediumTextField: TextField
 
   @FXML
-  lateinit var nImaginaryRightMediumTextField: TextField
+  lateinit var epsImaginaryRightMediumTextField: TextField
 
   @FXML
   lateinit var leftMediumChoiceBox: ChoiceBox<String>

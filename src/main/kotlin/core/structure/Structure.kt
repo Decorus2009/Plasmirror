@@ -5,7 +5,7 @@ import core.layers.*
 import core.layers.composite.*
 import core.layers.excitonic.Exciton
 import core.layers.excitonic.Excitonic
-import core.layers.particles.*
+import core.layers.particle.*
 import core.optics.PermittivityModel
 import core.optics.particles.LorentzOscillator
 import core.util.*
@@ -40,12 +40,12 @@ private fun JsonNode.toLayer(): Layer {
   return when (layerType) {
     LayerType.GAAS -> GaAs(
       d = d,
-      kToN = requireDouble(DescriptionParameters.kToN),
+      dampingFactor = requireDouble(DescriptionParameters.dampingFactor),
       permittivityModel = requirePermittivityModelFor(layerType)
     )
     LayerType.ALGAAS -> AlGaAs(
       d = d,
-      kToN = requireDouble(DescriptionParameters.kToN),
+      dampingFactor = requireDouble(DescriptionParameters.dampingFactor),
       cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
       permittivityModel = requirePermittivityModelFor(layerType)
     )
@@ -56,7 +56,7 @@ private fun JsonNode.toLayer(): Layer {
     )
     LayerType.CUSTOM -> {
       // CUSTOM layer type may contain eps as a number (e.g. eps: 3.6 or eps: (3.6, -0.1)) or as an expression
-      when (val maybeExpr = requireNode(DescriptionParameters.eps).requireTextOrNull(DescriptionParameters.expr)) {
+      when (val maybeExpr = maybeEpsExpression()) {
         null -> ConstPermittivityLayer(
           d = d,
           eps = requireComplex(DescriptionParameters.eps)
@@ -94,16 +94,16 @@ private fun JsonNode.toLayer(): Layer {
   }
 }
 
-/** "material" or "layer" keywords are interchangeable */
+/** "material" and "type" keywords are interchangeable */
 private fun JsonNode.requireLayerType(): LayerType {
-  requireTextOrNull(DescriptionParameters.layer)?.let { return@requireLayerType it.requireLayerType() }
+  requireTextOrNull(DescriptionParameters.type)?.let { return@requireLayerType it.requireLayerType() }
   requireTextOrNull(DescriptionParameters.material)?.let { return@requireLayerType it.requireLayerType() }
-  error("Missing \"layer\" or \"material\" parameter")
+  error("Missing \"type\" or \"material\" parameter")
 }
 
 private fun String.requireLayerType(): LayerType {
   check(LayerType.values().map { it.name }.contains(toUpperCase())) {
-    "Unknown layer \"${findWrongLayerTypeInDescriptionText()}\""
+    "Unknown type \"${findWrongLayerTypeInDescriptionText()}\""
   }
   return LayerType.valueOf(toUpperCase())
 }
@@ -117,7 +117,6 @@ private fun String.findWrongLayerTypeInDescriptionText(): String {
 
   return actualStructureDescriptionText.substring(startPos, startPos + wrongLayerType.length)
 }
-
 
 private fun JsonNode.requirePermittivityModelFor(layerType: LayerType): PermittivityModel {
   val maybeModel = requireText(DescriptionParameters.eps).toUpperCase()
@@ -138,12 +137,15 @@ private fun PermittivityModel.checkIsAllowedFor(layerType: LayerType) {
 }
 
 private fun JsonNode.requireParticlesPermittivityModel(): ParticlesPermittivityModel {
-  val maybeModel = requireText(DescriptionParameters.eps).toUpperCase()
+  val maybeModel =
+    requireTextOrNull(DescriptionParameters.type)
+      ?: requireTextOrNull(DescriptionParameters.material)
+      ?: fail("Particles type should to be described via \"type\" or \"material\" keyword")
 
-  check(ParticlesPermittivityModel.values().map { it.name }.contains(maybeModel)) {
+  check(ParticlesPermittivityModel.values().map { it.name }.contains(maybeModel.toUpperCase())) {
     "Unknown particles permittivity model \"$this\""
   }
-  return ParticlesPermittivityModel.valueOf(maybeModel)
+  return ParticlesPermittivityModel.valueOf(maybeModel.toUpperCase())
 }
 
 private fun JsonNode.requireMedium() = requireNode(DescriptionParameters.medium).also {
@@ -153,7 +155,7 @@ private fun JsonNode.requireMedium() = requireNode(DescriptionParameters.medium)
     LayerType.ALGAASSB,
     LayerType.CUSTOM
   )) {
-    "Medium material/layer can be only GaAs, AlGaAs, AlGaAsSb or const_n"
+    "Medium material/type can be only GaAs, AlGaAs, AlGaAsSb or custom"
   }
 }
 
@@ -161,16 +163,20 @@ private fun JsonNode.requireExciton() = requireNode(DescriptionParameters.excito
   Exciton(
     w0 = requireNonNegativeDouble(DescriptionParameters.w0),
     G0 = requireDouble(DescriptionParameters.g0),
-    G = requireDouble(DescriptionParameters.g)
+    G = requireDouble(DescriptionParameters.g),
+    wb = requireDouble(DescriptionParameters.wb),
+    Gb = requireDouble(DescriptionParameters.gb),
+    B = requireDouble(DescriptionParameters.b),
+    C = requireComplex(DescriptionParameters.c),
   )
 }
 
 private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(DescriptionParameters.particles).run {
   val r = when (layerType) {
     LayerType.MIE -> requireNonNegativeDouble(DescriptionParameters.r)
-    // "r" parameter can be provided only for Mie layer
+    // "r" parameter can be provided only for Mie layer type
     else -> requirePositiveDoubleOrNull(DescriptionParameters.r)?.let {
-      error("Particle radius should be provided only for Mie layer")
+      error("Particle radius should be provided only for Mie layer type")
     }
   }
   when (requireParticlesPermittivityModel()) {
@@ -188,8 +194,17 @@ private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Des
       epsInf = requireDouble(DescriptionParameters.epsInf),
       oscillators = requireOscillators()
     )
+    ParticlesPermittivityModel.CUSTOM -> {
+      when (val maybeExpr = maybeEpsExpression()) {
+        null -> ConstPermittivityParticle(
+          eps = requireComplex(DescriptionParameters.eps)
+        )
+        else -> ExpressionBasedPermittivityParticle(
+          epsExpr = maybeExpr
+        )
+      }
+    }
     ParticlesPermittivityModel.SB -> SbParticle(r)
-    // TODO custom
   }
 }
 
@@ -197,16 +212,19 @@ private fun JsonNode.requireOrders() = requirePositiveIntOrNull(DescriptionParam
   when (it) {
     1 -> Orders.ONE
     2 -> Orders.TWO
-    else -> error("Available orders for Mie layer: \"1\", \"2\" or \"all\"")
+    else -> error("Available orders for Mie layer type: \"1\", \"2\" or \"all\"")
   }
 } ?: run {
   requireText(DescriptionParameters.orders).let {
     when (it) {
       DescriptionParameters.all -> Orders.ALL
-      else -> error("Available orders for Mie layer: \"1\", \"2\" or \"all\"")
+      else -> error("Available orders for Mie layer type: \"1\", \"2\" or \"all\"")
     }
   }
 }
+
+private fun JsonNode.maybeEpsExpression() =
+  requireNode(DescriptionParameters.eps).requireTextOrNull(DescriptionParameters.expr)
 
 /**
  * Reads a part of user-provided structure description:
@@ -258,7 +276,7 @@ object DescriptionParameters {
   const val structure = "structure"
   const val repeat = "repeat"
   const val all = "all"
-  const val layer = "layer"
+  const val type = "type"
   const val medium = "medium"
   const val particles = "particles"
   const val exciton = "exciton"
@@ -270,13 +288,17 @@ object DescriptionParameters {
   const val epsInf = "eps_inf"
   const val d = "d"
   const val n = "n"
-  const val kToN = "k_to_n"
+  const val dampingFactor = "df"
   const val cAl = "cal"
   const val cAs = "cas"
   const val w = "w"
   const val w0 = "w0"
   const val g = "g"
   const val g0 = "g0"
+  const val wb = "wb"
+  const val gb = "gb"
+  const val b = "b"
+  const val c = "c"
   const val f = "f"
   const val r = "r"
   const val expr = "expr"
@@ -284,6 +306,7 @@ object DescriptionParameters {
   const val exprRightKWBoundary = "#"
 }
 
+// TODO maybe irrelevant (see help)
 /**
  * Possible layer descriptions according to `when` switch in the code above
  * (not all the layers might have been included):
@@ -291,7 +314,7 @@ object DescriptionParameters {
  * layer: GaAs, n: Adachi_simple, d: 5;
  *
  *
- * layer: AlGaAs, n: Adachi_simple, d: 5, k/n: 0.0, cAl: 0.3;
+ * layer: AlGaAs, n: Adachi_simple, d: 5, df: 0.0, cAl: 0.3;
  *
  *
  * layer: AlGaAsSb, d: 5, cAl: 0.3, cAs: 0.02;
@@ -302,13 +325,13 @@ object DescriptionParameters {
  *
  *
  * layer: excitonic,
- * medium: { material: GaAs, n: adachi_simple, k/n: 0.0 },
+ * medium: { material: GaAs, n: adachi_simple, df: 0.0 },
  * exciton: { w0: 1.5, G0: 0.0005, G: 0.1 },
  * d: 12;
  *
  *
  * layer: eff_medium,
- * medium: { material: AlGaAs, n: Adachi_simple, k/n: 0.0, cAl: 0.3 },
+ * medium: { material: AlGaAs, n: Adachi_simple, df: 0.0, cAl: 0.3 },
  * particles: { n: Drude, w: 14.6, G: 0.5, epsInf: 1.0 },
  *
  * // or
@@ -330,12 +353,12 @@ object DescriptionParameters {
  * layer: mie,
  * orders: 1,
  * f = 0.01,
- * medium: { material: AlGaAs, n: Adachi_simple, k/n: 0.0, cAl: 0.3 },
+ * medium: { material: AlGaAs, n: Adachi_simple, df: 0.0, cAl: 0.3 },
  * particles: { n: Drude, r: 10.6, w: 14.6, G: 0.5, epsInf: 1.0 };
  *
  *
  * layer: spheres_lattice,
- * medium: { material: AlGaAs, n: Adachi_simple, k/n: 0.0, cAl: 0.3 },
+ * medium: { material: AlGaAs, n: Adachi_simple, df: 0.0, cAl: 0.3 },
  * particles: { n: Drude, w: 14.6, G: 0.5, epsInf: 1.0 },
  * d: 40, lattice_factor: 8.1;
  *
@@ -357,7 +380,7 @@ return f(x) * offset
 FAILS
 x1
 layer: excitonic,
-medium: { material: GaAs, n: adachi_simple, k/n: 0.0 },
+medium: { material: GaAs, n: adachi_simple, df: 0.0 },
 exciton: { w0: 1.7, G0: 0.0005, G: 0.01 },
 d: 10;
 material: custom, d: 90, n: {
@@ -367,9 +390,9 @@ return (f(x), g(x))
 };
 
 material: custom, d: 90, n: {
-  fun f(x) = sin(x * 0.1) * 0.5
-  fun g(x) = cos(x * 0.1) * 0.5
-  return (f(x), g(x))
+fun f(x) = sin(x * 0.1) * 0.5
+fun g(x) = cos(x * 0.1) * 0.5
+return (f(x), g(x))
 };
  */
 

@@ -75,6 +75,7 @@ object ModeNames {
   const val scatteringCoefficient = "Scattering Coefficient"
 }
 
+// 4.0 * PI * k / wl = alpha
 fun Complex.toExtinctionCoefficientAt(wl: Double) = 4.0 * PI * imaginary / (wl.toCm()) // cm^-1
 
 fun Complex.toRefractiveIndex() = Complex(sqrt((abs() + real) / 2.0), sqrt((abs() - real) / 2.0))
@@ -82,6 +83,8 @@ fun Complex.toRefractiveIndex() = Complex(sqrt((abs() + real) / 2.0), sqrt((abs(
 fun Complex.toPermittivity() = this * this
 
 fun Double.toEnergy() = 1239.8 / this
+
+fun Double.toWavelength() = 1239.8 / this
 
 fun cosThetaIncident(angle: Double) = Complex(cos(angle * PI / 180.0))
 

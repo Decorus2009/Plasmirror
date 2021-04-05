@@ -2,7 +2,6 @@ package ui.controllers
 
 import core.state.*
 import core.util.*
-import core.util.KnownPaths.export
 import core.validators.ExportValidationException
 import core.validators.MultipleExportDialogParametersValidator
 import javafx.fxml.FXML
@@ -37,7 +36,7 @@ class MultipleExportDialogController {
 
   private fun initDirectoryButtonHandler() = directoryButton.setOnMouseClicked {
     with(DirectoryChooser()) {
-      initialDirectory = chosenDirectory ?: File(export)
+      initialDirectory = chosenDirectory ?: File(exportPath())
       /**
       Need to pass Window or Stage. There's no access to any Stage object from this controller
       Solution: any Node from fxml that has fx:id
