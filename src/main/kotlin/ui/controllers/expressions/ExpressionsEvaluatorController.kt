@@ -9,7 +9,8 @@ import core.util.removeSingleLineComments
 import javafx.fxml.FXML
 import javafx.scene.chart.*
 import javafx.scene.control.*
-import javafx.scene.input.*
+import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.AnchorPane
 import kotlinx.coroutines.*
 import org.fxmisc.richtext.CodeArea
@@ -17,7 +18,6 @@ import org.fxmisc.richtext.model.StyleSpans
 import org.fxmisc.richtext.model.StyleSpansBuilder
 import ui.controllers.*
 import ui.controllers.chart.util.*
-import java.net.URL
 import java.util.*
 import java.util.regex.Pattern
 
@@ -265,12 +265,6 @@ class ExpressionsEvaluatorController {
   private lateinit var xStep: TextField
 
   @FXML
-  private lateinit var yFrom: TextField
-
-  @FXML
-  private lateinit var yTo: TextField
-
-  @FXML
   private lateinit var computeButton: Button
 
   @FXML
@@ -284,12 +278,6 @@ class ExpressionsEvaluatorController {
 
   @FXML
   private lateinit var computationTimeLabel: Label
-
-  @FXML // ResourceBundle that was given to the FXMLLoader
-  private lateinit var resources: ResourceBundle
-
-  @FXML // URL location of the FXML file that was given to the FXMLLoader
-  private lateinit var location: URL
 }
 
 private data class ChunkDescriptor(val id: Int, val values: List<Double>)

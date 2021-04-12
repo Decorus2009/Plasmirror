@@ -166,6 +166,7 @@ private fun JsonNode.requireExciton() = requireNode(DescriptionParameters.excito
     G = requireDouble(DescriptionParameters.g),
     wb = requireDouble(DescriptionParameters.wb),
     Gb = requireDouble(DescriptionParameters.gb),
+    refWavelength = requireDouble(DescriptionParameters.referenceWavelength),
     B = requireDouble(DescriptionParameters.b),
     C = requireComplex(DescriptionParameters.c),
   )
@@ -297,6 +298,7 @@ object DescriptionParameters {
   const val g0 = "g0"
   const val wb = "wb"
   const val gb = "gb"
+  const val referenceWavelength = "lambda0"
   const val b = "b"
   const val c = "c"
   const val f = "f"

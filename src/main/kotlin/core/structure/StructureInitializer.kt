@@ -53,6 +53,8 @@ fun String.json(): String {
       // add artificial d if not specified: medium: { -> medium: { d: 0,
       .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "$1d:0,")
       /**
+       * eps: { some expr } -> "eps": { "expr":"some expr" }
+       * 
        * "?" in regex is responsible for non-greedy/reluctant evaluation
        * so that it matches right after it meets the first "}" character that closes expression.
        * All the following "}" are skipped (we need to find only expression-related "}").
@@ -62,15 +64,14 @@ fun String.json(): String {
         Regex("\\b${DescriptionParameters.eps}\\b:\\{([\\w\\W\\s]*?)}"),
         "\"${DescriptionParameters.eps}\":{\"expr\":\"$1\"}"
       )
-      // eps: { some expr } -> "eps": { "expr":"some expr" }
+      // eps:-3.6E6 -> "eps":"-3.6E6", i.e. real numbers
       .replace(
-        Regex("\\b${DescriptionParameters.eps}\\b:($numberRegex)"),
-        "\"${DescriptionParameters.eps}\":\"$1\""
+        Regex("\\b(\\w+)\\b:($numberRegex)"),
+        "\"$1\":\"$2\""
       )
       /**
-       * e.g.: 
-       *  eps:-3.6E6 -> "eps":"-3.6E6"
-       *  eps:(13.6E6,-0.1695) -> "eps":"(13.6E6,-0.1695)"
+       * e.g.:
+       *  eps:(13.6E6,-0.1695) -> "eps":"(13.6E6,-0.1695)", i.e. complex numbers
        *  C:(13.6E6,-0.1695) -> "C":"(13.6E6,-0.1695)"
        */
       .replace(
