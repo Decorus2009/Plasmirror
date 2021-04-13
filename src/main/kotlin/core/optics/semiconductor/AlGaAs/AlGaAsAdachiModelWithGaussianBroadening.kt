@@ -6,9 +6,9 @@ import kotlin.math.pow
 
 /**
  * J. Appl. Phys., 86, pp.445 (1999) - Adachi model with Gaussian-like broadening
- * (doi: 10.1063/1.370750)
+ * doi: 10.1063/1.370750
  */
-object AdachiModelWithGaussianBroadening {
+object AlGaAsAdachiModelWithGaussianBroadening {
   fun permittivity(w: Double, cAl: Double) = epsInf(cAl) + eps1(w, cAl) + eps2(w, cAl) + eps3(w, cAl) + eps4(w, cAl)
 
   fun permittivityWithScaledImaginaryPart(w: Double, cAl: Double, scalingCoefficient: Double) =

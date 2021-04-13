@@ -54,6 +54,13 @@ private fun JsonNode.toLayer(): Layer {
       cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
       cAs = requireNonNegativeDouble(DescriptionParameters.cAs)
     )
+    LayerType.GAN -> GaN(
+      d = d
+    )
+    LayerType.ALGAN -> AlGaN(
+      d = d,
+      cAl = requireNonNegativeDouble(DescriptionParameters.cAl)
+    )
     LayerType.CUSTOM -> {
       // CUSTOM layer type may contain eps as a number (e.g. eps: 3.6 or eps: (3.6, -0.1)) or as an expression
       when (val maybeExpr = maybeEpsExpression()) {
@@ -108,8 +115,10 @@ private fun String.requireLayerType(): LayerType {
   return LayerType.valueOf(toUpperCase())
 }
 
-// finds properly capitalized wrong layer type in actual (i.e. visible to a user) structure description text
-// nb: [this] is of lower case
+/**
+ * finds properly capitalized wrong layer type in actual (i.e. visible to a user) structure description text
+ * nb: [this] is of lower case
+ */
 private fun String.findWrongLayerTypeInDescriptionText(): String {
   val wrongLayerType = this
   val actualStructureDescriptionText = structureDescriptionController().structureDescriptionCodeArea.text
@@ -128,10 +137,9 @@ private fun JsonNode.requirePermittivityModelFor(layerType: LayerType): Permitti
 }
 
 private fun PermittivityModel.checkIsAllowedFor(layerType: LayerType) {
-  check(layerType in listOf(
-    LayerType.GAAS,
-    LayerType.ALGAAS
-  ) && this in PermittivityModel.values()) {
+  check(
+    layerType in listOf(LayerType.GAAS, LayerType.ALGAAS) && this in PermittivityModel.values()
+  ) {
     "Layers must correspond to their permittivity models specified in \"n\" parameter"
   }
 }
@@ -149,12 +157,16 @@ private fun JsonNode.requireParticlesPermittivityModel(): ParticlesPermittivityM
 }
 
 private fun JsonNode.requireMedium() = requireNode(DescriptionParameters.medium).also {
-  check(it.requireLayerType() in listOf(
-    LayerType.GAAS,
-    LayerType.ALGAAS,
-    LayerType.ALGAASSB,
-    LayerType.CUSTOM
-  )) {
+  check(
+    it.requireLayerType() in listOf(
+      LayerType.GAAS,
+      LayerType.ALGAAS,
+      LayerType.ALGAASSB,
+      LayerType.GAN,
+      LayerType.ALGAN,
+      LayerType.CUSTOM
+    )
+  ) {
     "Medium material/type can be only GaAs, AlGaAs, AlGaAsSb or custom"
   }
 }
@@ -266,6 +278,8 @@ private enum class LayerType {
   GAAS,
   ALGAAS,
   ALGAASSB,
+  GAN,
+  ALGAN,
   CUSTOM,
   EXCITONIC,
   EFF_MEDIUM,

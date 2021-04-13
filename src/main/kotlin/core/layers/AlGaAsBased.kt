@@ -1,0 +1,56 @@
+package core.layers
+
+import core.math.Complex
+import core.optics.PermittivityModel
+import core.optics.semiconductor.AlGaAs.AlGaAsAdachiModelWithGaussianBroadening
+import core.optics.semiconductor.AlGaAs.AlGaAsAdachiSimpleModel
+import core.optics.semiconductor.AlGaAsSb.AlGaAsSbAdachiModelWithTemperatureDependence
+import core.optics.toEnergy
+
+/**
+ * Base class for AlGaAs-based layers (excluding AlGaAsSb).
+ * [dampingFactor] - coefficient between the imaginary and real part of permittivity:
+ * im(eps) = [dampingFactor] * re(eps).
+ *
+ * Optical properties of AlGaAs-based layers are computed via permittivity models.
+ * So computation of [n] is provided with 2 steps (see [permittivity]):
+ *   1. compute the permittivity obtained from models (maybe with modification of im(eps) part via [dampingFactor]
+ *   2. convert it to refractive index
+ */
+abstract class AlGaAsBase(
+  override val d: Double,
+  private val dampingFactor: Double,
+  private val cAl: Double,
+  private val permittivityModel: PermittivityModel
+) : Layer {
+  override fun permittivity(wl: Double, temperature: Double): Complex {
+    val w = wl.toEnergy()
+    return when (permittivityModel) {
+      PermittivityModel.ADACHI_SIMPLE -> {
+        AlGaAsAdachiSimpleModel.permittivityWithScaledImaginaryPart(w, cAl, dampingFactor)
+      }
+      PermittivityModel.ADACHI_GAUSS -> {
+        AlGaAsAdachiModelWithGaussianBroadening.permittivity(w, cAl)
+      }
+      PermittivityModel.ADACHI_MOD_GAUSS -> {
+        AlGaAsAdachiModelWithGaussianBroadening.permittivityWithScaledImaginaryPart(w, cAl, dampingFactor)
+      }
+      PermittivityModel.ADACHI_T -> {
+        AlGaAsSbAdachiModelWithTemperatureDependence(w, cAl, cAs = 1.0, T = temperature).permittivity()
+      }
+    }
+  }
+}
+
+class GaAs(
+  d: Double,
+  dampingFactor: Double = 0.0, // default value is used for external media initialization in [core.state.Medium.toLayer]
+  permittivityModel: PermittivityModel
+) : AlGaAsBase(d, dampingFactor, cAl = 0.0, permittivityModel)
+
+class AlGaAs(
+  d: Double,
+  dampingFactor: Double,
+  cAl: Double,
+  permittivityModel: PermittivityModel
+) : AlGaAsBase(d, dampingFactor, cAl, permittivityModel)

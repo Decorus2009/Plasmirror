@@ -97,7 +97,15 @@ material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
         cAs - концентрация As в диапазоне от 0 до 1
     NB: единственный способ рассчитать eps для данного слоя - с помощью модели [2], поэтому eps в параметрах не указывается
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-4. Слой материала с заданным показателем преломления
+4. Слой GaN (модель для расчета диэлектрической проницаемости взята из [4]
+    Формат описания:
+        type: GaN, d: 5
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+5. Слой AlGaN (модель для расчета диэлектрической проницаемости взята из [4]
+       Формат описания:
+           type: AlGaN, d: 5, cAl: 0.3;
+
+6. Слой материала с заданным показателем преломления
     Формат описания:
         material: custom, d: 90, eps: (см. ниже);
     Параметры:
@@ -129,7 +137,7 @@ material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
             Параметры:
                 return обозначает выражение, которое следует сосчитать (комплексное число C: re(C) = f(x, v), im(C) = g(x))
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-5. Слой материала с экситонным возбуждением
+7. Слой материала с экситонным возбуждением
     Формат описания:
         type: excitonic,
         medium: { material: GaAs, eps: adachi_simple, df: 0.0 },
@@ -141,7 +149,7 @@ material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
             Параметры:
                 w0 - резонансная частота экситона [эВ]
                 G0 и G - радиационное и нерадиационное экситонные уширения [эВ]
-                // следующие параметры взяты из статьи [4] eq. 9
+                // следующие параметры взяты из статьи [5] eq. 9
                 wb - разность энергий дна зоны проводимости и вершины валентной зоны
                     wb = w0 + E_ex, где E_ex - энергия связи экситона (2D: 9мэВ в GaAs или 25 мэВ в GaN, 3D: 4 мэВ в GaAs)
                 Gb - параметр уширения для межзонных оптических переходов в КЯ (Gb примерно равняется G)
@@ -150,7 +158,7 @@ material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
                 C - величина, зависящая от оптических переходов (может рассматриваться, как константа)
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-6. Слой композитного материала в модели эффективной среды
+8. Слой композитного материала в модели эффективной среды
     Формат описания:
         type: eff_medium,
         medium: { material: AlGaAs, eps: adachi_simple, df: 0.0, cAl: 0.3 },
@@ -176,7 +184,7 @@ material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
                     }
                 }
             Параметры:
-                type - тип наночастиц, диэлектрическая проницаемость которых вычисляется в модели Друде-Лоренца [5]
+                type - тип наночастиц, диэлектрическая проницаемость которых вычисляется в модели Друде-Лоренца [6]
                 oscillators - описание набора лоренцевых осцилляторов в формате i: { w: value, f: value, g: value }
                     Параметры:
                         i - номер осциллятора
@@ -188,14 +196,14 @@ material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
                 particles: { type: custom, eps: (см. ниже) }
             Параметры:
                 type - тип наночастиц, диэлектрическая проницаемость которых равна вещественному/комплексному числу или задается выражением
-                eps - диэлектрическая проницаемость (см. выше в п.4)
+                eps - диэлектрическая проницаемость (см. выше в п.6)
             Формат описания 4:
                 particles: { material: Sb }
             Параметры:
                 material (взаимозаменяемо с "type") - тип наночастиц, диэлектрическая проницаемость которых равна диэлектрической проницаемости объемной Sb
-                                                      из экспериментальных исследований отражения света в работе [6]
+                                                      из экспериментальных исследований отражения света в работе [7]
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-7. Слой, представляющий квадратную решетку сферических частиц, оптические свойства которой рассчитываются в модели [7]
+9. Слой, представляющий квадратную решетку сферических частиц, оптические свойства которой рассчитываются в модели [8]
     Формат описания:
         type: spheres_lattice,
         medium: { material: AlGaAs, eps: adachi_simple, df: 0.0, cAl: 0.3 },
@@ -205,7 +213,7 @@ material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
         lattice_factor - масштабирующий коэффициент, равный отношению постоянной квадратной решетки сферических частиц к их радиусу
                          (радиус частиц полагается равным d / 2)
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-8. Слой композитного материала для расчета дисперсии коэффициентов экстинкции и поглощения света по теории Ми.
+10. Слой композитного материала для расчета дисперсии коэффициентов экстинкции и поглощения света по теории Ми.
    Допустимые режимы расчета: Extinction Coefficient, Scattering Coefficient
     Формат описания:
         type: mie,
@@ -222,27 +230,36 @@ material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
 
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Ссылки:
-[1] GaAs, AlAs, and AlxGa1−xAs: Material parameters for use in research and device applications. Journal of Applied Physics 58, R1 (1985);
+[1] GaAs, AlAs, and AlxGa1−xAs: Material parameters for use in research and device applications.
+    J. Appl. Phys., 58, R1 (1985);
     https://doi.org/10.1063/1.336070
     Sadao Adachi
 
 [2] Calculations of the temperature and alloy composition effects on the optical properties of AlxGa1−xAsySb1−y and GaxIn1−xAsySb1−y in the spectral range 0.5–6 eV
-    Journal of Applied Physics 102, 014504 (2007);
+    J. Appl. Phys., 102, 014504 (2007);
     https://doi.org/10.1063/1.2751406
     Juan A. Gonzalez-Cuevas
 
-[3] J. Appl. Phys., 86, 1, pp.445 (1999) (A.B. Djurisˇic, A.D. Rakic, P.C.K. Kwok, E. Herbert Li, M.L. Majewski, J.M. Elazar)
+[3] Modeling the optical constants of AlxGa1−xAs alloys
+    J. Appl. Phys., 86, pp.445 (1999)
+    http://dx.doi.org/10.1063/1.370750
+    A.B. Djurisˇic, A.D. Rakic, P.C.K. Kwok, E. Herbert Li, M.L. Majewski, J.M. Elazar
 
-[4] Room temperature exciton-polariton resonant reflection and suppressed absorption in periodic systems of InGaN quantum wells
+[4] Dependence of the refractive index of AlxGa1-xN on temperature and composition at elevated temperatures
+    J. Appl. Phys., 89, 5, pp.2676 (2000)
+    https://doi.org/10.1063/1.1341212
+    U. Tisch, B. Meyler, O. Katz, E. Finkman, J. Salzman
+
+[5] Room temperature exciton-polariton resonant reflection and suppressed absorption in periodic systems of InGaN quantum wells
     Journal of Applied Physics 121, 133101 (2017)
     https://doi.org/10.1063/1.4979636 (eq. 6)
     A.S. Bolshakov, V.V. Chaldyshev
 
-[5] Klimov "Nanoplasmonica" - russian edition, eq. 3.44
+[6] Klimov "Nanoplasmonica" - russian edition, eq. 3.44
 
-[6] Adachi, S. The Handbook on Optical Constants of Metals in Tables and Figures / S. Adachi – World Scientific, 2012
+[7] Adachi, S. The Handbook on Optical Constants of Metals in Tables and Figures / S. Adachi – World Scientific, 2012
 
-[7] Optical properties of two-dimensional systems of randomly distributed particles
+[8] Optical properties of two-dimensional systems of randomly distributed particles
     Phys. Rev. B 28, 4247 – Published 15 October 1983
     https://doi.org/10.1103/PhysRevB.28.4247
     B. N. J. Persson and A. Liebsch

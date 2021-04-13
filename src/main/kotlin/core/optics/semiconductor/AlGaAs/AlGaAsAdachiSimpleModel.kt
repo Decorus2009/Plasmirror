@@ -7,7 +7,7 @@ import kotlin.math.sqrt
 /**
  * J. Appl. Phys. 58, R1 (1985) - simple Adachi model for AlGaAs
  */
-object AdachiSimpleModel {
+object AlGaAsAdachiSimpleModel {
   fun permittivity(w: Double, cAl: Double): Complex {
     var energy = w
     val Eg = 1.425 + 1.155 * cAl + 0.37 * cAl * cAl

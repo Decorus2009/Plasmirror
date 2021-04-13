@@ -6,15 +6,15 @@ import core.optics.toRefractiveIndex
 import kotlin.math.pow
 
 /**
- * It's a class, not a function to avoid using [cAl], [cAs] and [temperature] as arguments in all the functions
+ * It's a class, not a function to avoid using [cAl], [cAs] and [T] as arguments in all the functions
  * of computation stack below. It's much more convenient to keep this values within an internal state of the class instance,
  * however initialized each time the permittivity computation is needed
  */
-class AdachiModelWithTemperatureDependence(
+class AlGaAsSbAdachiModelWithTemperatureDependence(
   private val w: Double,
   private val cAl: Double,
   private val cAs: Double,
-  private val temperature: Double
+  private val T: Double
 ) {
   fun refractiveIndex() = permittivity().toRefractiveIndex()
 
@@ -138,12 +138,12 @@ class AdachiModelWithTemperatureDependence(
     /**
      * Temperature-dependent gamma for E1/E1 + Delta1 and E2 critical points.
      */
-    fun gamma(binary: String) = Table_III.values.getValue(parameter).getValue(binary).gammaAt(temperature)
+    fun gamma(binary: String) = Table_III.values.getValue(parameter).getValue(binary).gammaAt(temperature = T)
 
     /**
      * Temperature-dependent lattice constant
      */
-    fun latticeConstant(binary: String) = Table_IV.values.getValue(binary).latticeConstantAt(temperature)
+    fun latticeConstant(binary: String) = Table_IV.values.getValue(binary).latticeConstantAt(temperature = T)
 
     var B_AlAs: Double
     var B_AlSb: Double
@@ -194,7 +194,7 @@ class AdachiModelWithTemperatureDependence(
    *   EIndirect
    */
   private fun energy(transition: String): Double {
-    fun Map<String, Table_II.Record>.transitionEnergy() = getValue(transition).energyAt(temperature)
+    fun Map<String, Table_II.Record>.transitionEnergy() = getValue(transition).energyAt(temperature = T)
 
     val bowings = Table_V.values.getValue(transition)
 
