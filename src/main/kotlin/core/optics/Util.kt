@@ -83,7 +83,7 @@ fun Complex.toExtinctionCoefficientAt(wl: Double) = 4.0 * PI * imaginary / (wl.t
 
 fun Complex.toRefractiveIndex() = Complex(sqrt((abs() + real) / 2.0), sqrt((abs() - real) / 2.0))
 
-fun Complex.toPermittivity() = this * this
+fun Complex.toPermittivity() = pow(2.0)
 
 fun Double.toEnergy() = 1239.8 / this
 

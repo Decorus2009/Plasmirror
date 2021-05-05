@@ -55,11 +55,15 @@ private fun JsonNode.toLayer(): Layer {
       cAs = requireNonNegativeDouble(DescriptionParameters.cAs)
     )
     LayerType.GAN -> GaN(
-      d = d
+      d = d,
+      k1 = requireDouble(DescriptionParameters.k1),
+      k2 = requireDouble(DescriptionParameters.k2)
     )
     LayerType.ALGAN -> AlGaN(
       d = d,
-      cAl = requireNonNegativeDouble(DescriptionParameters.cAl)
+      cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
+      k1 = requireDouble(DescriptionParameters.k1),
+      k2 = requireDouble(DescriptionParameters.k2)
     )
     LayerType.CUSTOM -> {
       // CUSTOM layer type may contain eps as a number (e.g. eps: 3.6 or eps: (3.6, -0.1)) or as an expression
@@ -178,7 +182,6 @@ private fun JsonNode.requireExciton() = requireNode(DescriptionParameters.excito
     G = requireDouble(DescriptionParameters.g),
     wb = requireDouble(DescriptionParameters.wb),
     Gb = requireDouble(DescriptionParameters.gb),
-    refWavelength = requireDouble(DescriptionParameters.referenceWavelength),
     B = requireDouble(DescriptionParameters.b),
     C = requireComplex(DescriptionParameters.c),
   )
@@ -313,6 +316,8 @@ object DescriptionParameters {
   const val wb = "wb"
   const val gb = "gb"
   const val referenceWavelength = "lambda0"
+  const val k1 = "k1"
+  const val k2 = "k2"
   const val b = "b"
   const val c = "c"
   const val f = "f"

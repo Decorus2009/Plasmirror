@@ -16,6 +16,8 @@ class Complex(real: Double, imaginary: Double) : ApacheComplex(real, imaginary) 
     fun of(real: Double, imaginary: Double) = Complex(real, imaginary)
 
     fun of(complex: ApacheComplex) = Complex(complex.real, complex.imaginary)
+
+    fun ApacheComplex.toComplex() = Complex.of(real, imaginary)
   }
 
   constructor(real: Double) : this(real, 0.0)

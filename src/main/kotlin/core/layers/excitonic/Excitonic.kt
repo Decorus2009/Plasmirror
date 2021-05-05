@@ -1,7 +1,9 @@
 package core.layers.excitonic
 
 import core.layers.Layer
-import core.math.*
+import core.math.Complex
+import core.math.Complex.Companion.toComplex
+import core.math.TransferMatrix
 import core.optics.*
 import org.apache.commons.math3.complex.Complex.I
 import java.lang.Math.PI
@@ -19,9 +21,7 @@ import kotlin.math.pow
  *    2D: 25meV in GaN
  *    3D: 4meV in GaAs
  * [Gb] - Gb parameter (~ G)
- * [refWavelength] - reference value of wavelength necessary for integral computation (via atan)
- * [B] - N_cv * f_b
- * [C] - additive constant C
+ * [B] = f_exc / N_cv * f_b is a magnitude coefficient which should vary from 2Ry (bulk material) to 16Ry (2D)
  */
 data class Exciton(
   val w0: Double,
@@ -29,7 +29,6 @@ data class Exciton(
   val G: Double,
   val wb: Double,
   val Gb: Double,
-  val refWavelength: Double,
   val B: Double,
   val C: Complex
 )
@@ -40,7 +39,7 @@ class Excitonic(
   val exciton: Exciton
 ) : Layer {
   override fun permittivity(wl: Double, temperature: Double) =
-    medium.permittivity(wl, temperature) * (excitonicContribution(wl, temperature) + 1.0) + exciton.C
+    medium.permittivity(wl, temperature) * (excitonicContribution(wl, temperature) + 1.0 + exciton.C)
 
   override fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {
     val n = n(wl, temperature)
@@ -60,43 +59,27 @@ class Excitonic(
   }
 
   /**
-   * Standard excitonic contribution into the QW permittivity, see [1] eq. 6
+   * Excitonic contribution into the QW permittivity, see [1] eq. 6
    */
   private fun excitonicContribution(wl: Double, temperature: Double): Complex {
     val w = wl.toEnergy()
 
     val waveVector = medium.n(wl, temperature) * 2.0 * PI / (exciton.w0.toWavelength())
     val wEff = Complex.of(2.0 * exciton.G0) / (waveVector * d).sin()
-    val epsContinuum = continuumContribution(w) - continuumContribution(exciton.refWavelength.toEnergy())
+    val epsContinuum = (Complex.of(PI/2) - continuumContribution(w)) / sqrt(w)
 
-    return wEff * exciton.w0 * 2.0 * epsContinuum / Complex(exciton.w0.pow(2.0) - w.pow(2.0), -2.0 * exciton.G * w)
+    return wEff * exciton.w0 * 2.0 * epsContinuum / exciton.B
   }
 
   /**
    * Additional contribution to the permittivity from the continuum band-to-band absorption
-   * in the QWs above the resonant exciton transition [1] eq. 9
+   * in the QWs above the resonant exciton transition (see [1] eq. 9, also see [2] pp. 6464)
    *
-   * Also see [2] pp. 6464
-   *
-   *
-   * UPDATE: finally taken from Vismirror2_3_AlGaN (list_mirror.cpp):
-   *
-   * inline DCplx cont_eps(double omega, double omega0, double gamma) {
-   *   return - arctg(omega0 / (DCplx(-omega*omega, - gamma*omega)^0.5)) / (DCplx(-omega*omega, - gamma*omega)^0.5);
-   * }
-   *
-   * This formula differs from that in eq. 9 in [1] (note the minus before arctg and under the root)
-   * As a result computation result is different but not that significantly
-   *
-   * This method is used twice while computing integral value via subtraction (upper and lower integral bound) A(wl) - A(reference wl)
-   * (see eq. 9 [2] pp. 6464)
+   * Current formula differs from that in eq. 9 in [1] (note the minus under the root)
    */
-  private fun continuumContribution(w: Double): Complex {
-    val sqrt = Complex(-w.pow(2), -exciton.Gb * w).sqrt()
-    val atan = (Complex.of(exciton.wb) / sqrt).atan()
+  private fun continuumContribution(w: Double) = (Complex.of(exciton.wb) / sqrt(w)).atan().toComplex()
 
-    return -Complex.of(exciton.B) * atan / sqrt
-  }
+  private fun sqrt(w: Double) = Complex(-w.pow(2), -exciton.Gb * w).sqrt()
 }
 
 /**
