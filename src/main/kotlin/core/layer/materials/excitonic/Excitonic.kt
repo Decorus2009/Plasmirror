@@ -1,6 +1,6 @@
-package core.layers.excitonic
+package core.layer.materials.excitonic
 
-import core.layers.Layer
+import core.layer.materials.Layer
 import core.math.Complex
 import core.math.Complex.Companion.toComplex
 import core.math.TransferMatrix
@@ -33,7 +33,7 @@ data class Exciton(
   val C: Complex
 )
 
-class Excitonic(
+data class Excitonic(
   override val d: Double,
   val medium: Layer,
   val exciton: Exciton

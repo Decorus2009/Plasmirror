@@ -2,8 +2,8 @@ package core.optics
 
 import core.math.Complex
 import core.math.Complex.Companion.ONE
-import core.state.activeState
 import core.math.toCm
+import core.state.activeState
 import java.lang.Math.PI
 import kotlin.math.cos
 import kotlin.math.sqrt

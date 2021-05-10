@@ -17,10 +17,6 @@ data class ComputationState(
   val mirror: Mirror,
   val textDescriptions: MutableMap<String, String>
 ) {
-  override fun toString(): String {
-    return textDescriptions.toString()
-  }
-
   fun updateFromUI() {
     range.updateFromUI()
     opticalParams.updateFromUI()

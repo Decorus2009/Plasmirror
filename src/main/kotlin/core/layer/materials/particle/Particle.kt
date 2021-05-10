@@ -1,4 +1,4 @@
-package core.layers.particle
+package core.layer.materials.particle
 
 import core.math.Complex
 import core.math.ExpressionEvaluator
@@ -20,7 +20,7 @@ interface Particle {
  * [g] gamma plasma
  * [epsInf] high-frequency permittivity
  */
-class DrudeParticle(
+data class DrudeParticle(
   override val r: Double? = null,
   private val wPl: Double,
   private val g: Double,
@@ -29,7 +29,7 @@ class DrudeParticle(
   override fun permittivity(wl: Double) = DrudeModel.permittivity(wl, wPl, g, epsInf)
 }
 
-class DrudeLorentzParticle(
+data class DrudeLorentzParticle(
   override val r: Double? = null,
   private val wPl: Double,
   private val g: Double,
@@ -39,16 +39,16 @@ class DrudeLorentzParticle(
   override fun permittivity(wl: Double) = DrudeLorentzModel.permittivity(wl, wPl, g, epsInf, oscillators)
 }
 
-class ConstPermittivityParticle(
+data class ConstPermittivityParticle(
   override val r: Double? = null,
   val eps: Complex
 ) : Particle {
   override fun permittivity(wl: Double) = eps
 }
 
-class ExpressionBasedPermittivityParticle(
+data class ExpressionBasedPermittivityParticle(
   override val r: Double? = null,
-  epsExpr: String
+  val epsExpr: String
 ) : Particle {
   private val expressionEvaluator = ExpressionEvaluator(epsExpr)
 
@@ -60,7 +60,9 @@ class ExpressionBasedPermittivityParticle(
     expressionEvaluator.compute(x = wl).let { Complex(it.yReal, it.yImaginary ?: 0.0) }
 }
 
-class SbParticle(override val r: Double? = null) : Particle {
+data class SbParticle(
+  override val r: Double? = null
+) : Particle {
   override fun permittivity(wl: Double) = SbAdachiCardona.permittivity(wl)
 }
 

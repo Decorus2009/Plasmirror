@@ -1,10 +1,7 @@
-package core.structure
+package core.structure.util
 
-import com.fasterxml.jackson.databind.JsonNode
 import core.state.mapper
 import core.util.*
-
-fun String.toStructure() = json().asArray().toStructure()
 
 /**
  * Maps structure string representation to a json object
@@ -35,6 +32,7 @@ fun String.toStructure() = json().asArray().toStructure()
  */
 fun String.json(): String {
   val numberRegex = "[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?"
+
   return """{"${DescriptionParameters.structure}":[${
     toLowerCase()
       .removeMultiLineComments()
@@ -46,15 +44,15 @@ fun String.json(): String {
       )
       // remove all spaces, \n
       .replace(Regex("\\s+"), "")
-      // insert x1 into the beginning if description starts without it
-      .replace(Regex("^([^xX])"), "x1$1")
+//      // insert x1 into the beginning if description starts without it
+//      .replace(Regex("^([^xX])"), "x1$1")
       // x42 -> repeat:42
       .replace(Regex("([xX])([\\d]+)"), "${DescriptionParameters.repeat}:$2;")
       // add artificial d if not specified: medium: { -> medium: { d: 0,
       .replace(Regex("(${DescriptionParameters.medium}:\\{)"), "$1d:0,")
       /**
        * eps: { some expr } -> "eps": { "expr":"some expr" }
-       * 
+       *
        * "?" in regex is responsible for non-greedy/reluctant evaluation
        * so that it matches right after it meets the first "}" character that closes expression.
        * All the following "}" are skipped (we need to find only expression-related "}").
@@ -62,7 +60,7 @@ fun String.json(): String {
        */
       .replace(
         Regex("\\b${DescriptionParameters.eps}\\b:\\{([\\w\\W\\s]*?)}"),
-        "\"${DescriptionParameters.eps}\":{\"expr\":\"$1\"}"
+        "\"${DescriptionParameters.eps}\":{\"${DescriptionParameters.expr}\":\"$1\"}"
       )
       // eps:-3.6E6 -> "eps":"-3.6E6", i.e. real numbers
       .replace(
@@ -89,7 +87,7 @@ fun String.json(): String {
       // surround with {} to convert to json node 
       .joinToString(",") { "{$it}" }
       // remove empty trailing nodes
-      .replace(",{}", "")                                                              
+      .replace(",{}", "")
   }]}"""
 }
 
@@ -97,73 +95,39 @@ fun String.asArray() = mapper.readTree(this)
   .requireNode(DescriptionParameters.structure)
   .also { require(it.isArray) }
   .filterNot { it.isEmpty }
-  .map { it }
 
-/**
- * Builds structure of a list of blocks or of a single block with no repeat descriptors specified.
- * The active state is currently being built and not available yet,
- * so there's no way to check the mode and validate the necessity of presence of repeat descriptors
- *
- * [adjacentPositionsOfRepeatDescriptors] serve as bounds
- * when slicing into chunks to be converted to block descriptions
- */
-fun List<JsonNode>.toStructure(): Structure {
-  val nodes = when {
-    // no repeat descriptor is found, insert an artificial node before the node with a single layer description
-    !first().isRepeatDescription() -> listOf(repeatDescriptorNode()) + this
-    else -> this
-  }
-  val blocks = nodes.adjacentPositionsOfRepeatDescriptors()
-    .map { (position, nextPosition) ->
-      nodes.slice(position until nextPosition).toBlock()
-    }
-    // exclude blocks with 0 repeats (e.g. a user in structure description prints x0 to exclude a block from computation
-    .filterNot { it.repeat == 0 }
-
-  Regex("\\bA.*?B\\b")
-
-  return Structure(blocks)
+object DescriptionParameters {
+  const val structure = "structure"
+  const val definition = "def"
+  const val name = "name"
+  const val repeat = "repeat"
+  const val all = "all"
+  const val type = "type"
+  const val medium = "medium"
+  const val particles = "particles"
+  const val exciton = "exciton"
+  const val material = "material"
+  const val orders = "orders"
+  const val oscillators = "oscillators"
+  const val latticeFactor = "lattice_factor"
+  const val eps = "eps"
+  const val epsInf = "eps_inf"
+  const val d = "d"
+  const val n = "n"
+  const val dampingFactor = "df"
+  const val cAl = "cal"
+  const val cAs = "cas"
+  const val w = "w"
+  const val w0 = "w0"
+  const val g = "g"
+  const val g0 = "g0"
+  const val wb = "wb"
+  const val gb = "gb"
+  const val b = "b"
+  const val c = "c"
+  const val f = "f"
+  const val r = "r"
+  const val expr = "expr"
+  const val exprLeftKWBoundary = "@"
+  const val exprRightKWBoundary = "#"
 }
-
-/**
- * @return pairs of adjacent positions of repeat descriptors. The last position is coupled with a size of [this]
- * e.g. [0, 2, 5] -> [(0, 2), (2, 5), (5, 8)], 8 is the size of tokenized lines list
- */
-private fun List<JsonNode>.adjacentPositionsOfRepeatDescriptors() = with(repeatDescriptorsPositions()) {
-  mapIndexed { index: Int, position: Int ->
-    val nextPosition = when (position) {
-      last() -> this@adjacentPositionsOfRepeatDescriptors.size
-      else -> this@with.elementAt(index + 1)
-    }
-    position to nextPosition
-  }
-}
-
-/**
- * @return positions of repeat descriptors
- * e.g.
- *
- * 0: x10           <-- repeat descriptor
- * 1: type = x, ...
- *
- * 2: x24           <-- repeat descriptor
- * 3: type = x, ...
- * 4: type = y, ...
- *
- * 5: x100          <-- repeat descriptor
- * 6: type = y, ...
- * 7: type = z, ...
- *
- * returns [0, 2, 5]
- */
-private fun List<JsonNode>.repeatDescriptorsPositions() =
-  mapIndexed { idx, node -> if (node.isRepeatDescription()) idx else -1 }.filterNot { it == -1 }
-
-private fun repeatDescriptorNode() = mapper.readTree("""{"repeat":"1"}""")
-
-fun JsonNode.isRepeatDescription() = size() == 1 && has("repeat")
-
-/**
- * @return view of elements of the list except first
- */
-fun <T> List<T>.remaining() = subList(1, size)

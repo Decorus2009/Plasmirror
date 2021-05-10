@@ -3,7 +3,7 @@ package core.state
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
 import core.Mirror
-import core.structure.toStructure
+import core.structure.buildStructure
 import core.util.isNullOrMissing
 import core.util.requireNode
 
@@ -27,7 +27,7 @@ private fun JsonNode.toComputationState(): ComputationState {
     Data(),
     opticalParams,
     Mirror(
-      structure = currentTextDescription.toStructure().also {     println("ComputationState toStructure") },
+      structure = currentTextDescription.buildStructure(),
       leftMediumLayer = opticalParams.leftMedium.toLayer(),
       rightMediumLayer = opticalParams.rightMedium.toLayer()
     ),

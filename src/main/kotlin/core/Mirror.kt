@@ -1,8 +1,8 @@
 package core
 
-import core.layers.ConstPermittivityLayer
-import core.layers.Layer
-import core.layers.composite.Mie
+import core.layer.materials.ConstPermittivityLayer
+import core.layer.materials.Layer
+import core.layer.materials.composite.Mie
 import core.math.Complex
 import core.math.TransferMatrix
 import core.optics.*
@@ -10,7 +10,7 @@ import core.optics.Polarization.P
 import core.optics.Polarization.S
 import core.state.OpticalParams
 import core.structure.Structure
-import core.structure.toStructure
+import core.structure.buildStructure
 import org.apache.commons.math3.complex.Complex.NaN
 import statesManager
 import kotlin.Double.Companion.POSITIVE_INFINITY
@@ -25,7 +25,7 @@ class Mirror(
   var rightMediumLayer: Layer
 ) {
   fun updateVia(opticalParams: OpticalParams, textDescription: String) {
-    structure = textDescription.toStructure()
+    structure = textDescription.buildStructure()
     leftMediumLayer = opticalParams.leftMedium.toLayer()
     rightMediumLayer = opticalParams.rightMedium.toLayer()
   }

@@ -1,4 +1,4 @@
-package core.layers
+package core.layer.materials
 
 import core.math.Complex
 import core.optics.PermittivityModel
@@ -42,15 +42,15 @@ abstract class AlGaAsBase(
   }
 }
 
-class GaAs(
-  d: Double,
-  dampingFactor: Double = 0.0, // default value is used for external media initialization in [core.state.Medium.toLayer]
-  permittivityModel: PermittivityModel
+data class GaAs(
+  override val d: Double,
+  val dampingFactor: Double = 0.0, // default value is used for external media initialization in [core.state.Medium.toLayer]
+  val permittivityModel: PermittivityModel
 ) : AlGaAsBase(d, dampingFactor, cAl = 0.0, permittivityModel)
 
-class AlGaAs(
-  d: Double,
-  dampingFactor: Double,
-  cAl: Double,
-  permittivityModel: PermittivityModel
+data class AlGaAs(
+  override val d: Double,
+  val dampingFactor: Double,
+  val cAl: Double,
+  val permittivityModel: PermittivityModel
 ) : AlGaAsBase(d, dampingFactor, cAl, permittivityModel)

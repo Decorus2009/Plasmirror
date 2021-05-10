@@ -1,18 +1,18 @@
-package core.layers.composite
+package core.layer.materials.composite
 
-import core.layers.Layer
-import core.layers.particle.Particle
+import core.layer.materials.Layer
+import core.layer.materials.particle.Particle
 import core.math.Complex
 import core.math.TransferMatrix
 import core.optics.Polarization
 import core.optics.composite.SpheresLattice
 
-class SpheresLattice(
+data class SpheresLattice(
   override val d: Double,
   override val medium: Layer,
   override val particle: Particle,
   private val latticeFactor: Double
-  ) : Composite(medium, particle) {
+) : Composite(medium, particle) {
   override fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {
     SpheresLattice.rt(
       wl,

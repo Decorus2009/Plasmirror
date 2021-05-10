@@ -1,7 +1,8 @@
 package core.optics.semiconductor.AlGaN
 
 import core.math.Complex
-import kotlin.math.*
+import kotlin.math.exp
+import kotlin.math.pow
 
 /**
  * Temperature-dependent model for permittivity of ternary alloy Al(x)Ga(1-x)N

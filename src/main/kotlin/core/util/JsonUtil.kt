@@ -2,7 +2,7 @@ package core.util
 
 import com.fasterxml.jackson.databind.JsonNode
 import core.math.*
-import core.structure.fail
+import core.validators.fail
 
 
 fun JsonNode.requireInt() = requireIntOrNull() ?: fail("Cannot read integer value in node \"$this\"")
@@ -56,6 +56,9 @@ fun JsonNode.requirePositiveDoubleOrNull(field: String) = requireDoubleOrNull(fi
 
 fun JsonNode.requireText(field: String) = requireNode(field).requireText()
 fun JsonNode.requireTextOrNull(field: String) = requireNodeOrNull(field)?.requireTextOrNull()
+
+fun JsonNode.requireTextUpperCase(field: String) = requireText(field).toUpperCase()
+fun JsonNode.requireTextOrNullUpperCase(field: String) = requireTextOrNull(field)?.toUpperCase()
 
 /**
  * Try to read a double value first, then try to read a complex number from string with predefined format "(1.0, 2.0)"

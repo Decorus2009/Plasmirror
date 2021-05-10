@@ -34,14 +34,32 @@ class StructureDescriptionController {
    */
   private fun computeHighlighting(text: String): StyleSpans<Collection<String>> {
     val COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/"
+    val DEF_PATTERN = "def:\\s*"
+    val NAME_PATTERN = "name:\\s*"
     val PARAM_PATTERN = "\\w+(\\s*/\\s*\\w+)?\\s*:\\s*"
     val REPEAT_PATTERN = "\\s*[xX]\\s*[0-9]+\\s*"
-    val MODEL_PATTERN = "(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss)" // Regex("(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss)")
-    val LAYER_PATTERN = "(AlGaAsSb|GaAs|AlGaAs|AlGaN|GaN|custom)"                // Regex("(AlGaAsSb|GaAs|AlGaAs|custom)")
-    val EXPRESSION_KW_PATTERN = "(val|fun|return)"                               // Regex("(val|fun|return)")
+    val MODEL_PATTERN = "(" +
+      "\\badachi_simple\\b|" +
+      "\\badachi_T\\b|" +
+      "\\badachi_gauss\\b|" +
+      "\\badachi_mod_gauss\\b" +
+      ")"                                                               // Regex("(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss)")
+    val LAYER_PATTERN = "(" +
+      "\\bAlGaAsSb\\b|" +
+      "\\bGaAs\\b|" +
+      "\\bAlGaAs\\b|" +
+      "\\bAlGaN\\b|" +
+      "\\bGaN\\b|" +
+      "\\bcustom\\b|" +
+      "\\bexcitonic\\b|" +
+      "\\beff_medium\\b|" +
+      "\\bspheres_lattice\\b|" +
+      "\\bmie\\b" +
+      ")"                                                              // Regex("(AlGaAsSb|GaAs|AlGaAs|custom|...)")
+    val EXPRESSION_KW_PATTERN = "(\\bval\\b|\\bfun\\b|\\breturn\\b)"   // Regex("(val|fun|return)")
 
     val PATTERN = Pattern.compile(
-      "(?<REPEAT>$REPEAT_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<EXPRESSION>$EXPRESSION_KW_PATTERN)",
+      "(?<REPEAT>$REPEAT_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<DEF>$DEF_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<EXPRESSION>$EXPRESSION_KW_PATTERN)",
       Pattern.CASE_INSENSITIVE
     )
 
@@ -51,6 +69,7 @@ class StructureDescriptionController {
     while (matcher.find()) {
       val styleClass = (when {
         matcher.group("COMMENT") != null -> "comment"
+        matcher.group("DEF") != null -> "def"
         matcher.group("PARAM") != null -> "param"
         matcher.group("REPEAT") != null -> "repeat"
         matcher.group("MODEL") != null -> "permittivity_model"

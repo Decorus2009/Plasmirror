@@ -1,6 +1,9 @@
 .param {
     -fx-fill: #1E90FF;
 }
+.def {
+    -fx-fill: #F21414;
+}
 .repeat {
     -fx-font-weight: bold;
 }

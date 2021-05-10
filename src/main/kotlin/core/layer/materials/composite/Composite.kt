@@ -1,7 +1,7 @@
-package core.layers.composite
+package core.layer.materials.composite
 
-import core.layers.Layer
-import core.layers.particle.Particle
+import core.layer.materials.Layer
+import core.layer.materials.particle.Particle
 
 abstract class Composite(
   protected open val medium: Layer,

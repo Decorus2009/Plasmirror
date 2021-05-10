@@ -1,15 +1,15 @@
-package core.layers.composite
+package core.layer.materials.composite
 
-import core.layers.Layer
-import core.layers.particle.Particle
+import core.layer.materials.Layer
+import core.layer.materials.particle.Particle
 import core.optics.composite.mie.*
 
-class Mie(
+data class Mie(
   override val d: Double,
   override val medium: Layer,
   override val particle: Particle,
   val f: Double,
-  orders: Orders
+  val orders: Orders
 ) : Composite(medium, particle) {
   private val mieModel = when (orders) {
     Orders.ONE -> MieOne

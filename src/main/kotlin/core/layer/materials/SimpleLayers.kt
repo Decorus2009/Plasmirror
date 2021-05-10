@@ -1,9 +1,10 @@
-package core.layers
+package core.layer.materials
 
-import core.math.*
+import core.math.Complex
+import core.math.ExpressionEvaluator
 import core.optics.semiconductor.AlGaAsSb.AlGaAsSb
 
-class AlGaAsSb(
+data class AlGaAsSb(
   override val d: Double,
   private val cAl: Double,
   private val cAs: Double
@@ -11,7 +12,7 @@ class AlGaAsSb(
   override fun permittivity(wl: Double, temperature: Double) = AlGaAsSb.permittivity(wl, cAl, cAs, temperature)
 }
 
-class ConstPermittivityLayer(
+data class ConstPermittivityLayer(
   override val d: Double,
   val eps: Complex
 ) : Layer {
@@ -19,9 +20,9 @@ class ConstPermittivityLayer(
   override fun permittivity(wl: Double, temperature: Double) = eps
 }
 
-class ExpressionBasedPermittivityLayer(
+data class ExpressionBasedPermittivityLayer(
   override val d: Double,
-  epsExpr: String
+  val epsExpr: String
 ) : Layer {
   private val expressionEvaluator = ExpressionEvaluator(epsExpr)
 

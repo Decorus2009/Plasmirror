@@ -4,8 +4,8 @@ import core.math.Complex
 import core.math.Complex.Companion.I
 import core.math.Complex.Companion.ONE
 import core.math.Complex.Companion.ZERO
-import core.optics.toRefractiveIndex
 import core.math.toCm
+import core.optics.toRefractiveIndex
 import java.lang.Math.PI
 import kotlin.math.pow
 
