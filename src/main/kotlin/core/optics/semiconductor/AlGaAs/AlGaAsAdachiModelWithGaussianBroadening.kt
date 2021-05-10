@@ -18,6 +18,7 @@ object AlGaAsAdachiModelWithGaussianBroadening {
         if (w >= E0(cAl)) eps.imaginary else eps.real * scalingCoefficient
       )
     }
+
   private fun eps1(w: Double, cAl: Double): Complex {
     //@formatter:off
     val A           = A(cAl)

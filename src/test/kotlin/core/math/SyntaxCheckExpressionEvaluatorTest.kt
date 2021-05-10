@@ -1,6 +1,6 @@
 package core.math
 
-import core.structure.StructureDescriptionException
+import core.validators.StructureDescriptionException
 import org.junit.Test
 
 class SyntaxCheckExpressionEvaluatorTest {

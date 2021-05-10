@@ -9,13 +9,14 @@ import core.structure.util.json
 object StructureDescriptionValidator {
   fun validate(description: String) {
     try {
-      description.json().asArray().let {
-        it.preValidate()
-        it.buildStructure().postValidate()
-      }
+      description.json().asArray().preValidate()
+      description.buildStructure().postValidate()
     } catch (ex: Exception) {
       println("Structure description error:\n$ex")
       when (ex) {
+        is StructureDescriptionException -> {
+          throw ex
+        }
         is JsonParseException -> {
           fail(message = "Check the usage of '. , : ; + - * / ( )' symbols", cause = ex)
         }

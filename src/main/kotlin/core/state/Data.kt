@@ -27,7 +27,7 @@ data class Data(
   fun normalize() = if (yImaginary.isMissing()) Data(x, yReal) else this
 
   /**
-   safeDouble NaN value is written by default in [safeDouble] method
+  safeDouble NaN value is written by default in [safeDouble] method
    */
   private fun MutableList<Double>.isMissing() = all { it.isNaN() }
 

@@ -16,6 +16,7 @@ data class Mie(
     Orders.TWO -> MieTwo
     Orders.ALL -> MieAll
   }
+
   fun scatteringCoefficient(wl: Double, temperature: Double) =
     mieModel.scatteringCoefficient(wl, mediumPermittivity(wl, temperature), particlePermittivity(wl), f, particle.r!!)
 

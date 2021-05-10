@@ -66,7 +66,7 @@ data class Excitonic(
 
     val waveVector = medium.n(wl, temperature) * 2.0 * PI / (exciton.w0.toWavelength())
     val wEff = Complex.of(2.0 * exciton.G0) / (waveVector * d).sin()
-    val epsContinuum = (Complex.of(PI/2) - continuumContribution(w)) / sqrt(w)
+    val epsContinuum = (Complex.of(PI / 2) - continuumContribution(w)) / sqrt(w)
 
     return wEff * exciton.w0 * 2.0 * epsContinuum / exciton.B
   }

@@ -13,6 +13,7 @@ import core.optics.particles.LorentzOscillator
 import core.state.mapper
 import core.structure.util.*
 import core.util.*
+import core.validators.fail
 
 private val userDefinitions = mutableMapOf<String, JsonNode>()
 
@@ -199,7 +200,7 @@ private fun JsonNode.requireLayerType(): LayerType {
         GAN -> LayerType.Material.GaN
         ALGAN -> LayerType.Material.AlGaN
         CUSTOM -> LayerType.Material.Custom
-        else -> error("Unknown material parameter \"$maybeMaterial\"")
+        else -> fail("Unknown material parameter \"$maybeMaterial\"")
       }
     }
   }
@@ -216,12 +217,12 @@ private fun JsonNode.requireLayerType(): LayerType {
         EFF_MEDIUM -> LayerType.Composite.EffectiveMedium
         MIE -> LayerType.Composite.Mie
         SPHERES_LATTICE -> LayerType.Composite.SpheresLattice
-        else -> error("Unknown \"type\" parameter \"$maybeType\"")
+        else -> fail("Unknown \"type\" parameter \"$maybeType\"")
       }
     }
   }
 
-  error("Missing or unknown \"material\" or \"type\" parameter. Check syntax or definitions if any")
+  fail("Missing or unknown \"material\" or \"type\" parameter. Check syntax or definitions if any")
 }
 
 private fun JsonNode.requirePermittivityModelFor(layerType: LayerType): PermittivityModel {
@@ -252,7 +253,7 @@ private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Des
     is LayerType.Composite.Mie -> requireNonNegativeDouble(DescriptionParameters.r)
     // "r" parameter can be provided only for Mie layer type
     else -> requirePositiveDoubleOrNull(DescriptionParameters.r)?.let {
-      error("Particle radius should be provided only for Mie layer type")
+      fail("Particle radius should be provided only for Mie layer type")
     }
   }
   when (requireParticlesPermittivityModel()) {
@@ -286,20 +287,20 @@ private fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Des
 
 private fun JsonNode.requireOrders(): Orders {
   val maybeNumericOrders = requirePositiveIntOrNull(DescriptionParameters.orders)
-  val errorMessage = "Available orders for Mie layer type: \"1\", \"2\" or \"all\""
+  val failMessage = "Available orders for Mie layer type: \"1\", \"2\" or \"all\""
 
   if (maybeNumericOrders != null) {
     return when (maybeNumericOrders) {
       1 -> Orders.ONE
       2 -> Orders.TWO
-      else -> error(errorMessage)
+      else -> fail(failMessage)
     }
   }
 
   return requireText(DescriptionParameters.orders).let {
     when (it) {
       DescriptionParameters.all -> Orders.ALL
-      else -> error(errorMessage)
+      else -> fail(failMessage)
     }
   }
 }
@@ -337,9 +338,9 @@ private fun JsonNode.processCustomLayer(d: Double): Layer {
 private fun JsonNode.processUserDefinedLayer(): Layer {
   val maybeMaterial = requireTextOrNullUpperCase(DescriptionParameters.material)
   val maybeType = requireTextOrNullUpperCase(DescriptionParameters.type)
-  val key = maybeMaterial ?: maybeType ?: error("Material or type should be specified for a layer")
+  val key = maybeMaterial ?: maybeType ?: fail("Material or type should be specified for a layer")
 
-  val definitionNode = userDefinitions[key] ?: error("Unknown material or type definition: $key")
+  val definitionNode = userDefinitions[key] ?: fail("Unknown material or type definition: $key")
 
   /*
   put definition node into the current one,

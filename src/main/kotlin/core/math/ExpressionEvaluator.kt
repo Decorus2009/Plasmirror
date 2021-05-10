@@ -1,7 +1,7 @@
 package core.math
 
-import core.structure.fail
 import core.structure.util.DescriptionParameters
+import core.validators.fail
 import org.mariuszgromada.math.mxparser.*
 import org.mariuszgromada.math.mxparser.Function
 

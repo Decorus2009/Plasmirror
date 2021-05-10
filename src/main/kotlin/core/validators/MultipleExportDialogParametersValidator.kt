@@ -24,6 +24,7 @@ object MultipleExportDialogParametersValidator {
     }
 
   }
+
   fun validateAngleStep(value: String) = validateAngle(value, specifier = "step")
 
 
