@@ -1,10 +1,13 @@
 package ui.controllers
 
 import MainApp
+import core.optics.ExternalDispersionsContainer.importExternalDispersion
+import core.state.saveConfig
 import core.util.*
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
+import javafx.scene.control.Alert
 import javafx.scene.control.MenuItem
 import javafx.scene.input.*
 import javafx.scene.layout.AnchorPane
@@ -15,24 +18,36 @@ import java.io.File
 class MenuController {
   @FXML
   fun initialize() {
-    importMenuItem.accelerator = KeyCodeCombination(KeyCode.I, KeyCombination.SHORTCUT_DOWN)
-    importMultipleMenuItem.accelerator = KeyCodeCombination(KeyCode.I, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
-    exportMenuItem.accelerator = KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN)
-    exportMultipleMenuItem.accelerator = KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
+    importDataMenuItem.accelerator = KeyCodeCombination(KeyCode.I, KeyCombination.SHORTCUT_DOWN)
+    importMultipleDataMenuItem.accelerator = KeyCodeCombination(KeyCode.I, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
+    exportComputedDataMenuItem.accelerator = KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN)
+    exportMultipleComputedDataMenuItem.accelerator = KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
 
-    importMenuItem.setOnAction {
-      initFileChooser(".").showOpenDialog(rootController.mainApp.primaryStage)?.let { file ->
+    importDataMenuItem.setOnAction {
+      initFileChooser(importPath()).showOpenDialog(rootController.mainApp.primaryStage)?.let { file ->
         chartController().importFrom(file)
       }
     }
 
-    importMultipleMenuItem.setOnAction {
-      initFileChooser(".").showOpenMultipleDialog(rootController.mainApp.primaryStage)?.let { files ->
+    importMultipleDataMenuItem.setOnAction {
+      initFileChooser(importPath()).showOpenMultipleDialog(rootController.mainApp.primaryStage)?.let { files ->
         chartController().importFromMultiple(files)
       }
     }
 
-    exportMenuItem.setOnAction {
+    importPermittivityDispersionMenuItem.setOnAction {
+      withConfigSaving {
+        safeExternalDispersionImport(isPermittivity = true)
+      }
+    }
+
+    importRefractiveIndexDispersionMenuItem.setOnAction {
+      withConfigSaving {
+        safeExternalDispersionImport(isPermittivity = false)
+      }
+    }
+
+    exportComputedDataMenuItem.setOnAction {
       initFileChooser(exportPath())
         .let { chooser ->
           chooser.initialFileName = exportFileName()
@@ -43,9 +58,9 @@ class MenuController {
         }
     }
 
-    exportMultipleMenuItem.setOnAction {
+    exportMultipleComputedDataMenuItem.setOnAction {
       val page = with(FXMLLoader()) {
-        location = MainApp::class.java.getResource("fxml/MultipleExportDialog.fxml")
+        location = MainApp::class.java.getResource("fxml${sep}MultipleExportDialog.fxml")
         load<AnchorPane>()
       }
       with(Stage()) {
@@ -63,32 +78,66 @@ class MenuController {
     }
 
     expressionsEvaluatorMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml/expressions/ExpressionsEvaluator.fxml", titleToShow = "Expressions Evaluator")
+      showWindow(fxmlPath = "fxml${sep}expressions${sep}ExpressionsEvaluator.fxml", titleToShow = "Expressions Evaluator")
+    }
+
+    externalDispersionsMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml${sep}dispersions${sep}ExternalDispersionsManager.fxml", titleToShow = "External Dispersions")
     }
 
     helpInfoMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml/help/HelpInfo.fxml", titleToShow = "Help Info")
+      showWindow(fxmlPath = "fxml${sep}help${sep}HelpInfo.fxml", titleToShow = "Help Info")
     }
 
     expressionsHelpMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml/help/ExpressionsHelp.fxml", titleToShow = "Expressions Help")
+      showWindow(fxmlPath = "fxml${sep}help${sep}ExpressionsHelp.fxml", titleToShow = "Expressions Help")
     }
   }
 
+  private fun safeExternalDispersionImport(isPermittivity: Boolean) {
+    try {
+      initFileChooser(".").showOpenDialog(rootController.mainApp.primaryStage).let { file ->
+        file?.importExternalDispersion(isPermittivity)
+        showImportExternalDispersionCompleteInfo(file.name)
+
+        // save state?
+      }
+    } catch (e: NullPointerException) {
+      // ignore if a user has closed file chooser window without choosing a file itself
+    } catch (e: Exception) {
+      alert(
+        header = "Import error",
+        content = "Error during file import: $e"
+      )
+    }
+  }
+
+  private fun showImportExternalDispersionCompleteInfo(dispersionName: String) = with(Alert(Alert.AlertType.INFORMATION)) {
+    this.title = "Information"
+    this.headerText = null
+    this.contentText = "Dispersion \"$dispersionName\" has been successfully imported"
+    showAndWait()
+  }
 
   lateinit var rootController: RootController
 
   @FXML
-  private lateinit var importMenuItem: MenuItem
+  private lateinit var importDataMenuItem: MenuItem
 
   @FXML
-  private lateinit var importMultipleMenuItem: MenuItem
+  private lateinit var importMultipleDataMenuItem: MenuItem
 
   @FXML
-  private lateinit var exportMenuItem: MenuItem
+  private lateinit var importPermittivityDispersionMenuItem: MenuItem
 
   @FXML
-  private lateinit var exportMultipleMenuItem: MenuItem
+  private lateinit var importRefractiveIndexDispersionMenuItem: MenuItem
+
+  @FXML
+  private lateinit var exportComputedDataMenuItem: MenuItem
+
+  @FXML
+  private lateinit var exportMultipleComputedDataMenuItem: MenuItem
 
   @FXML
   private lateinit var helpInfoMenuItem: MenuItem
@@ -101,9 +150,18 @@ class MenuController {
 
   @FXML
   private lateinit var expressionsEvaluatorMenuItem: MenuItem
+
+  @FXML
+  private lateinit var externalDispersionsMenuItem: MenuItem
 }
 
 private fun initFileChooser(dir: String) = FileChooser().apply {
   extensionFilters.add(FileChooser.ExtensionFilter("Data Files", "*.txt", "*.dat"))
   initialDirectory = File(dir)
+}
+
+
+fun withConfigSaving(handler: () -> Unit) {
+  handler()
+  saveConfig()
 }

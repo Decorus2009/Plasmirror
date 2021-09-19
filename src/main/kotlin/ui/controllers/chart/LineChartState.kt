@@ -1,9 +1,9 @@
 package ui.controllers.chart
 
 import core.optics.toEnergy
-import core.state.ExternalData
 import core.state.activeState
-import core.util.importComplexData
+import core.state.data.ExternalData
+import core.util.importMaybeComplexData
 import javafx.scene.chart.XYChart
 import ui.controllers.chart.LineChartState.SeriesType.COMPUTED
 import java.io.File
@@ -86,9 +86,9 @@ object LineChartState {
 //  }
   }
 
-  fun File.importIntoChartState() = importComplexData().let {
-    activeState().addExternalData(it)
-    it.importIntoChartState()
+  fun File.importIntoChartState() = importMaybeComplexData().let { externalData ->
+    activeState().addExternalData(externalData)
+    externalData.importIntoChartState()
   }
 
   fun ExternalData.importIntoChartState() {
@@ -104,8 +104,18 @@ object LineChartState {
     }
 
     imported += LineChartSeries(
-      ExtendedSeries(seriesReal, type = SeriesType.IMPORTED),
-      ExtendedSeries(seriesImaginary, type = SeriesType.IMPORTED)
+      ExtendedSeries(
+        seriesReal,
+        type = SeriesType.IMPORTED,
+        previousXAxisFactor = xAxisFactor,
+        previousYAxisFactor = yAxisFactor
+      ),
+      ExtendedSeries(
+        seriesImaginary,
+        type = SeriesType.IMPORTED,
+        previousXAxisFactor = xAxisFactor,
+        previousYAxisFactor = yAxisFactor
+      )
     )
   }
 

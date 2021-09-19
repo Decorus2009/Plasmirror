@@ -7,7 +7,7 @@ import javafx.scene.control.TextField
 class TemperatureController {
   @FXML
   fun initialize() {
-    println("Temperature controller init")
+    println("#Temperature controller init")
     temperatureTextField.text = activeState().temperature().toString()
   }
 

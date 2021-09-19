@@ -1,6 +1,6 @@
 package core.math
 
-import core.structure.util.DescriptionParameters
+import core.structure.parser.DescriptionParameters
 import core.validators.fail
 import org.mariuszgromada.math.mxparser.*
 import org.mariuszgromada.math.mxparser.Function

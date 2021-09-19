@@ -32,7 +32,7 @@ import java.util.*
 class LineChartController {
   @FXML
   fun initialize() {
-    println("Line chart controller init")
+    println("#Line chart controller init")
 
     /* init number formatters for axises' values */
     xAxis.tickLabelFormatter = object : StringConverter<Number>() {

@@ -2,12 +2,15 @@ package core.state
 
 import core.math.Complex
 import core.optics.Mode
+import core.state.data.ExternalData
+import core.state.view.ViewState
 import core.util.normalized
 import rootController
 
 data class State(
   val id: StateId,
   val computationState: ComputationState,
+  val viewState: ViewState,
   val externalData: MutableSet<ExternalData>,
   var active: Boolean
 ) {
@@ -76,9 +79,17 @@ data class State(
   /**
    * Reads values from UI via controllers and updates the active state
    */
-  private fun updateFromUI() = computationState.updateFromUI()
+  private fun updateFromUI() {
+    computationState.updateFromUI()
+    viewState.updateFromUI()
+    externalData.forEach { it.updateFromUI() }
+  }
 
-  private fun updateUI() = computationState.updateUI()
+  private fun updateUI() {
+    computationState.updateUI()
+    viewState.updateUI()
+    externalData.forEach { it.updateUI() }
+  }
 
   /**
    * Generates a sequence of computation wavelengths

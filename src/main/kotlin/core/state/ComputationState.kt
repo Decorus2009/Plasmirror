@@ -2,6 +2,7 @@ package core.state
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import core.Mirror
+import core.state.data.Data
 import core.validators.StructureDescriptionValidator
 import rootController
 
@@ -16,8 +17,8 @@ data class ComputationState(
   val opticalParams: OpticalParams,
   val mirror: Mirror,
   val textDescriptions: MutableMap<String, String>
-) {
-  fun updateFromUI() {
+) : StateComponent {
+  override fun updateFromUI() {
     range.updateFromUI()
     opticalParams.updateFromUI()
     updateStructureDescription(
@@ -27,7 +28,7 @@ data class ComputationState(
     mirror.updateVia(opticalParams, currentStructureTextDescription())
   }
 
-  fun updateUI() {
+  override fun updateUI() {
     range.updateUI()
     opticalParams.updateUI()
     // TODO need maybe update structure description per mode

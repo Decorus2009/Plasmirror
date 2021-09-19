@@ -1,23 +1,31 @@
 package core.util
 
 import core.optics.Mode
-import core.state.*
+import core.state.activeState
+import core.state.data.Data
+import core.state.data.ExternalData
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.*
 import java.util.*
 
 object KnownPaths {
-  val config = "data${sep}internal${sep}state${sep}config.json"
-  val export = "data${sep}for_export"
-  val import = "data${sep}for_import"
-  val permittivitySbCardonaAdachi = "data${sep}internal${sep}interpolations${sep}eps_Sb_Cardona_Adachi.txt"
+  private val internalDir = "data${sep}internal"
+
+  val config = "$internalDir${sep}state${sep}config.json"
+  val permittivitySbCardonaAdachi = "$internalDir${sep}interpolations${sep}eps_Sb_Cardona_Adachi.txt"
+  val permittivityBiOrthogonalAdachi = "$internalDir${sep}interpolations${sep}eps_Bi_E_orthogonal_c_axis_Adachi.txt"
+  val permittivityBiParallelAdachi = "$internalDir${sep}interpolations${sep}eps_Bi_E_parallel_c_axis_Adachi.txt"
+
   val help = "data${sep}help.txt"
+
+  val exportDir = "data${sep}for_export"
+  val importDir = "data${sep}for_import"
+  val externalDispersionsDir = "$internalDir${sep}external_dispersions"
 }
 
 val sep: String = File.separator
 
-fun String.requireFile(): File = File(this).also {
+fun String.requireFile() = File(this).also {
   if (!it.exists()) {
     error("Missing or inaccessible file $this")
   }
@@ -27,9 +35,9 @@ fun String.writeTo(path: String) = writeTo(path.requireFile())
 
 fun String.writeTo(file: File) = file.writeText(this)
 
-fun String.importComplexData() = requireFile().importComplexData()
+fun String.importMaybeComplexData() = requireFile().importMaybeComplexData()
 
-fun File.importComplexData() = ExternalData(name, readThreeColumns())
+fun File.importMaybeComplexData() = ExternalData(name, readTwoOrThreeColumns())
 
 fun writeComputedDataTo(file: File) {
   val activeState = activeState()
@@ -64,7 +72,7 @@ private fun readFileWithTwoColumns(file: File): Pair<List<Double>, List<Double>>
   )
 }
 
-private fun File.readThreeColumns() = readAndMapEachLineTo {
+private fun File.readTwoOrThreeColumns() = readAndMapEachLineTo {
   Triple(safeDouble(), safeDouble(), safeDouble())
 }.let { tokenizedLines ->
   Data(
@@ -76,10 +84,15 @@ private fun File.readThreeColumns() = readAndMapEachLineTo {
 
 private fun <T> File.readAndMapEachLineTo(mapper: Scanner.() -> T) = readLines()
   .asSequence()
-  .filter { line -> !line.isBlank() && line.startsWithDigit() }
+  .filter { line -> line.isNotBlank() && line.startsWithDigit() }
   .map { it.replaceCommas() }
-  .map { Scanner(it).useLocale(Locale.ENGLISH).mapper() }
+  .map { Scanner(it).useLocale(Locale.ROOT).mapper() }
   .toList()
+  .also {
+    if (it.isEmpty()) {
+      throw IllegalStateException("Empty file")
+    }
+  }
 
 private fun <A, B, C, D, E> Triple<A, B, C>.map(firstMapper: (A) -> D, secondMapper: (B, C) -> E) =
   Pair(
@@ -117,9 +130,20 @@ fun exportFileName() = with(activeState()) {
   }.toString()
 }
 
-fun exportPath() = if (Files.isDirectory(Paths.get(KnownPaths.export))) {
-  KnownPaths.export
+fun importPath() = safePath(KnownPaths.importDir)
+
+fun exportPath() = safePath(KnownPaths.exportDir)
+
+private fun safePath(path: String) = if (Files.isDirectory(Paths.get(path))) {
+  path
 } else {
-  // use current directory as a fallback if export directory is not found in a filesystem
-  Paths.get("").toAbsolutePath().toString()
+  // use current directory as a fallback if path directory is not found in a filesystem
+  Paths.get(".").toAbsolutePath().toString()
 }
+
+fun File.copy(newPath: String) = Files.copy(toPath(), Paths.get(newPath), StandardCopyOption.REPLACE_EXISTING)
+
+/**
+ * Replaces file if one already exists
+ */
+fun String.removeExtension() = substring(0, indexOfLast { it == '.' })

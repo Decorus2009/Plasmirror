@@ -1,11 +1,11 @@
 package ui.controllers.chart
 
+import core.util.normalizeNumericText
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control.TextField
 import javafx.util.converter.NumberStringConverter
 import ui.controllers.MainController
-import java.util.*
 
 class XAxisRangeController {
   /**
@@ -21,14 +21,16 @@ class XAxisRangeController {
    */
   @FXML
   fun initialize() = Platform.runLater {
+    println("#XAxis range controller init")
+
     with(mainController.lineChartController.xAxis) {
-      val converter = NumberStringConverter(Locale.ROOT)
+      val converter = NumberStringConverter()
       with(fromTextField) {
         text = lowerBound.toString()
         textProperty().bindBidirectional(lowerBoundProperty(), converter)
         textProperty().addListener { _, _, newValue ->
           try {
-            lowerBound = newValue.toDouble()
+            lowerBound = newValue.normalizeNumericText().toDouble()
           } catch (ignored: NumberFormatException) {
           }
         }
@@ -38,7 +40,7 @@ class XAxisRangeController {
         textProperty().bindBidirectional(upperBoundProperty(), converter)
         textProperty().addListener { _, _, newValue ->
           try {
-            upperBound = newValue.toDouble()
+            upperBound = newValue.normalizeNumericText().toDouble()
           } catch (ignored: NumberFormatException) {
           }
         }
@@ -48,12 +50,24 @@ class XAxisRangeController {
         textProperty().bindBidirectional(tickUnitProperty(), converter)
         textProperty().addListener { _, _, newValue ->
           try {
-            tickUnit = newValue.toDouble()
+            tickUnit = newValue.normalizeNumericText().toDouble()
           } catch (ignored: NumberFormatException) {
           }
         }
       }
     }
+  }
+
+  fun values() = Triple(
+    fromTextField.text.normalizeNumericText(),
+    toTextField.text.normalizeNumericText(),
+    tickTextField.text.normalizeNumericText()
+  )
+
+  fun setValues(start: Double, end: Double, tick: Double) {
+    fromTextField.text = start.toString()
+    toTextField.text = end.toString()
+    tickTextField.text = tick.toString()
   }
 
   lateinit var mainController: MainController

@@ -26,3 +26,5 @@ class StructureDescriptionException(
 fun StateException.toExportValidationException() = ExportValidationException(headerMessage, contentMessage, cause)
 
 fun fail(message: String, cause: Throwable? = null): Nothing = throw StructureDescriptionException(message, cause)
+
+fun jsonFail(message: String, cause: Throwable? = null): Nothing = throw StateException(headerMessage = "State reading error", message, cause)

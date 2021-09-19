@@ -64,3 +64,34 @@ fun withClock(block: () -> Unit): Double {
   block()
   return (System.nanoTime() - start).toDouble() / 1E6
 }
+
+fun buildValuesTable(x: List<Double>, yReal: List<Double>, yImaginary: List<Double> = emptyList()): String {
+  val columnSeparator = "\t"
+
+  return StringBuilder().apply {
+    append("x")
+    when {
+      yImaginary.isEmpty() -> {
+        append(String.format(Locale.US, "%16s", "y"))
+      }
+      else -> {
+        append(String.format(Locale.US, "%20s", "yReal"))
+        append(columnSeparator)
+        append(String.format(Locale.US, "%18s", "yImaginary"))
+      }
+    }
+    appendLine()
+
+    x.forEachIndexed { idx, xValue ->
+      append(String.format(Locale.US, "%.8f", xValue))
+      append(columnSeparator)
+      append(String.format(Locale.US, "%.8f", yReal[idx]))
+
+      if (yImaginary.isNotEmpty()) {
+        append(columnSeparator)
+        append(String.format(Locale.US, "%.8f", yImaginary[idx]))
+      }
+      appendLine()
+    }
+  }.toString()
+}

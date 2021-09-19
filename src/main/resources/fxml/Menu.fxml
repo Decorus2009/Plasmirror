@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
-<?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.StackPane?>
-
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controllers.MenuController">
   <children>
     <AnchorPane prefHeight="200.0" prefWidth="200.0">
@@ -14,15 +10,26 @@
           <menus>
             <Menu mnemonicParsing="false" text="File">
               <items>
-                <MenuItem fx:id="importMenuItem" mnemonicParsing="false" text="Import" />
-                <MenuItem fx:id="importMultipleMenuItem" mnemonicParsing="false" text="Import Multiple" />
-                <MenuItem fx:id="exportMenuItem" mnemonicParsing="false" text="Export" />
-                <MenuItem fx:id="exportMultipleMenuItem" mnemonicParsing="false" text="Export Multiple" />
+                        <Menu mnemonicParsing="false" text="Import">
+                           <items>
+                      <MenuItem fx:id="importDataMenuItem" mnemonicParsing="false" text="Spectrum" />
+                      <MenuItem fx:id="importMultipleDataMenuItem" mnemonicParsing="false" text="Multiple Spectra" />
+                              <MenuItem fx:id="importPermittivityDispersionMenuItem" mnemonicParsing="false" text="Permittivity Dispersion" />
+                              <MenuItem fx:id="importRefractiveIndexDispersionMenuItem" mnemonicParsing="false" text="Refractive Index Dispersion" />
+                           </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="Export">
+                          <items>
+                      <MenuItem fx:id="exportComputedDataMenuItem" mnemonicParsing="false" text="Computed Data" />
+                      <MenuItem fx:id="exportMultipleComputedDataMenuItem" mnemonicParsing="false" text="Multiple Computed Data..." />
+                          </items>
+                        </Menu>
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Tools">
               <items>
-                <MenuItem fx:id="expressionsEvaluatorMenuItem" mnemonicParsing="false" text="Expressions Evaluator" />
+                <MenuItem fx:id="expressionsEvaluatorMenuItem" mnemonicParsing="false" text="Expressions Evaluator..." />
+                        <MenuItem fx:id="externalDispersionsMenuItem" mnemonicParsing="false" text="External Dispersions..." />
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">

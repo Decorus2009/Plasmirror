@@ -9,7 +9,7 @@ import rootController
 class RootController {
   @FXML
   fun initialize() {
-    println("Root controller init")
+    println("#Root controller init")
     /**
      * mainController is "lateinit" due to it's initialized through the reflectance (@FXML)
      * before the root controller initialization

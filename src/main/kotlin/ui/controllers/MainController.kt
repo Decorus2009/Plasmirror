@@ -8,7 +8,7 @@ import ui.controllers.state.StructureDescriptionController
 class MainController {
   @FXML
   fun initialize() {
-    println("Main controller init")
+    println("#Main controller init")
     opticalParamsController.mainController = this
     controlsController.mainController = this
     lineChartController.mainController = this
@@ -32,10 +32,10 @@ class MainController {
   lateinit var controlsController: ControlsController
 
   @FXML
-  private lateinit var xAxisRangeController: XAxisRangeController
+  lateinit var xAxisRangeController: XAxisRangeController
 
   @FXML
-  private lateinit var yAxisRangeController: YAxisRangeController
+  lateinit var yAxisRangeController: YAxisRangeController
 
   @FXML
   lateinit var seriesManagerController: SeriesManagerController

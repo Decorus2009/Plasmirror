@@ -12,7 +12,7 @@ import java.io.File
 class MultipleExportDialogController {
   @FXML
   fun initialize() {
-    println("multiple export dialog controller init")
+    println("#Multiple export dialog controller init")
 
     initOpticalParamsHandlers()
     initAngleRBHandler()

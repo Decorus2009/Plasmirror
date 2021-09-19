@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.chart.LineChart?>
-<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.*?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
-<?import javafx.scene.layout.RowConstraints?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.text.Font?>
-
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
 <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0"
             prefWidth="600.0" xmlns="http://javafx.com/javafx/10.0.1" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="ui.controllers.chart.LineChartController">
@@ -26,16 +20,16 @@
                            animated="true" horizontalGridLinesVisible="true" legendVisible="false" prefHeight="400.0"
                            prefWidth="600.0" style="-fx-pref-width: 10;">
                   <xAxis>
-                    <NumberAxis autoRanging="false" label="X" lowerBound="600.0" minorTickCount="4" prefWidth="524.0"
-                                tickUnit="100.0" upperBound="1000.0" fx:id="xAxis">
+                    <NumberAxis autoRanging="false" label="X" lowerBound="1" minorTickCount="4" prefWidth="524.0"
+                                tickUnit="1" upperBound="10" fx:id="xAxis">
                       <tickLabelFont>
                         <Font size="13.0"/>
                       </tickLabelFont>
                     </NumberAxis>
                   </xAxis>
                   <yAxis>
-                    <NumberAxis fx:id="yAxis" autoRanging="false" label="Y" minorTickCount="2" tickUnit="0.1"
-                                upperBound="1.0">
+                    <NumberAxis fx:id="yAxis" autoRanging="false" label="Y" minorTickCount="2"
+                                lowerBound="1" tickUnit="1" upperBound="10">
                       <tickLabelFont>
                         <Font size="13.0"/>
                       </tickLabelFont>

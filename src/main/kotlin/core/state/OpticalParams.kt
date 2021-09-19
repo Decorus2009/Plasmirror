@@ -11,8 +11,8 @@ data class OpticalParams(
   var polarization: Polarization,
   var leftMedium: Medium,
   var rightMedium: Medium
-) {
-  fun updateFromUI() {
+) : StateComponent {
+  override fun updateFromUI() {
     updateModeFromUI()
     updateTemperatureFromUI()
     updateAngleFromUI()
@@ -21,7 +21,7 @@ data class OpticalParams(
     updateRightMediumFromUI()
   }
 
-  fun updateUI() {
+  override fun updateUI() {
     updateUIMode()
     updateUITemperature()
     updateUIAngle()

@@ -6,7 +6,7 @@ import ui.controllers.MainController
 class OpticalParamsController {
   @FXML
   fun initialize() {
-    println("Optical params controller init")
+    println("#Optical params controller init")
     modeController.opticalParamsController = this
     computationRangeController.opticalParamsController = this
   }

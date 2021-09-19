@@ -1,16 +1,16 @@
 package core
 
-import core.layer.materials.ConstPermittivityLayer
-import core.layer.materials.Layer
-import core.layer.materials.composite.Mie
+import core.layer.Layer
+import core.layer.composite.Mie
+import core.layer.material.ConstPermittivityLayer
 import core.math.Complex
 import core.math.TransferMatrix
 import core.optics.*
 import core.optics.Polarization.P
 import core.optics.Polarization.S
 import core.state.OpticalParams
-import core.structure.Structure
-import core.structure.buildStructure
+import core.structure.builder.Structure
+import core.structure.builder.buildStructure
 import org.apache.commons.math3.complex.Complex.NaN
 import statesManager
 import kotlin.Double.Companion.POSITIVE_INFINITY

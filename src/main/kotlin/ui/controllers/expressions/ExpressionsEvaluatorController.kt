@@ -4,8 +4,7 @@ package ui.controllers.expressions
 
 import core.math.ExpressionEvaluator
 import core.math.RangeEvaluationData
-import core.util.removeMultiLineComments
-import core.util.removeSingleLineComments
+import core.util.*
 import javafx.fxml.FXML
 import javafx.scene.chart.*
 import javafx.scene.control.*
@@ -121,7 +120,7 @@ class ExpressionsEvaluatorController {
         }
         .also { data ->
           addSeriesToChart(x, data)
-          valuesTable.text = buildValuesTable(x, data)
+          valuesTable.text = buildValuesTable(x, data.yReal, data.yImaginary)
         }
     }.also {
       computationTimeLabel.text = "Computation time: ${String.format(Locale.US, "%.2f", it)}ms"
@@ -217,7 +216,7 @@ class ExpressionsEvaluatorController {
   }
 
   private fun initHelp() = helpButton.setOnMouseClicked {
-    showWindow(fxmlPath = "fxml/help/ExpressionsHelp.fxml", titleToShow = "Expressions Help")
+    showWindow(fxmlPath = "fxml${sep}help${sep}ExpressionsHelp.fxml", titleToShow = "Expressions Help")
   }
 
   private fun seriesData(values: List<Pair<Double, Double>>) = values.indices.map {
@@ -286,34 +285,3 @@ private data class ChunkDescriptor(val id: Int, val values: List<Double>)
  * LineChart cannot render a curve if NaN values are present
  */
 private fun removeNaNs(x: List<Double>, y: List<Double>) = x.zip(y).filterNot { it.second.isNaN() }
-
-private fun buildValuesTable(x: List<Double>, rangeEvaluationData: RangeEvaluationData): String {
-  val columnSeparator = "\t"
-
-  return StringBuilder().apply {
-    append("x")
-    when {
-      rangeEvaluationData.yImaginary.isEmpty() -> {
-        append(String.format(Locale.US, "%16s", "y"))
-      }
-      else -> {
-        append(String.format(Locale.US, "%20s", "yReal"))
-        append(columnSeparator)
-        append(String.format(Locale.US, "%18s", "yImaginary"))
-      }
-    }
-    appendLine()
-
-    x.forEachIndexed { idx, xValue ->
-      append(String.format(Locale.US, "%.8f", xValue))
-      append(columnSeparator)
-      append(String.format(Locale.US, "%.8f", rangeEvaluationData.yReal[idx]))
-
-      if (rangeEvaluationData.yImaginary.isNotEmpty()) {
-        append(columnSeparator)
-        append(String.format(Locale.US, "%.8f", rangeEvaluationData.yImaginary[idx]))
-      }
-      appendLine()
-    }
-  }.toString()
-}

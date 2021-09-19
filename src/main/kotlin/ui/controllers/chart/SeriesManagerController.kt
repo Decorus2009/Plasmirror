@@ -33,6 +33,7 @@ class SeriesManagerController {
     }
 
     yAxisFactorTextField.textProperty().addListener { _, _, newValue ->
+      println("NEW VALUE: $newValue")
       try {
         val newFactor = newValue.toDouble()
         /* 0.0 as the value of the previous newFactor will be remembered and will break the scaling */
@@ -97,6 +98,18 @@ class SeriesManagerController {
     disable(colorPicker)
     disable(visibleCheckBox)
     disable(removeButton)
+  }
+
+  fun xAxisFactorText() = xAxisFactorTextField.text
+
+  fun setXAxisFactorText(value: String) {
+    xAxisFactorTextField.text = value
+  }
+
+  fun yAxisFactorText() = yAxisFactorTextField.text
+
+  fun setYAxisFactorText(value: String) {
+    yAxisFactorTextField.text = value
   }
 
   lateinit var mainController: MainController

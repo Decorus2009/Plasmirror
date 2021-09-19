@@ -1,7 +1,7 @@
 package ui.controllers
 
 import core.state.activeState
-import core.state.saveStates
+import core.state.saveConfig
 import core.validators.StateException
 import core.validators.StructureDescriptionException
 import javafx.fxml.FXML
@@ -17,7 +17,7 @@ class ControlsController {
       try {
         activeState().prepare()
         withClock { activeState().compute() }.also { showComputationTime(it) }
-        saveStates()
+        saveConfig()
         /*
         this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
         (including rootController)
