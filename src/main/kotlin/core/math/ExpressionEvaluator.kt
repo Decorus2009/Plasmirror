@@ -1,6 +1,6 @@
 package core.math
 
-import core.structure.parser.DescriptionParameters
+import core.structure.description.DescriptionParameters
 import core.validators.fail
 import org.mariuszgromada.math.mxparser.*
 import org.mariuszgromada.math.mxparser.Function
@@ -27,15 +27,15 @@ class ExpressionEvaluator(private val expr: String) {
 
   /**
    * '@val@', '@fun@' and '@return@' came from [core.structure.StructureInitializerKt.json] method which surrounded these
-   * keywords with @ in order to keep expression correct before removing all whitespaces and line-breaks
+   * keywords with '@' in order to keep expression correct before removing all whitespaces and line-breaks
    */
   fun prepare() {
     clearState()
     previousArguments += xArgument
 
     expr
-      .replace(DescriptionParameters.exprRightKWBoundary, " ")
-      .replace(DescriptionParameters.exprLeftKWBoundary, System.lineSeparator())
+      .replace(DescriptionParameters.exprRightKwBoundary, " ")
+      .replace(DescriptionParameters.exprLeftKwBoundary, System.lineSeparator())
       .split(System.lineSeparator(), "\n")
       .asSequence()
       .map { it.trim() }

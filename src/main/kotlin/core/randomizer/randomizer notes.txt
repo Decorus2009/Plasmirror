@@ -1,0 +1,91 @@
+отдельное окно:
+1. Описание структуры, содержащее слой с варьируемым параметром (особый синтаксис, см. ниже)
+2. Формы для ввода:
+    равновесного (среднего) значения параметра
+    дисперсии
+    числа циклов, итераций (~1000)
+    выбор директории для сохранения всех файлов (это м/замедлить процесс из-за записи на диск, мб лучше хранить в памяти и накапливать сумму?)
+    progress bar
+3. Синтаксис: как в обычном описании структуры, за исключением варьируемого параметра
+    e.g.: material: GaAs, eps: adachi_simple, df: 0.0, d: var;
+    e.g.: x10
+          type: excitonic,
+          medium: { material: custom, eps: (6.7599, 0) },
+          exciton: { w0: 3.18, G0: 0.00025, G: __var__, wb: 3.205, Gb: 0.027, B: 1000000, C: (0, 0) }, // G: var
+          d: 2.2;
+          material: custom, d: 76.3, eps: {
+                              fun f(q)=5.1529+(92842.09/(q*q-86436))
+                              return (f(x), 0)
+                          };
+
+          этот пример надо интерпретировать, как 10 РАЗНЫХ слоев, каждый из которых содержит какое-то свое значение G
+
+    Proposals: var, _var_, __var__, $var
+
+4. Структура иммутабельна (создается на основе structure description один раз перед compute) и содержит список иммутабельных
+блоков, каждый из которых сожержит список иммутабельных слоев. Такой подход неприменим для рандомайзера, т.к. необходимо
+периодически изменять/варьировать какой-то один параметр слоя (толщину, экситонный параметр и т.д.)
+
+Proposal:
+    создать общий интерфейс IStructure и ILayer:
+    class Structure : IStructure
+    class MutableStructure : IStructure
+
+    interface Layer : ILayer
+    interface MutableLayer : ILayer
+
+    class Block(val repeat: Int, val layers: List<Layer>) -> class Block(val repeat: Int = 1, val layers: List<ILayer>)
+    repeat тут не должен участвовать в расчете (д/б равным 1), layers же должен содержать честный полный список КОРТЕЖЕЙ слоев
+        e.g.: x3
+              material: GaAs, eps: adachi_simple, df: 0.0, d: var;
+              material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
+              ===============>
+              material: GaAs, eps: adachi_simple, df: 0.0, d: var;
+              material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
+              ------------
+              material: GaAs, eps: adachi_simple, df: 0.0, d: var;
+              material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
+              ------------
+              material: GaAs, eps: adachi_simple, df: 0.0, d: var;
+              material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
+
+    можно создать адаптер, который из обычного класса Block с каким-то repeat (x3) сделает Block c repeat == 1 и
+    развернутым (flatten) списком повторяющихся кортежей слоев
+    (в примере выше это набор из 3х пар слоев, т.е. всего 6 элементов в списке)
+
+
+NOTES:
+Mutable layers
+Mutable particles
+
+
+
+QUESTIONS:
+1. Как понять, какой параметр должен варьироваться, если работаем с интерфейсом MutableLayer? Т.е. перед compute
+activeState должен каждый раз немного меняться за счет рандомизированных малых отклонений выбранного параметра в КАЖДОМ слое в Block.
+В одном случае это м/б толщина (общий параметр), в другом - специфичный экситонный параметр,
+о котором MutableLayer ничего не знает.
+Как вынести знание о варьируемом параметре на уровни, MutableLayer, Block, MutableStructure?
+(как-то вкрутить рефлекшн?)
+
+2. На каждый обычный layer нужно создать его Mutable* вариант?
+
+
+
+interface MutableLayer {
+    getVariableParameter(): VarParameter
+}
+
+data class MutableGaAs(
+  override val d: VarParameter,
+  val dampingFactor: VarParameter
+  val permittivityModel: AdachiBasedPermittivityModel
+) : MutableLayer(d, dampingFactor, cAl = 0.0, permittivityModel)
+
+data class VarParameter(var parameter: Double, var isVariable: Boolean)
+
+isVariable - флаг, который говорит, что в данном расчете именно этот параметр является варьируемым
+(у экситона, например, может быть несколько подходящих пар-ов, из которых только 1 м/б варьируемым в текущем расчете)
+
+3. Как быть с комплексными числами?
+

@@ -46,7 +46,7 @@ object ComputationRangeValidator {
   private fun validateComputationEnd(startValue: Double, endValue: Double) {
     if (endValue < startValue) throw StateException(
       headerMessage = "Computation range error",
-      contentMessage = "Incorrect computation range. Start: $startValue, end: $endValue. End cannot be less than start"
+      contentMessage = "Incorrect computation range. start: $startValue, end: $endValue. End cannot be less than start"
     )
   }
 

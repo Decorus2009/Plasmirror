@@ -2,24 +2,37 @@ package core.util
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
+import core.layer.mutable.DoubleVarParameter
 import core.math.*
 import core.state.mapper
+import core.structure.description.DescriptionParameters
 import core.validators.jsonFail
 
 
 fun JsonNode.requireInt(field: String) = requireNode(field).requireInt()
 fun JsonNode.requireIntOrNull(field: String) = requireNodeOrNull(field)?.requireIntOrNull()
+
 fun JsonNode.requireNonNegativeInt(field: String) = requireInt(field).also { it.checkIsNonNegative(field) }
 fun JsonNode.requirePositiveInt(field: String) = requireInt(field).also { it.checkIsPositive(field) }
 fun JsonNode.requirePositiveIntOrNull(field: String) = requireIntOrNull(field)?.also { it.checkIsPositive(field) }
 
+/** -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- **/
 fun JsonNode.requireDouble(field: String) = requireNode(field).requireDouble()
 fun JsonNode.requireDoubleOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleOrNull()
+
+fun JsonNode.requireDoubleVarParameter(field: String) = requireNode(field).requireDoubleVarParameter()
+fun JsonNode.requireDoubleVarParameterOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleVarParameterOrNull()
+fun JsonNode.requireNonNegativeDoubleVarParameter(field: String) = requireDoubleVarParameter(field).also {
+  if (!it.isVariable) it.value!!.checkIsNonNegative(field)
+}
+
 fun JsonNode.requireNonNegativeDouble(field: String) = requireDouble(field).also { it.checkIsNonNegative(field) }
 fun JsonNode.requirePositiveDoubleOrNull(field: String) = requireDoubleOrNull(field)?.also { it.checkIsPositive(field) }
 
+/** -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- **/
 fun JsonNode.requireComplex(field: String) = requireNode(field).requireComplex()
 
+/** -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- **/
 fun JsonNode.requireText(field: String) = requireNode(field).requireText()
 fun JsonNode.requireTextOrNull(field: String) = requireNodeOrNull(field)?.requireTextOrNull()
 
@@ -35,7 +48,8 @@ fun JsonNode.requireIntOrNull() = when {
   else -> jsonFail(message = "Cannot read integer value in node \"$this\"")
 }
 
-fun JsonNode.requireDouble() = requireDoubleOrNull() ?: jsonFail(message = "Cannot read floating point value in node \"$this\"")
+fun JsonNode.requireDouble() = requireDoubleOrNull()
+  ?: jsonFail(message = "Cannot read floating point value in node \"$this\"")
 
 fun JsonNode.requireDoubleOrNull() = when {
   isNumber -> asDouble()
@@ -44,11 +58,30 @@ fun JsonNode.requireDoubleOrNull() = when {
   else -> jsonFail(message = "Cannot read floating point value in node \"$this\"")
 }
 
+fun JsonNode.requireDoubleVarParameter() = requireDoubleVarParameterOrNull()
+  ?: jsonFail(message = "Cannot read double or var value in node \"$this\"")
+
+fun JsonNode.requireDoubleVarParameterOrNull() = when {
+  isNumber -> DoubleVarParameter.constant(asDouble())
+  isTextual -> {
+    val text = asText()
+
+    when {
+      text.toDoubleOrNull() != null -> DoubleVarParameter.constant(text.toDouble())
+      text == DescriptionParameters.varExprKw -> DoubleVarParameter.variable()
+      else -> jsonFail(message = "Cannot read double or var value in text node \"$this\"")
+    }
+  }
+  isNullOrMissing -> null
+  else -> jsonFail(message = "Cannot read double or var value in node \"$this\"")
+}
+
 /**
  * Try to read a double value first,
  * then try to read a complex number from string with predefined format: "('floating point value', 'floating point value')"
  */
-fun JsonNode.requireComplex() = requireComplexOrNull() ?: jsonFail(message = "Cannot read complex number value in node \"$this\"")
+fun JsonNode.requireComplex() = requireComplexOrNull()
+  ?: jsonFail(message = "Cannot read complex number value in node \"$this\"")
 
 fun JsonNode.requireComplexOrNull(): Complex? {
   val text = requireTextOrNull() ?: return null

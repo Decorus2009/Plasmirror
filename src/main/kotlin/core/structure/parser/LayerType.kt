@@ -1,5 +1,6 @@
 package core.structure.parser
 
+// TODO what's the point? replace with enum? 
 sealed class LayerType(open val descriptor: String) {
   sealed class Material(override val descriptor: String) : LayerType(descriptor) {
     object GaAs : Material(GAAS)
@@ -29,6 +30,7 @@ sealed class LayerType(open val descriptor: String) {
   class UserDefined(override val descriptor: String = USER_DEFINED, val name: String) : LayerType(descriptor)
 }
 
+// TODO not used
 sealed class ParticlesType(open val descriptor: String) {
   object Drude : ParticlesType(DRUDE)
   object DrudeLorentz : ParticlesType(DRUDE_LORENTZ)

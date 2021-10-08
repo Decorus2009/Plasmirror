@@ -2,9 +2,9 @@ package core.validators
 
 import com.fasterxml.jackson.core.JsonParseException
 import com.fasterxml.jackson.databind.JsonNode
-import core.structure.builder.*
-import core.structure.parser.asArray
-import core.structure.parser.json
+import core.structure.*
+import core.structure.description.asArray
+import core.structure.description.json
 
 object StructureDescriptionValidator {
   fun validate(description: String) {
