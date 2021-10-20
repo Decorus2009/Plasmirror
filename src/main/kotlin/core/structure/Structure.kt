@@ -1,11 +1,5 @@
 package core.structure
 
-//interface IStructure
-
-//data class MutableStructure(val blocks: List<MutableBlock>) {
-//
-//}
-
 data class Structure(val blocks: List<Block>) : Copyable<Structure> {
   companion object {
     fun empty() = Structure(blocks = emptyList())
@@ -45,7 +39,7 @@ data class Structure(val blocks: List<Block>) : Copyable<Structure> {
     }
   }
 
-  override fun copy() = Structure(blocks.map { it.copy() })
+  override fun deepCopy() = Structure(blocks.map { it.deepCopy() })
 }
 
 

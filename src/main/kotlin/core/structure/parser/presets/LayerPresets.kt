@@ -2,11 +2,11 @@ package core.structure.parser.presets
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
-import core.layer.immutable.AbstractLayer
-import core.layer.immutable.composite.*
-import core.layer.immutable.material.*
-import core.layer.immutable.material.excitonic.Excitonic
-import core.layer.immutable.particles.*
+import core.structure.layer.immutable.AbstractLayer
+import core.structure.layer.immutable.composite.*
+import core.structure.layer.immutable.material.*
+import core.structure.layer.immutable.material.excitonic.Excitonic
+import core.structure.layer.immutable.particles.*
 import core.optics.ExternalDispersionsContainer
 import core.structure.description.DescriptionParameters
 import core.structure.parser.*
@@ -32,7 +32,7 @@ fun JsonNode.AlGaAsSb(d: Double) = AlGaAsSb(
   cAs = requireNonNegativeDouble(DescriptionParameters.cAs) // TODO PLSMR-0002 VarParameter candidate
 )
 
-fun GaN(d: Double) = core.layer.immutable.material.GaN(
+fun GaN(d: Double) = core.structure.layer.immutable.material.GaN(
   d = d
 )
 

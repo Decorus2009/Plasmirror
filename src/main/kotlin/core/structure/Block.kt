@@ -1,7 +1,6 @@
 package core.structure
 
-import core.layer.ILayer
-import core.layer.mutable.AbstractMutableLayer
+import core.structure.layer.ILayer
 
 //interface Block {
 //  fun layers(): List<ILayer>
@@ -34,5 +33,5 @@ data class Block(val repeat: Int, val layers: List<ILayer>) : Copyable<Block> {
     return Block(repeat = 1, layers = allLayers)
   }
 
-  override fun copy() = Block(repeat, layers.map { it.copy() })
+  override fun deepCopy() = Block(repeat, layers.map { it.deepCopy() })
 }

@@ -1,8 +1,7 @@
-package core.layer.immutable.composite
+package core.structure.layer.immutable.composite
 
-import core.layer.ILayer
-import core.layer.immutable.AbstractLayer
-import core.layer.immutable.particles.IParticle
+import core.structure.layer.ILayer
+import core.structure.layer.immutable.particles.IParticle
 import core.math.Complex
 import core.math.TransferMatrix
 import core.optics.Polarization
@@ -33,5 +32,5 @@ data class SpheresLattice(
     }
   }
 
-  override fun copy() = SpheresLattice(d, medium.copy(), particles.copy(), latticeFactor)
+  override fun deepCopy() = SpheresLattice(d, medium.deepCopy(), particles.deepCopy(), latticeFactor)
 }

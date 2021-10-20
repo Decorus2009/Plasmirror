@@ -1,5 +1,7 @@
 package core.util
 
+fun String.removeComments() = removeMultiLineComments().removeSingleLineComments()
+
 fun String.removeSingleLineComments() = replace(Regex("(?s)/\\*.*?\\*/"), "")
 
 /**

@@ -1,7 +1,7 @@
-package core.layer.mutable
+package core.structure.layer.mutable
 
-import core.layer.ILayer
-import core.layer.layerMatrix
+import core.structure.layer.ILayer
+import core.structure.layer.layerMatrix
 import core.optics.Polarization
 
 abstract class AbstractMutableLayer(open val d: DoubleVarParameter) : ILayer {

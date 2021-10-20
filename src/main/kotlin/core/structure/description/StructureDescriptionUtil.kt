@@ -36,6 +36,7 @@ fun String.json() = """{"${DescriptionParameters.structure}":[${
     .removeSpaces()
     .replaceXWithRepeat()
     .addThicknessNodeToMedium()
+    .parseAndQuoteVarParams()
     .quoteExpressions()
     .quoteNumbers()
     .quotePairedWords()
@@ -50,8 +51,6 @@ fun String.asArray() = mapper.readTree(this)
   .also { require(it.isArray) }
   .filterNot { it.isEmpty }
 
-
-private fun String.removeComments() = removeMultiLineComments().removeSingleLineComments()
 
 /** removes all spaces, \n */
 private fun String.removeSpaces() = replace(Regex("\\s+"), "")
@@ -109,3 +108,9 @@ private fun String.quotePairedWords() = replace(Regex("\\b(\\w+)\\b:(\\w+\\.*[0-
 
 /** particles: { -> "particles": { */
 private fun String.quoteWordsBeforeCurlyBraces() = replace(Regex("\\b(\\w+)\\b:\\{"), "\"$1\":{")
+
+/** cAl: var(-3.6E6) -> "cAl": { "var": true, "mean": "-3.6E6" } */
+private fun String.parseAndQuoteVarParams() = replace(
+  Regex("\\b(\\w+)\\b:${DescriptionParameters.varExprKw}\\(([\\w\\W\\s]*?)\\)"),
+  "\"$1\":{\"${DescriptionParameters.varExprKw}\":true,\"${DescriptionParameters.mean}\":\"$2\"}"
+)

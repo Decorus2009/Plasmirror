@@ -1,7 +1,6 @@
-package core.layer.immutable.material
+package core.structure.layer.immutable.material
 
-import core.layer.ILayer
-import core.layer.immutable.AbstractLayer
+import core.structure.layer.immutable.AbstractLayer
 import core.math.Complex
 import core.optics.AdachiBasedPermittivityModel
 import core.optics.material.AlGaAs.AlGaAsAdachiModelWithGaussianBroadening
@@ -51,7 +50,7 @@ data class GaAs(
   val permittivityModel: AdachiBasedPermittivityModel
 ) : AlGaAsBase(d, dampingFactor, cAl = 0.0, permittivityModel) {
 
-  override fun copy() = GaAs(d, dampingFactor, permittivityModel)
+  override fun deepCopy() = GaAs(d, dampingFactor, permittivityModel)
 }
 
 data class AlGaAs(
@@ -61,5 +60,5 @@ data class AlGaAs(
   val permittivityModel: AdachiBasedPermittivityModel
 ) : AlGaAsBase(d, dampingFactor, cAl, permittivityModel) {
 
-  override fun copy() = AlGaAs(d, dampingFactor, cAl, permittivityModel)
+  override fun deepCopy() = AlGaAs(d, dampingFactor, cAl, permittivityModel)
 }

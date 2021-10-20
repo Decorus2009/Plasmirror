@@ -1,7 +1,7 @@
-package core.layer.mutable.material
+package core.structure.layer.mutable.material
 
-import core.layer.mutable.AbstractMutableLayer
-import core.layer.mutable.DoubleVarParameter
+import core.structure.layer.mutable.AbstractMutableLayer
+import core.structure.layer.mutable.DoubleVarParameter
 import core.math.Complex
 import core.optics.AdachiBasedPermittivityModel
 import core.optics.material.AlGaAs.AlGaAsAdachiModelWithGaussianBroadening
@@ -45,14 +45,14 @@ data class MutableGaAs(
   override val d: DoubleVarParameter,
   val dampingFactor: DoubleVarParameter,
   val permittivityModel: AdachiBasedPermittivityModel
-) : MutableAlGaAsBase(d, dampingFactor, cAl = DoubleVarParameter.ZERO, permittivityModel) {
+) : MutableAlGaAsBase(d, dampingFactor, cAl = DoubleVarParameter.constant(0.0), permittivityModel) {
 
   override fun variableParameter() =
     requireDoubleVarParameter(d, dampingFactor, layerName = "GaAs")
 
-  override fun copy() = MutableGaAs(
-    d = d.copy(),
-    dampingFactor = dampingFactor.copy(),
+  override fun deepCopy() = MutableGaAs(
+    d = d.deepCopy(),
+    dampingFactor = dampingFactor.deepCopy(),
     permittivityModel
   )
 }
@@ -67,10 +67,10 @@ data class MutableAlGaAs(
   override fun variableParameter(): DoubleVarParameter =
     requireDoubleVarParameter(d, dampingFactor, cAl, layerName = "AlGaAs")
 
-  override fun copy() = MutableAlGaAs(
-    d = d.copy(),
-    dampingFactor = dampingFactor.copy(),
-    cAl = cAl.copy(),
+  override fun deepCopy() = MutableAlGaAs(
+    d = d.deepCopy(),
+    dampingFactor = dampingFactor.deepCopy(),
+    cAl = cAl.deepCopy(),
     permittivityModel
   )
 }

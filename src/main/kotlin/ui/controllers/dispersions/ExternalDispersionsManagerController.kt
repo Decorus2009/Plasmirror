@@ -21,9 +21,9 @@ class ExternalDispersionsManagerController {
   }
 
   private fun fillDispersionsTable() {
-    ExternalDispersionsContainer.externalDispersions.entries.forEachIndexed { idx, entry ->
+    ExternalDispersionsContainer.externalDispersions.entries.forEachIndexed { index, entry ->
       val type = if (entry.value.isPermittivity) PERMITTIVITY else REFRACTIVE_INDEX
-      dispersionsTable.items.add(ExternalDispersionTableEntry(idx + 1, entry.key, type))
+      dispersionsTable.items.add(ExternalDispersionTableEntry(index + 1, entry.key, type))
     }
   }
 
@@ -54,7 +54,7 @@ class ExternalDispersionsManagerController {
       dispersionsTable.items.remove(entry)
       valuesTable.clear()
 
-      withConfigSaving {
+      savingConfig {
         ExternalDispersionsContainer.removeDispersion(name)
       }
 

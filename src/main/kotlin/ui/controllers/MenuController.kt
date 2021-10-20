@@ -2,7 +2,7 @@ package ui.controllers
 
 import MainApp
 import core.optics.ExternalDispersionsContainer.importExternalDispersion
-import core.state.saveConfig
+import core.state.activeState
 import core.util.*
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
@@ -18,35 +18,69 @@ import java.io.File
 class MenuController {
   @FXML
   fun initialize() {
+    initShortcuts()
+    initImportActionCallbacks()
+    initExportActionCallbacks()
+
+    expressionsEvaluatorMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml${sep}expressions${sep}ExpressionsEvaluator.fxml", titleToShow = "Expressions Evaluator")
+    }
+
+    externalDispersionsMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml${sep}dispersions${sep}ExternalDispersionsManager.fxml", titleToShow = "External Dispersions")
+    }
+
+    randomizationMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml${sep}randomization${sep}Randomization.fxml", titleToShow = "Randomization")
+    }
+
+    helpInfoMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml${sep}help${sep}HelpInfo.fxml", titleToShow = "Help Info")
+    }
+
+    expressionsHelpMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml${sep}help${sep}ExpressionsHelp.fxml", titleToShow = "Expressions Help")
+    }
+  }
+
+  private fun initShortcuts() {
     importDataMenuItem.accelerator = KeyCodeCombination(KeyCode.I, KeyCombination.SHORTCUT_DOWN)
     importMultipleDataMenuItem.accelerator = KeyCodeCombination(KeyCode.I, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
     exportComputedDataMenuItem.accelerator = KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN)
     exportMultipleComputedDataMenuItem.accelerator = KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
+  }
 
+  private fun initImportActionCallbacks() {
     importDataMenuItem.setOnAction {
       initFileChooser(importPath()).showOpenDialog(rootController.mainApp.primaryStage)?.let { file ->
-        chartController().importFrom(file)
+        savingConfig {
+          chartController().importFrom(file)
+        }
       }
     }
 
     importMultipleDataMenuItem.setOnAction {
-      initFileChooser(importPath()).showOpenMultipleDialog(rootController.mainApp.primaryStage)?.let { files ->
-        chartController().importFromMultiple(files)
+      savingConfig {
+        initFileChooser(importPath()).showOpenMultipleDialog(rootController.mainApp.primaryStage)?.let { files ->
+          chartController().importFromMultiple(files)
+        }
       }
     }
 
     importPermittivityDispersionMenuItem.setOnAction {
-      withConfigSaving {
+      savingConfig {
         safeExternalDispersionImport(isPermittivity = true)
       }
     }
 
     importRefractiveIndexDispersionMenuItem.setOnAction {
-      withConfigSaving {
+      savingConfig {
         safeExternalDispersionImport(isPermittivity = false)
       }
     }
+  }
 
+  private fun initExportActionCallbacks() {
     exportComputedDataMenuItem.setOnAction {
       initFileChooser(exportPath())
         .let { chooser ->
@@ -54,7 +88,7 @@ class MenuController {
           chooser.showSaveDialog(rootController.mainApp.primaryStage)
         }
         ?.let { file ->
-          writeComputedDataTo(file)
+          activeState().writeComputedDataTo(file)
         }
     }
 
@@ -76,23 +110,10 @@ class MenuController {
         show()
       }
     }
-
-    expressionsEvaluatorMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml${sep}expressions${sep}ExpressionsEvaluator.fxml", titleToShow = "Expressions Evaluator")
-    }
-
-    externalDispersionsMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml${sep}dispersions${sep}ExternalDispersionsManager.fxml", titleToShow = "External Dispersions")
-    }
-
-    helpInfoMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml${sep}help${sep}HelpInfo.fxml", titleToShow = "Help Info")
-    }
-
-    expressionsHelpMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml${sep}help${sep}ExpressionsHelp.fxml", titleToShow = "Expressions Help")
-    }
   }
+
+
+
 
   private fun safeExternalDispersionImport(isPermittivity: Boolean) {
     try {
@@ -153,15 +174,12 @@ class MenuController {
 
   @FXML
   private lateinit var externalDispersionsMenuItem: MenuItem
+
+  @FXML
+  private lateinit var randomizationMenuItem: MenuItem
 }
 
 private fun initFileChooser(dir: String) = FileChooser().apply {
   extensionFilters.add(FileChooser.ExtensionFilter("Data Files", "*.txt", "*.dat"))
   initialDirectory = File(dir)
-}
-
-
-fun withConfigSaving(handler: () -> Unit) {
-  handler()
-  saveConfig()
 }

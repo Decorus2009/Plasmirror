@@ -1,4 +1,4 @@
-package core.layer.immutable.particles
+package core.structure.layer.immutable.particles
 
 import core.optics.particles.BiCardonaAdachi
 import core.optics.particles.SbCardonaAdachi
@@ -8,7 +8,7 @@ data class SbParticle(
 ) : IParticle {
   override fun permittivity(wl: Double) = SbCardonaAdachi.permittivity(wl)
 
-  override fun copy() = SbParticle(r)
+  override fun deepCopy() = SbParticle(r)
 }
 
 enum class BiParticlePermittivityType { ORTHOGONAL, PARALLEL }
@@ -22,5 +22,5 @@ data class BiParticle(
     BiParticlePermittivityType.PARALLEL -> BiCardonaAdachi.Parallel.permittivity(wl)
   }
 
-  override fun copy() = BiParticle(r, permittivityType)
+  override fun deepCopy() = BiParticle(r, permittivityType)
 }

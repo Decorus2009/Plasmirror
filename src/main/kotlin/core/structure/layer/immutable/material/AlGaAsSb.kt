@@ -1,6 +1,6 @@
-package core.layer.immutable.material
+package core.structure.layer.immutable.material
 
-import core.layer.immutable.AbstractLayer
+import core.structure.layer.immutable.AbstractLayer
 import core.optics.material.AlGaAsSb.AlGaAsSb
 
 data class AlGaAsSb(
@@ -11,5 +11,5 @@ data class AlGaAsSb(
 
   override fun permittivity(wl: Double, temperature: Double) = AlGaAsSb.permittivity(wl, cAl, cAs, temperature)
 
-  override fun copy() = AlGaAsSb(d, cAl, cAs)
+  override fun deepCopy() = AlGaAsSb(d, cAl, cAs)
 }

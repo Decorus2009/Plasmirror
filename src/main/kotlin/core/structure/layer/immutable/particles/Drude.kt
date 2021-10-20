@@ -1,4 +1,4 @@
-package core.layer.immutable.particles
+package core.structure.layer.immutable.particles
 
 import core.optics.particles.*
 
@@ -17,7 +17,7 @@ data class DrudeParticle(
 
   override fun permittivity(wl: Double) = DrudeModel.permittivity(wl, wPl, g, epsInf)
 
-  override fun copy() = DrudeParticle(r, wPl, g, epsInf)
+  override fun deepCopy() = DrudeParticle(r, wPl, g, epsInf)
 }
 
 data class DrudeLorentzParticle(
@@ -31,5 +31,5 @@ data class DrudeLorentzParticle(
   override fun permittivity(wl: Double) = DrudeLorentzModel.permittivity(wl, wPl, g, epsInf, oscillators)
 
   // TODO PLSMR-0002 copy for LorentzOscillator
-  override fun copy() = DrudeLorentzParticle(r, wPl, g, epsInf, oscillators)
+  override fun deepCopy() = DrudeLorentzParticle(r, wPl, g, epsInf, oscillators)
 }

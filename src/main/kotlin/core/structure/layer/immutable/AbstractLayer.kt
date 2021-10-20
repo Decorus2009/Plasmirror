@@ -1,7 +1,7 @@
-package core.layer.immutable
+package core.structure.layer.immutable
 
-import core.layer.ILayer
-import core.layer.layerMatrix
+import core.structure.layer.ILayer
+import core.structure.layer.layerMatrix
 import core.optics.Polarization
 
 /**

@@ -1,16 +1,15 @@
 package core
 
-import core.layer.ILayer
-import core.layer.immutable.composite.Mie
-import core.layer.immutable.material.ConstPermittivityLayer
+import core.structure.layer.ILayer
+import core.structure.layer.immutable.composite.Mie
+import core.structure.layer.immutable.material.ConstPermittivityLayer
 import core.math.Complex
 import core.math.TransferMatrix
 import core.optics.*
 import core.optics.Polarization.P
 import core.optics.Polarization.S
 import core.state.OpticalParams
-import core.structure.Structure
-import core.structure.buildStructure
+import core.structure.*
 import org.apache.commons.math3.complex.Complex.NaN
 import statesManager
 import kotlin.Double.Companion.POSITIVE_INFINITY
@@ -25,11 +24,14 @@ class Mirror(
   var leftMediumLayer: ILayer,
   var rightMediumLayer: ILayer
 ) {
+
   fun updateVia(opticalParams: OpticalParams, textDescription: String) {
     structure = textDescription.buildStructure()
     leftMediumLayer = opticalParams.leftMedium.toLayer()
     rightMediumLayer = opticalParams.rightMedium.toLayer()
   }
+
+  fun copyWithStructure(structure: Structure) = Mirror(structure, leftMediumLayer, rightMediumLayer)
 
   fun reflectance(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
     r(wl, pol, angle, temperature).abs().pow(2)

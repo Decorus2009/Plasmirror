@@ -1,11 +1,11 @@
 package core.structure.parser.presets
 
 import com.fasterxml.jackson.databind.JsonNode
-import core.layer.immutable.AbstractLayer
-import core.layer.immutable.composite.Orders
-import core.layer.immutable.material.excitonic.Exciton
-import core.layer.immutable.particles.*
-import core.layer.mutable.AbstractMutableLayer
+import core.structure.layer.immutable.AbstractLayer
+import core.structure.layer.immutable.composite.Orders
+import core.structure.layer.immutable.material.excitonic.Exciton
+import core.structure.layer.immutable.particles.*
+import core.structure.layer.mutable.AbstractMutableLayer
 import core.optics.AdachiBasedPermittivityModel
 import core.optics.particles.LorentzOscillator
 import core.structure.description.DescriptionParameters
@@ -46,8 +46,8 @@ fun mutableLayer(layerNode: JsonNode): AbstractMutableLayer = with(layerNode) {
 
   TODO("PLSMR-0002")
 //  return when (layerType) {
-//    is LayerType.Material.MutableGaAs -> mutableGaAs(d, layerType)
-//    is LayerType.Material.MutableAlGaAs -> mutableAlGaAs(d, layerType)
+//    is LayerType.Material.GaAs -> mutableGaAs(d, layerType)
+//    is LayerType.Material.AlGaAs -> mutableAlGaAs(d, layerType)
 //    else -> TODO("PLSMR-0002")
 //  }
 }

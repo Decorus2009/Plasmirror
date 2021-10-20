@@ -1,8 +1,8 @@
-package core.layer.immutable.composite
+package core.structure.layer.immutable.composite
 
-import core.layer.ILayer
-import core.layer.immutable.AbstractLayer
-import core.layer.immutable.particles.IParticle
+import core.structure.layer.ILayer
+import core.structure.layer.immutable.AbstractLayer
+import core.structure.layer.immutable.particles.IParticle
 
 abstract class Composite(
   override val d: Double,

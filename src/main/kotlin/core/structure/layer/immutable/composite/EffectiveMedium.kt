@@ -1,8 +1,7 @@
-package core.layer.immutable.composite
+package core.structure.layer.immutable.composite
 
-import core.layer.ILayer
-import core.layer.immutable.AbstractLayer
-import core.layer.immutable.particles.IParticle
+import core.structure.layer.ILayer
+import core.structure.layer.immutable.particles.IParticle
 import core.optics.composite.EffectiveMedium
 
 data class EffectiveMedium(
@@ -15,5 +14,5 @@ data class EffectiveMedium(
   override fun permittivity(wl: Double, temperature: Double) =
     EffectiveMedium.permittivity(mediumPermittivity(wl, temperature), particlePermittivity(wl), f)
 
-  override fun copy() = EffectiveMedium(d, medium.copy(), particles.copy(), f)
+  override fun deepCopy() = EffectiveMedium(d, medium.deepCopy(), particles.deepCopy(), f)
 }

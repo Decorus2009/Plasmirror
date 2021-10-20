@@ -1,6 +1,7 @@
 package ui.controllers
 
 import MainApp
+import core.state.saveConfig
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.control.*
@@ -50,6 +51,10 @@ fun showWindow(fxmlPath: String, titleToShow: String) {
   }
 }
 
+fun savingConfig(handler: () -> Unit) {
+  handler()
+  saveConfig()
+}
 /**
  * returns computation time in ms
  */
@@ -82,14 +87,14 @@ fun buildValuesTable(x: List<Double>, yReal: List<Double>, yImaginary: List<Doub
     }
     appendLine()
 
-    x.forEachIndexed { idx, xValue ->
+    x.forEachIndexed { index, xValue ->
       append(String.format(Locale.US, "%.8f", xValue))
       append(columnSeparator)
-      append(String.format(Locale.US, "%.8f", yReal[idx]))
+      append(String.format(Locale.US, "%.8f", yReal[index]))
 
       if (yImaginary.isNotEmpty()) {
         append(columnSeparator)
-        append(String.format(Locale.US, "%.8f", yImaginary[idx]))
+        append(String.format(Locale.US, "%.8f", yImaginary[index]))
       }
       appendLine()
     }

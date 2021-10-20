@@ -1,14 +1,9 @@
 package core.structure
 
 import com.fasterxml.jackson.databind.JsonNode
-import core.layer.*
-import core.layer.immutable.AbstractLayer
-import core.layer.mutable.AbstractMutableLayer
-import core.optics.*
+import core.structure.layer.*
 import core.state.mapper
-import core.structure.*
 import core.structure.description.*
-import core.structure.parser.*
 import core.structure.parser.presets.*
 import core.util.*
 
@@ -90,7 +85,7 @@ private fun List<JsonNode>.adjacentPositionsOfRepeatDescriptors() = with(repeatD
  * returns [0, 2, 5]
  */
 private fun List<JsonNode>.repeatDescriptorPositions() = this
-  .mapIndexed { idx, node -> if (node.isRepeatDescriptor()) idx else -1 }
+  .mapIndexed { index, node -> if (node.isRepeatDescriptor()) index else -1 }
   .filterNot { it == -1 }
 
 private fun repeatDescriptorNode() = mapper.readTree("""{"repeat":"1"}""")

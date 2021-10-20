@@ -1,7 +1,6 @@
-package core.layer.immutable.material
+package core.structure.layer.immutable.material
 
-import core.layer.ILayer
-import core.layer.immutable.AbstractLayer
+import core.structure.layer.immutable.AbstractLayer
 import core.optics.material.AlGaN.AlGaNTischModel
 import core.optics.toEnergy
 
@@ -22,7 +21,7 @@ data class GaN(
   override val d: Double
 ) : AlGaNBased(d, cAl = 0.0) {
 
-  override fun copy() = GaN(d)
+  override fun deepCopy() = GaN(d)
 }
 
 data class AlGaN(
@@ -30,5 +29,5 @@ data class AlGaN(
   val cAl: Double
 ) : AlGaNBased(d, cAl) {
 
-  override fun copy() = AlGaN(d, cAl)
+  override fun deepCopy() = AlGaN(d, cAl)
 }

@@ -2,7 +2,7 @@ package core.util
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
-import core.layer.mutable.DoubleVarParameter
+import core.structure.layer.mutable.DoubleVarParameter
 import core.math.*
 import core.state.mapper
 import core.structure.description.DescriptionParameters
@@ -23,7 +23,7 @@ fun JsonNode.requireDoubleOrNull(field: String) = requireNodeOrNull(field)?.requ
 fun JsonNode.requireDoubleVarParameter(field: String) = requireNode(field).requireDoubleVarParameter()
 fun JsonNode.requireDoubleVarParameterOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleVarParameterOrNull()
 fun JsonNode.requireNonNegativeDoubleVarParameter(field: String) = requireDoubleVarParameter(field).also {
-  if (!it.isVariable) it.value!!.checkIsNonNegative(field)
+  if (!it.isVariable) it.varValue!!.checkIsNonNegative(field)
 }
 
 fun JsonNode.requireNonNegativeDouble(field: String) = requireDouble(field).also { it.checkIsNonNegative(field) }
@@ -68,10 +68,10 @@ fun JsonNode.requireDoubleVarParameterOrNull() = when {
 
     when {
       text.toDoubleOrNull() != null -> DoubleVarParameter.constant(text.toDouble())
-      text == DescriptionParameters.varExprKw -> DoubleVarParameter.variable()
       else -> jsonFail(message = "Cannot read double or var value in text node \"$this\"")
     }
   }
+  isContainerNode -> DoubleVarParameter.variable(meanValue = requireDouble(DescriptionParameters.mean))
   isNullOrMissing -> null
   else -> jsonFail(message = "Cannot read double or var value in node \"$this\"")
 }

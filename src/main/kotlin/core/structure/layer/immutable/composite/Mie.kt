@@ -1,8 +1,7 @@
-package core.layer.immutable.composite
+package core.structure.layer.immutable.composite
 
-import core.layer.ILayer
-import core.layer.immutable.AbstractLayer
-import core.layer.immutable.particles.IParticle
+import core.structure.layer.ILayer
+import core.structure.layer.immutable.particles.IParticle
 import core.optics.composite.mie.*
 
 data class Mie(
@@ -25,7 +24,7 @@ data class Mie(
   override fun extinctionCoefficient(wl: Double, temperature: Double) =
     mieModel.extinctionCoefficient(wl, mediumPermittivity(wl, temperature), particlePermittivity(wl), f, particles.r!!)
 
-  override fun copy() = Mie(d, medium.copy(), particles.copy(), f, orders)
+  override fun deepCopy() = Mie(d, medium.deepCopy(), particles.deepCopy(), f, orders)
 }
 
 enum class Orders {

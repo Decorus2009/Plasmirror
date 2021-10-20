@@ -1,4 +1,4 @@
-package core.layer
+package core.structure.layer
 
 import core.math.Complex
 import core.math.TransferMatrix

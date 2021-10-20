@@ -1,7 +1,7 @@
-package core.layer.immutable.material.excitonic
+package core.structure.layer.immutable.material.excitonic
 
-import core.layer.ILayer
-import core.layer.immutable.AbstractLayer
+import core.structure.layer.ILayer
+import core.structure.layer.immutable.AbstractLayer
 import core.math.Complex
 import core.math.Complex.Companion.toComplex
 import core.math.TransferMatrix
@@ -35,7 +35,7 @@ data class Exciton(
   val C: Complex
 ) : Copyable<Exciton> {
 
-  override fun copy(): Exciton = Exciton(w0, G0, G, wb, Gb, B, Complex.of(C))
+  override fun deepCopy(): Exciton = Exciton(w0, G0, G, wb, Gb, B, Complex.of(C))
 }
 
 data class Excitonic(
@@ -64,7 +64,7 @@ data class Excitonic(
     this[1, 1] = Complex((phi * I * -1.0).exp()) * Complex(1.0 - S.imaginary, S.real)
   }
 
-  override fun copy() = Excitonic(d, medium.copy(), exciton.copy())
+  override fun deepCopy() = Excitonic(d, medium.deepCopy(), exciton.deepCopy())
 
   /**
    * Excitonic contribution into the QW permittivity, see [1] eq. 6

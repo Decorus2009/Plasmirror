@@ -15,14 +15,15 @@ class ControlsController {
   fun initialize() {
     computeButton.setOnAction {
       try {
-        activeState().prepare()
-        withClock { activeState().compute() }.also { showComputationTime(it) }
-        saveConfig()
-        /*
-        this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
-        (including rootController)
-        */
-        chartController().updateChart()
+        savingConfig {
+          activeState().prepare()
+          withClock { activeState().compute() }.also { showComputationTime(it) }
+          /*
+          this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
+          (including rootController)
+          */
+          chartController().updateChart()
+        }
       } catch (ex: Exception) {
         handle(ex)
       }

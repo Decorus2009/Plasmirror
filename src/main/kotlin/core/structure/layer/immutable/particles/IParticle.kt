@@ -1,4 +1,4 @@
-package core.layer.immutable.particles
+package core.structure.layer.immutable.particles
 
 import core.math.Complex
 import core.optics.particles.*

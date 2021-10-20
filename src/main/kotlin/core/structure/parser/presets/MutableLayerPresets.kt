@@ -1,12 +1,9 @@
 package core.structure.parser.presets
 
 import com.fasterxml.jackson.databind.JsonNode
-import core.layer.immutable.composite.*
-import core.layer.immutable.material.*
-import core.layer.immutable.particles.*
-import core.layer.mutable.DoubleVarParameter
-import core.layer.mutable.material.MutableAlGaAs
-import core.layer.mutable.material.MutableGaAs
+import core.structure.layer.mutable.DoubleVarParameter
+import core.structure.layer.mutable.material.MutableAlGaAs
+import core.structure.layer.mutable.material.MutableGaAs
 import core.structure.description.DescriptionParameters
 import core.structure.parser.*
 import core.util.*
@@ -27,17 +24,17 @@ fun JsonNode.mutableAlGaAs(d: DoubleVarParameter, layerType: LayerType) = Mutabl
 
 //TODO PLSMR-0002 not implemented
 /*
-fun JsonNode.mutableAlGaAsSb(d: Double) = core.layer.immutable.material.AlGaAsSb(
+fun JsonNode.mutableAlGaAsSb(d: Double) = core.structure.layer.immutable.material.AlGaAsSb(
   d = d,
   cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
   cAs = requireNonNegativeDouble(DescriptionParameters.cAs)
 )
 
-fun mutableGaN(d: Double) = core.layer.immutable.material.GaN(
+fun mutableGaN(d: Double) = core.structure.layer.immutable.material.GaN(
   d = d
 )
 
-fun JsonNode.mutableAlGaN(d: Double) = core.layer.immutable.material.AlGaN(
+fun JsonNode.mutableAlGaN(d: Double) = core.structure.layer.immutable.material.AlGaN(
   d = d,
   cAl = requireNonNegativeDouble(DescriptionParameters.cAl)
 )

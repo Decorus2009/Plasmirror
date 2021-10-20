@@ -12,6 +12,7 @@ import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.AnchorPane
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.asFlow
 import org.fxmisc.richtext.CodeArea
 import org.fxmisc.richtext.model.StyleSpans
 import org.fxmisc.richtext.model.StyleSpansBuilder
@@ -89,9 +90,7 @@ class ExpressionsEvaluatorController {
     chart.data.clear()
 
     valuesTable.text = ""
-    val expression = expressionCodeArea.text
-      .removeMultiLineComments()
-      .removeSingleLineComments()
+    val expression = expressionCodeArea.text.removeComments()
 
     withClockSuspended {
       val x = generateSequence(xFrom.text.toDouble()) { x ->

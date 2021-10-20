@@ -1,5 +1,5 @@
 package core.structure
 
 interface Copyable<T> {
-  fun copy(): T
+  fun deepCopy(): T
 }

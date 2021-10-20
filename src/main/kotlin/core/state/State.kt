@@ -4,16 +4,20 @@ import core.math.Complex
 import core.optics.Mode
 import core.state.data.ExternalData
 import core.state.view.ViewState
+import core.structure.Copyable
+import core.structure.Structure
 import core.util.normalized
 import rootController
+import java.util.*
 
 data class State(
   val id: StateId,
   val computationState: ComputationState,
   val viewState: ViewState,
   val externalData: MutableSet<ExternalData>,
-  var active: Boolean
+  var active: Boolean,
 ) {
+
   fun prepare() {
     updateFromUI()
     clearData()
@@ -64,6 +68,8 @@ data class State(
 
   fun mirror() = computationState.mirror
 
+  fun structure() = mirror().structure
+
   fun computationUnit() = computationState.range.unit
 
   fun addExternalData(data: ExternalData) = externalData.add(data)
@@ -73,6 +79,14 @@ data class State(
       ?: throw IllegalStateException("Cannot remove external data with name $seriesName. Data not found")
     externalData.remove(data)
   }
+
+  fun copyWithStructureDeepCopy(structure: Structure) = State(
+  id = UUIDs.timeBased(),
+  computationState = computationState.copyWithStructure(structure.deepCopy()),
+  viewState,
+  externalData,
+  active = false // TODO PLSMR-0002
+  )
 
   private fun opticalParams() = computationState.opticalParams
 
