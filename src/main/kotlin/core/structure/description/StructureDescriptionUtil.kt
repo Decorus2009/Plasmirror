@@ -109,8 +109,10 @@ private fun String.quotePairedWords() = replace(Regex("\\b(\\w+)\\b:(\\w+\\.*[0-
 /** particles: { -> "particles": { */
 private fun String.quoteWordsBeforeCurlyBraces() = replace(Regex("\\b(\\w+)\\b:\\{"), "\"$1\":{")
 
-/** cAl: var(-3.6E6) -> "cAl": { "var": true, "mean": "-3.6E6" } */
+/** cAl: var(-3.6E6, 2.4E-2) -> "cAl": { "var": true, "mean": "-3.6E6", "deviation": "2.4E-2" } */
 private fun String.parseAndQuoteVarParams() = replace(
-  Regex("\\b(\\w+)\\b:${DescriptionParameters.varExprKw}\\(([\\w\\W\\s]*?)\\)"),
-  "\"$1\":{\"${DescriptionParameters.varExprKw}\":true,\"${DescriptionParameters.mean}\":\"$2\"}"
+  Regex("\\b(\\w+)\\b:${DescriptionParameters.varExprKw}\\(($realNumberPattern),($realNumberPattern)\\)"),
+  "\"$1\":{\"${DescriptionParameters.varExprKw}\":true," +
+    "\"${DescriptionParameters.mean}\":\"$2\"," +
+    "\"${DescriptionParameters.deviation}\":\"$3\"}"
 )

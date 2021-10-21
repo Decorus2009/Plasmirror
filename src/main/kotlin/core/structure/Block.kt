@@ -17,7 +17,7 @@ import core.structure.layer.ILayer
  * Represents a list of layers with repeat descriptor.
  * [repeat] is a number of repetitions of a given list of layers
  */
-data class Block(val repeat: Int, val layers: List<ILayer>) : Copyable<Block> {
+data class Block(val repeat: Int, val layers: List<ILayer>) : DeepCopyable<Block> {
 
   /**
    * Transforms this Block to a Block with [Block.repeat] == 1 and [Block.layers] == [Block.layers] * [Block.repeat]

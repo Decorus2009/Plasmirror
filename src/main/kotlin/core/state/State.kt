@@ -4,7 +4,6 @@ import core.math.Complex
 import core.optics.Mode
 import core.state.data.ExternalData
 import core.state.view.ViewState
-import core.structure.Copyable
 import core.structure.Structure
 import core.util.normalized
 import rootController
@@ -81,11 +80,11 @@ data class State(
   }
 
   fun copyWithStructureDeepCopy(structure: Structure) = State(
-  id = UUIDs.timeBased(),
-  computationState = computationState.copyWithStructure(structure.deepCopy()),
-  viewState,
-  externalData,
-  active = false // TODO PLSMR-0002
+    id = UUID.randomUUID(),
+    computationState = computationState.copyWithStructure(structure.deepCopy()),
+    viewState,
+    externalData,
+    active = false // TODO PLSMR-0002
   )
 
   private fun opticalParams() = computationState.opticalParams

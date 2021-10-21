@@ -1,6 +1,6 @@
 package core.structure.layer.mutable
 
-import core.structure.Copyable
+import core.structure.DeepCopyable
 
 /**
  * This class represents an entity used instead of regular constant parameters in layer definitions.
@@ -20,24 +20,41 @@ import core.structure.Copyable
 data class DoubleVarParameter private constructor(
   var varValue: Double? = null,
   val meanValue: Double? = null,
+  val deviation: Double? = null,
   val isVariable: Boolean,
-) : Copyable<DoubleVarParameter> {
+) : DeepCopyable<DoubleVarParameter> {
   companion object {
-    fun variable(meanValue: Double) = DoubleVarParameter(meanValue = meanValue, isVariable = true)
+    fun variable(meanValue: Double, deviation: Double?) = DoubleVarParameter(
+      meanValue = meanValue,
+      deviation = deviation,
+      isVariable = true
+    )
 
-    fun constant(value: Double) = DoubleVarParameter(varValue = value, meanValue = value, isVariable = false)
+    fun constant(value: Double) = DoubleVarParameter(
+      varValue = value,
+      meanValue = value,
+      deviation = 0.0,
+      isVariable = false
+    )
   }
 
-  fun variate(variator: (mean: Double) -> Double) {
-    require(isVariable) { "Cannot set value for constant DoubleVarParameter $this" }
-    requireNotNull(meanValue)
-
-    this.varValue = variator(meanValue)
+  fun variate(variator: () -> Double) {
+    requireIsVariableParameter()
+    this.varValue = variator()
   }
 
   fun requireValue() = varValue ?: throw IllegalArgumentException("Uninitialized value for DoubleVarParameter")
 
-  override fun deepCopy() = DoubleVarParameter(this.varValue, this.meanValue, this.isVariable)
+  override fun deepCopy() = DoubleVarParameter(this.varValue, this.meanValue, this.deviation, this.isVariable)
+
+  override fun toString() =
+    "DoubleVarParameter[varValue = $varValue, meanValue = $meanValue, deviation = $deviation, isVariable = $isVariable"
+
+  fun requireIsVariableParameter() {
+    require(isVariable) { "Cannot set value for constant DoubleVarParameter $this" }
+    requireNotNull(meanValue)
+    requireNotNull(deviation)
+  }
 }
 
 // TODO PLSMR-0002 ComplexVarParameter

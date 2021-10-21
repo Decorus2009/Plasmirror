@@ -102,6 +102,7 @@ class ExpressionsEvaluatorController {
       }.toList()
 
       val concurrencyLevel = Runtime.getRuntime().availableProcessors()
+      // TODO it might be a bug, partitionSize == 1 means that eadch chunk will contain 1 element
       val partitionSize = (x.size / concurrencyLevel).let { if (it == 0) 1 else it }
 
       x.chunked(partitionSize)

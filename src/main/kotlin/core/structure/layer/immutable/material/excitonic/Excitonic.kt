@@ -6,7 +6,7 @@ import core.math.Complex
 import core.math.Complex.Companion.toComplex
 import core.math.TransferMatrix
 import core.optics.*
-import core.structure.Copyable
+import core.structure.DeepCopyable
 import org.apache.commons.math3.complex.Complex.I
 import java.lang.Math.PI
 import kotlin.math.pow
@@ -33,7 +33,7 @@ data class Exciton(
   val Gb: Double,
   val B: Double,
   val C: Complex
-) : Copyable<Exciton> {
+) : DeepCopyable<Exciton> {
 
   override fun deepCopy(): Exciton = Exciton(w0, G0, G, wb, Gb, B, Complex.of(C))
 }

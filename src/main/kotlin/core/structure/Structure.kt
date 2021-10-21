@@ -1,6 +1,6 @@
 package core.structure
 
-data class Structure(val blocks: List<Block>) : Copyable<Structure> {
+data class Structure(val blocks: List<Block>) : DeepCopyable<Structure> {
   companion object {
     fun empty() = Structure(blocks = emptyList())
   }

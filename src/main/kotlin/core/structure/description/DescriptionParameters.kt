@@ -41,4 +41,5 @@ object DescriptionParameters {
   const val exprLeftKwBoundary = "@"
   const val exprRightKwBoundary = "#"
   const val mean = "mean"
+  const val deviation = "deviation"
 }

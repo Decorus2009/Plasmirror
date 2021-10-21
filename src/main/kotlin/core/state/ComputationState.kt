@@ -3,7 +3,7 @@ package core.state
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import core.Mirror
 import core.state.data.Data
-import core.structure.Copyable
+import core.structure.DeepCopyable
 import core.structure.Structure
 import core.validators.StructureDescriptionValidator
 import rootController
@@ -19,7 +19,7 @@ data class ComputationState(
   val opticalParams: OpticalParams,
   val mirror: Mirror,
   val textDescriptions: MutableMap<String, String>
-) : StateComponent, Copyable<ComputationState> {
+) : StateComponent {
 
   override fun updateFromUI() {
     range.updateFromUI()
@@ -36,8 +36,6 @@ data class ComputationState(
     opticalParams.updateUI()
     // TODO need maybe update structure description per mode
   }
-
-  override fun deepCopy(): ComputationState = ComputationState(range, data, opticalParams, mirror.deepCopy(), textDescriptions)
 
   fun copyWithStructure(structure: Structure) =
     ComputationState(range, data, opticalParams, mirror.copyWithStructure(structure), textDescriptions)
