@@ -2,8 +2,7 @@ package ui.controllers
 
 import core.state.*
 import core.util.*
-import core.validators.ExportValidationException
-import core.validators.MultipleExportDialogParametersValidator
+import core.validators.*
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.stage.DirectoryChooser
@@ -149,7 +148,7 @@ class MultipleExportDialogController {
   }
 
   private fun validateExportParams() = with(MultipleExportDialogParametersValidator) {
-    validateDirectory(chosenDirectory)
+    validateDirectory(chosenDirectory, shouldBeSelected = true)
 
     when {
       anglesRB.isSelected -> {
@@ -237,5 +236,5 @@ class MultipleExportDialogController {
   @FXML
   private lateinit var radioButtons: ToggleGroup
 
-  var chosenDirectory: File? = null
+  private var chosenDirectory: File? = null
 }

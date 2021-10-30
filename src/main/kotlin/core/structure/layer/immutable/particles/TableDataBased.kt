@@ -7,8 +7,6 @@ data class SbParticle(
   override val r: Double? = null
 ) : IParticle {
   override fun permittivity(wl: Double) = SbCardonaAdachi.permittivity(wl)
-
-  override fun deepCopy() = SbParticle(r)
 }
 
 enum class BiParticlePermittivityType { ORTHOGONAL, PARALLEL }
@@ -21,6 +19,4 @@ data class BiParticle(
     BiParticlePermittivityType.ORTHOGONAL -> BiCardonaAdachi.Orthogonal.permittivity(wl)
     BiParticlePermittivityType.PARALLEL -> BiCardonaAdachi.Parallel.permittivity(wl)
   }
-
-  override fun deepCopy() = BiParticle(r, permittivityType)
 }

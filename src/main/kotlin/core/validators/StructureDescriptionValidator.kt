@@ -7,10 +7,15 @@ import core.structure.description.asArray
 import core.structure.description.json
 
 object StructureDescriptionValidator {
-  fun validate(description: String) {
+  fun validate(description: String, isMutable: Boolean = false) {
     try {
       description.json().asArray().preValidate()
-      description.buildStructure().postValidate()
+
+      val structureForPostValidation = with(description) {
+        if (isMutable) buildMutableStructure() else buildStructure()
+      }
+
+      structureForPostValidation.postValidate()
     } catch (ex: Exception) {
       println("Structure description error:\n$ex")
       when (ex) {

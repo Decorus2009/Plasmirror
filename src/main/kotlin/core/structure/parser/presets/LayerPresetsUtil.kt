@@ -44,12 +44,11 @@ fun mutableLayer(layerNode: JsonNode): AbstractMutableLayer = with(layerNode) {
   val layerType = requireLayerType()
   val d = requireNonNegativeDoubleVarParameter(DescriptionParameters.d)
 
-  TODO("PLSMR-0002")
-//  return when (layerType) {
-//    is LayerType.Material.GaAs -> mutableGaAs(d, layerType)
+  return when (layerType) {
+    is LayerType.Material.GaAs -> mutableGaAs(d, layerType)
 //    is LayerType.Material.AlGaAs -> mutableAlGaAs(d, layerType)
-//    else -> TODO("PLSMR-0002")
-//  }
+    else -> TODO("PLSMR-0002")
+  }
 }
 
 /**

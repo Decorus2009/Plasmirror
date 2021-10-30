@@ -1,6 +1,6 @@
 package core.structure
 
-data class Structure(val blocks: List<Block>) : DeepCopyable<Structure> {
+data class Structure(val blocks: List<Block>) {
   companion object {
     fun empty() = Structure(blocks = emptyList())
   }
@@ -38,8 +38,6 @@ data class Structure(val blocks: List<Block>) : DeepCopyable<Structure> {
       }
     }
   }
-
-  override fun deepCopy() = Structure(blocks.map { it.deepCopy() })
 }
 
 

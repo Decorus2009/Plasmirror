@@ -47,14 +47,6 @@ object MultipleExportDialogParametersValidator {
   fun validateTemperatureStep(value: String) = validateTemperature(value, specifier = STEP_SPECIFIER)
 
 
-  fun validateDirectory(directory: File?) {
-    if (directory == null) throw ExportValidationException(
-      headerMessage = "Directory error",
-      contentMessage = "Choose a directory"
-    )
-  }
-
-
   private fun validateAngle(value: String, specifier: String) {
     try {
       OpticalParamsValidator.validateAngle(value, specifier)

@@ -3,13 +3,12 @@ package core.structure.layer
 import core.math.Complex
 import core.math.TransferMatrix
 import core.optics.*
-import core.structure.DeepCopyable
 
 /**
  * [n] refractive index
  * [matrix] transfer matrix
  */
-interface ILayer : DeepCopyable<ILayer> {
+interface ILayer {
   fun permittivity(wl: Double, temperature: Double): Complex
 
   fun n(wl: Double, temperature: Double) = permittivity(wl, temperature).toRefractiveIndex()

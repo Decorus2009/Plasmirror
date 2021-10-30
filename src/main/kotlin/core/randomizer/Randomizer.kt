@@ -3,18 +3,19 @@ package core.randomizer
 import core.state.*
 import core.state.data.Data
 import core.structure.*
-import core.structure.layer.ILayer
 import core.structure.layer.mutable.AbstractMutableLayer
 import core.structure.layer.mutable.DoubleVarParameter
 import core.util.mapInPlace
+import core.util.printInThread
+import core.validators.StateException
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import org.apache.commons.math3.random.RandomGeneratorFactory
+import java.io.File
 import java.util.*
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.math.min
 
-// TODO save intermediate computations to files with corresponding
-//   structure descriptions (checkbox).
-//   Str description in .txt, computation in .dat
-//   + dir chooser paired with checkbox
 /**
  * Base model:
  * [mutableStructureDescriptionText] is used as a starting point to construct multiple states (based on current active state),
@@ -30,36 +31,56 @@ import java.util.*
  * 2. regular computation upon this state
  * 3. aggregation of computed values for yReal and yImaginary to a thread-local [AggregatedData] storage
  *
- * [iterationsTotal] is number of iterations to be run within a computation
+ * [iterations] is number of iterations to be run within a computation
  */
 class Randomizer(
   mutableStructureDescriptionText: String,
-  private val iterationsTotal: Int,
+  private val parallelism: Int,
+  private val iterations: Int,
+  private val saveIntermediateResults: Boolean,
+  private val chosenDirectory: File? = null
 ) {
   private val states = mutableMapOf<Int, State>()
-  private val statesToAllLayers = mutableMapOf<StateId, List<ILayer>>()
+//  private val statesToAllLayers = mutableMapOf<StateId, List<ILayer>>()
 
-  private val concurrencyLevel = Runtime.getRuntime().availableProcessors()
-  private val mutableStructure = mutableStructureDescriptionText
-    .buildMutableStructure()
-    .flatten()
+  private val concurrencyLevel = min(Runtime.getRuntime().availableProcessors(), parallelism)
 
   // for experiment reproduction
   private val seed = 1L
   private val randomGenerator = RandomGeneratorFactory.createRandomGenerator(Random(seed))
+  private val iterationsCompleted = AtomicInteger()
 
   init {
-    val numberOfStates = if (iterationsTotal < concurrencyLevel) 1 else concurrencyLevel
+    val numberOfStates = if (iterations < concurrencyLevel) 1 else concurrencyLevel
 
     repeat(numberOfStates) {
+      // for each state (which will be a copy of activeState, create its own structure
+      // so there's no need to make a Structure copyable with all underlying blocks and layers copyable as well
+      val mutableStructure = mutableStructureDescriptionText
+        .buildMutableStructure()
+        .flatten()
+
+      // right away check structure for presence of at least one varParam such that isVariable == true
+      val hasVariableLayer = mutableStructure.allMutableLayers().any { layer -> layer.isVariable() }
+      if (!hasVariableLayer) {
+        throw StateException(
+          headerMessage = "Non-variable structure",
+          contentMessage = "Structure must have at least one layer with at least one var parameter"
+        )
+      }
+
       // all states are initially copies of active state
       // but each state's structure is further modified during randomization procedure
-      val state = activeState().copyWithStructureDeepCopy(mutableStructure)
+      val state = activeState().copyWithNewStructure(mutableStructure)
 
       // [is] is zero-based index of current iteration
       states[it] = state
-      statesToAllLayers[state.id] = state.allLayers()
+//      statesToAllLayers[state.id] = state.structure().allLayers()
     }
+
+
+
+    printInThread("Randomizer init finished: $this")
   }
 
   /**
@@ -73,7 +94,7 @@ class Randomizer(
    * 2. within that thread call runBlocking { GlobalScope.launch { randomizeAndCompute... } }
    * (launch will help keep parent's [Job] reference to stop children jobs with heavy computations if necessary)
    */
-  suspend fun randomizeAndCompute() = coroutineScope {
+  suspend fun randomizeAndCompute(progressReportingChannel: Channel<Int>) = coroutineScope {
     /**
      * Case 1. #chunks < #states: 3 iterations, 5 cores -> partition size = 0, 5 states
      *   Solution: for this case define:
@@ -88,8 +109,8 @@ class Randomizer(
      */
 
     val statesNumber = states.size
-    val partitionSize = (iterationsTotal / concurrencyLevel).let { if (it == 0) iterationsTotal else it }
-    val iterationsChunks = (1..iterationsTotal).chunked(partitionSize)
+    val partitionSize = (iterations / concurrencyLevel).let { if (it == 0) iterations else it }
+    val iterationsChunks = (1..iterations).chunked(partitionSize)
     val iterationsChunksNumber = iterationsChunks.size
 
     // case 2
@@ -124,7 +145,10 @@ class Randomizer(
       // run multiple async computations
       .mapIndexed { index, iterationsChunk ->
         async {
-          randomizeAndComputeState(index, iterationsChunk.size)
+          randomizeAndComputeState(index, iterationsChunk.size).also {
+            val currentlyCompleted = iterationsCompleted.incrementAndGet()
+            progressReportingChannel.send(currentlyCompleted)
+          }
         }
       }
       .map { it.await() }
@@ -133,7 +157,9 @@ class Randomizer(
         acc
       }
       // average collected data
-      .also { it.normalizeBy(iterationsTotal) }
+      .also { it.normalizeBy(iterations) }
+
+    progressReportingChannel.close()
 
     activeState().computationState.data = with(averagedAggregatedData) { Data(x, yReal, yImaginary) }
   }
@@ -159,29 +185,41 @@ class Randomizer(
     return aggregatedData
   }
 
-  private fun State.randomizeStructure() = allLayers().forEach {
-    (it as AbstractMutableLayer).variableParameter().randomize()
-  }
+  private fun State.randomizeStructure() = structure()
+    .allMutableLayers()
+    .forEach { layer ->
+      layer.variableParameters()
+        .filter { it.isVariable }
+        .randomize()
+    }
 
-  private fun DoubleVarParameter.randomize() = variate {
-    requireIsVariableParameter()
+  // TODO save info about new random value for each var param
+  private fun List<DoubleVarParameter>.randomize() = forEach { varParam ->
+    varParam.variate {
+      varParam.requireIsVariableParameter()
 
-    val random = randomGenerator.nextGaussian()
-    (random * deviation!! + meanValue!!)
-      .also {
+      val random = randomGenerator.nextGaussian()
+      (random * varParam.deviation!! + varParam.meanValue!!).also {
         println("A new random gaussian value $random has been generated. Var parameter has been set to $this")
       }
+    }
   }
+
+  override fun toString() =
+    "Randomizer[parallelism=$parallelism, iterations=$iterations, saveIntermediateResults=$saveIntermediateResults, chosenDirectory=$chosenDirectory]"
 }
 
 /**
- * [this] structure is required to be flattened
+ * [this] structure is required to be flattened and all its layers are of [AbstractMutableLayer] type
  */
-private fun State.allLayers(): List<ILayer> = with(structure().blocks) {
+private fun Structure.allMutableLayers(): List<AbstractMutableLayer> = with(blocks) {
   require(size == 1)
   require(first().repeat == 1)
 
-  return first().layers
+  val layers = first().layers
+  require(layers.all { it is AbstractMutableLayer })
+
+  return layers.map { it as AbstractMutableLayer }
 }
 
 /**

@@ -19,15 +19,9 @@ abstract class AlGaNBased(
 
 data class GaN(
   override val d: Double
-) : AlGaNBased(d, cAl = 0.0) {
-
-  override fun deepCopy() = GaN(d)
-}
+) : AlGaNBased(d, cAl = 0.0)
 
 data class AlGaN(
   override val d: Double,
   val cAl: Double
-) : AlGaNBased(d, cAl) {
-
-  override fun deepCopy() = AlGaN(d, cAl)
-}
+) : AlGaNBased(d, cAl)

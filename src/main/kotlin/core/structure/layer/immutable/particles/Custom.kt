@@ -10,8 +10,6 @@ data class ConstPermittivityParticle(
 ) : IParticle {
 
   override fun permittivity(wl: Double) = eps
-
-  override fun deepCopy() = ConstPermittivityParticle(r, Complex.of(eps))
 }
 
 data class PermittivityExpressionBasedParticle(
@@ -27,8 +25,6 @@ data class PermittivityExpressionBasedParticle(
 
   override fun permittivity(wl: Double) =
     expressionEvaluator.compute(x = wl).let { Complex(it.yReal, it.yImaginary ?: 0.0) }
-
-  override fun deepCopy() = PermittivityExpressionBasedParticle(r, epsExpr)
 }
 
 data class ExternalPermittivityDispersionBasedParticle(
@@ -44,6 +40,4 @@ data class ExternalPermittivityDispersionBasedParticle(
     val value = spline.safeValue(wl)
     return if (permittivityDispersion.isPermittivity) value else value.toPermittivity()
   }
-
-  override fun deepCopy() = ExternalPermittivityDispersionBasedParticle(r, permittivityDispersion)
 }

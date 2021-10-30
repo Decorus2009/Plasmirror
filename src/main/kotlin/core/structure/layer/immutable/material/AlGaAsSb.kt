@@ -10,6 +10,4 @@ data class AlGaAsSb(
 ) : AbstractLayer(d) {
 
   override fun permittivity(wl: Double, temperature: Double) = AlGaAsSb.permittivity(wl, cAl, cAs, temperature)
-
-  override fun deepCopy() = AlGaAsSb(d, cAl, cAs)
 }

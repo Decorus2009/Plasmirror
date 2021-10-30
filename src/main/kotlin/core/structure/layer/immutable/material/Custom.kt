@@ -12,8 +12,6 @@ data class ConstPermittivityLayer(
 
   /** [temperature] is unused but required */
   override fun permittivity(wl: Double, temperature: Double) = eps
-
-  override fun deepCopy() = ConstPermittivityLayer(d, Complex.of(eps))
 }
 
 data class PermittivityExpressionBasedLayer(
@@ -29,8 +27,6 @@ data class PermittivityExpressionBasedLayer(
 
   override fun permittivity(wl: Double, temperature: Double) =
     expressionEvaluator.compute(x = wl).let { Complex(it.yReal, it.yImaginary ?: 0.0) }
-
-  override fun deepCopy() = PermittivityExpressionBasedLayer(d, epsExpr)
 }
 
 data class ExternalPermittivityDispersionBasedLayer(
@@ -46,6 +42,4 @@ data class ExternalPermittivityDispersionBasedLayer(
     val value = spline.safeValue(wl)
     return if (permittivityDispersion.isPermittivity) value else value.toPermittivity()
   }
-
-  override fun deepCopy() = ExternalPermittivityDispersionBasedLayer(d, permittivityDispersion)
 }

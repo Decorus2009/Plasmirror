@@ -13,6 +13,4 @@ data class EffectiveMedium(
 
   override fun permittivity(wl: Double, temperature: Double) =
     EffectiveMedium.permittivity(mediumPermittivity(wl, temperature), particlePermittivity(wl), f)
-
-  override fun deepCopy() = EffectiveMedium(d, medium.deepCopy(), particles.deepCopy(), f)
 }

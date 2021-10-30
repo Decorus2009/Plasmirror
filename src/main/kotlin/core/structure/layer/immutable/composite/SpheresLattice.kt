@@ -31,6 +31,4 @@ data class SpheresLattice(
       this@apply[1, 1] = Complex.ONE / t
     }
   }
-
-  override fun deepCopy() = SpheresLattice(d, medium.deepCopy(), particles.deepCopy(), latticeFactor)
 }

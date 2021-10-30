@@ -17,7 +17,7 @@ import core.structure.layer.ILayer
  * Represents a list of layers with repeat descriptor.
  * [repeat] is a number of repetitions of a given list of layers
  */
-data class Block(val repeat: Int, val layers: List<ILayer>) : DeepCopyable<Block> {
+data class Block(val repeat: Int, val layers: List<ILayer>) {
 
   /**
    * Transforms this Block to a Block with [Block.repeat] == 1 and [Block.layers] == [Block.layers] * [Block.repeat]
@@ -32,6 +32,4 @@ data class Block(val repeat: Int, val layers: List<ILayer>) : DeepCopyable<Block
 
     return Block(repeat = 1, layers = allLayers)
   }
-
-  override fun deepCopy() = Block(repeat, layers.map { it.deepCopy() })
 }

@@ -19,9 +19,10 @@ object KnownPaths {
 
   val help = "data${sep}help.txt"
 
-  val exportDir = "data${sep}for_export"
   val importDir = "data${sep}for_import"
+  val exportDir = "data${sep}for_export"
   val externalDispersionsDir = "$internalDir${sep}external_dispersions"
+  val randomizationsExportDir = "data${sep}for_export${sep}randomizations"
 }
 
 val sep: String = File.separator
@@ -134,6 +135,8 @@ fun exportFileName() = with(activeState()) {
 fun importPath() = safePath(KnownPaths.importDir)
 
 fun exportPath() = safePath(KnownPaths.exportDir)
+
+fun randomizationsExportPath() = safePath(KnownPaths.randomizationsExportDir)
 
 private fun safePath(path: String) = if (Files.isDirectory(Paths.get(path))) {
   path

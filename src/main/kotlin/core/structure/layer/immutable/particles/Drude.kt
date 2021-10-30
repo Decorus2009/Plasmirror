@@ -16,8 +16,6 @@ data class DrudeParticle(
 ) : IParticle {
 
   override fun permittivity(wl: Double) = DrudeModel.permittivity(wl, wPl, g, epsInf)
-
-  override fun deepCopy() = DrudeParticle(r, wPl, g, epsInf)
 }
 
 data class DrudeLorentzParticle(
@@ -29,7 +27,4 @@ data class DrudeLorentzParticle(
 ) : IParticle {
 
   override fun permittivity(wl: Double) = DrudeLorentzModel.permittivity(wl, wPl, g, epsInf, oscillators)
-
-  // TODO PLSMR-0002 copy for LorentzOscillator
-  override fun deepCopy() = DrudeLorentzParticle(r, wPl, g, epsInf, oscillators)
 }

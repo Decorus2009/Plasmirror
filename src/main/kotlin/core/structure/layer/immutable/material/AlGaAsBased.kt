@@ -48,17 +48,11 @@ data class GaAs(
   override val d: Double,
   val dampingFactor: Double = 0.0, // default value is used for external media initialization in [core.state.Medium.toLayer]
   val permittivityModel: AdachiBasedPermittivityModel
-) : AlGaAsBase(d, dampingFactor, cAl = 0.0, permittivityModel) {
-
-  override fun deepCopy() = GaAs(d, dampingFactor, permittivityModel)
-}
+) : AlGaAsBase(d, dampingFactor, cAl = 0.0, permittivityModel)
 
 data class AlGaAs(
   override val d: Double,
   val dampingFactor: Double,
   val cAl: Double,
   val permittivityModel: AdachiBasedPermittivityModel
-) : AlGaAsBase(d, dampingFactor, cAl, permittivityModel) {
-
-  override fun deepCopy() = AlGaAs(d, dampingFactor, cAl, permittivityModel)
-}
+) : AlGaAsBase(d, dampingFactor, cAl, permittivityModel)

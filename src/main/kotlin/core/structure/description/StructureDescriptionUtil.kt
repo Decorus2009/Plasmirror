@@ -114,5 +114,8 @@ private fun String.parseAndQuoteVarParams() = replace(
   Regex("\\b(\\w+)\\b:${DescriptionParameters.varExprKw}\\(($realNumberPattern),($realNumberPattern)\\)"),
   "\"$1\":{\"${DescriptionParameters.varExprKw}\":true," +
     "\"${DescriptionParameters.mean}\":\"$2\"," +
-    "\"${DescriptionParameters.deviation}\":\"$3\"}"
+
+    // it's interesting that deviation corresponds to a 4th group
+    // e.g. 0-4 groups for "d:var(90,-1.561E-2)" are: "d:var(90,-1.561E-2)", "d", "90", "null", "-1.561E-2"
+    "\"${DescriptionParameters.deviation}\":\"$4\"}"
 )

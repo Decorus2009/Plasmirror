@@ -23,8 +23,6 @@ data class Mie(
 
   override fun extinctionCoefficient(wl: Double, temperature: Double) =
     mieModel.extinctionCoefficient(wl, mediumPermittivity(wl, temperature), particlePermittivity(wl), f, particles.r!!)
-
-  override fun deepCopy() = Mie(d, medium.deepCopy(), particles.deepCopy(), f, orders)
 }
 
 enum class Orders {

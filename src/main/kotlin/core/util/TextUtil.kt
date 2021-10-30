@@ -21,3 +21,5 @@ fun String.removeMultiLineComments() = replace(Regex("\\s*[/]{2,}.*"), "")
  * So the second replace function is used to remove all such strange chars
  */
 fun String.normalizeNumericText() = replace(",", ".").replace(Regex("[^-.\\w]*"), "")
+
+fun printInThread(text: Any) = println("${Thread.currentThread()}: $text")

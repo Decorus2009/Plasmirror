@@ -79,9 +79,9 @@ data class State(
     externalData.remove(data)
   }
 
-  fun copyWithStructureDeepCopy(structure: Structure) = State(
+  fun copyWithNewStructure(structure: Structure) = State(
     id = UUID.randomUUID(),
-    computationState = computationState.copyWithStructure(structure.deepCopy()),
+    computationState = computationState.copyWithStructure(structure),
     viewState,
     externalData,
     active = false // TODO PLSMR-0002

@@ -70,6 +70,14 @@ fun withClock(block: () -> Unit): Double {
   return (System.nanoTime() - start).toDouble() / 1E6
 }
 
+fun showComputationTimeMillis(label: Label, time: Double) {
+  label.text = "Time: ${String.format(Locale.US, "%.2f", time)}ms"
+}
+
+fun showComputationTimeSeconds(label: Label, time: Double) {
+  label.text = "Time: ${String.format(Locale.US, "%.2f", time / 1000)}s"
+}
+
 fun buildValuesTable(x: List<Double>, yReal: List<Double>, yImaginary: List<Double> = emptyList()): String {
   val columnSeparator = "\t"
 

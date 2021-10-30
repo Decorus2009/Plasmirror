@@ -3,7 +3,6 @@ package core.state
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import core.Mirror
 import core.state.data.Data
-import core.structure.DeepCopyable
 import core.structure.Structure
 import core.validators.StructureDescriptionValidator
 import rootController

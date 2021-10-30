@@ -71,7 +71,10 @@ fun JsonNode.requireDoubleVarParameterOrNull() = when {
       else -> jsonFail(message = "Cannot read double or var value in text node \"$this\"")
     }
   }
-  isContainerNode -> DoubleVarParameter.variable(meanValue = requireDouble(DescriptionParameters.mean))
+  isContainerNode -> DoubleVarParameter.variable(
+    meanValue = requireDouble(DescriptionParameters.mean),
+    deviation = requireDouble(DescriptionParameters.deviation)
+  )
   isNullOrMissing -> null
   else -> jsonFail(message = "Cannot read double or var value in node \"$this\"")
 }

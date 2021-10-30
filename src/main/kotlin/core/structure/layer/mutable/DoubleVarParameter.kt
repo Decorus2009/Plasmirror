@@ -1,7 +1,5 @@
 package core.structure.layer.mutable
 
-import core.structure.DeepCopyable
-
 /**
  * This class represents an entity used instead of regular constant parameters in layer definitions.
  * Intended for usage in randomization computations in order to modify layer parameters in-place without recreation of
@@ -22,7 +20,7 @@ data class DoubleVarParameter private constructor(
   val meanValue: Double? = null,
   val deviation: Double? = null,
   val isVariable: Boolean,
-) : DeepCopyable<DoubleVarParameter> {
+) {
   companion object {
     fun variable(meanValue: Double, deviation: Double?) = DoubleVarParameter(
       meanValue = meanValue,
@@ -44,8 +42,6 @@ data class DoubleVarParameter private constructor(
   }
 
   fun requireValue() = varValue ?: throw IllegalArgumentException("Uninitialized value for DoubleVarParameter")
-
-  override fun deepCopy() = DoubleVarParameter(this.varValue, this.meanValue, this.deviation, this.isVariable)
 
   override fun toString() =
     "DoubleVarParameter[varValue = $varValue, meanValue = $meanValue, deviation = $deviation, isVariable = $isVariable"

@@ -12,7 +12,6 @@ import core.validators.fail
 
 /**
  * Same as [core.layer.immutable.material.AlGaAsBase] but with mutability ability (used in randomization computations)
- *
  */
 abstract class MutableAlGaAsBase(
   override val d: DoubleVarParameter,
@@ -47,14 +46,7 @@ data class MutableGaAs(
   val permittivityModel: AdachiBasedPermittivityModel
 ) : MutableAlGaAsBase(d, dampingFactor, cAl = DoubleVarParameter.constant(0.0), permittivityModel) {
 
-  override fun variableParameter() =
-    requireDoubleVarParameter(d, dampingFactor, layerName = "GaAs")
-
-  override fun deepCopy() = MutableGaAs(
-    d = d.deepCopy(),
-    dampingFactor = dampingFactor.deepCopy(),
-    permittivityModel
-  )
+  override fun variableParameters() = listOf(d, dampingFactor)
 }
 
 data class MutableAlGaAs(
@@ -64,28 +56,5 @@ data class MutableAlGaAs(
   val permittivityModel: AdachiBasedPermittivityModel
 ) : MutableAlGaAsBase(d, dampingFactor, cAl, permittivityModel) {
 
-  override fun variableParameter(): DoubleVarParameter =
-    requireDoubleVarParameter(d, dampingFactor, cAl, layerName = "AlGaAs")
-
-  override fun deepCopy() = MutableAlGaAs(
-    d = d.deepCopy(),
-    dampingFactor = dampingFactor.deepCopy(),
-    cAl = cAl.deepCopy(),
-    permittivityModel
-  )
+  override fun variableParameters() = listOf(d, dampingFactor, cAl)
 }
-
-// TODO test
-// TODO move
-private fun requireDoubleVarParameter(vararg args: DoubleVarParameter, layerName: String): DoubleVarParameter {
-  val varCandidates = args.toList()
-
-  if (varCandidates.hasMultipleVars()) {
-    fail("AlGaAs layer has multiple variable parameters specified. Only one \"var\" is allowed")
-  }
-
-  return varCandidates.first { it.isVariable }
-}
-
-// TODO move
-private fun List<DoubleVarParameter>.hasMultipleVars() = count { it.isVariable } > 1

@@ -1,6 +1,7 @@
 package ui.controllers.state
 
 import core.state.activeState
+import core.util.printInThread
 import javafx.fxml.FXML
 import javafx.scene.layout.AnchorPane
 import org.fxmisc.richtext.CodeArea
@@ -22,7 +23,7 @@ class StructureDescriptionController {
       .subscribe { area.setStyleSpans(0, computeHighlighting(area.text)) }
     area.style = """
       -fx-font-family: system;
-      -fx-font-size: 13pt;
+      -fx-font-size: 11pt;
       -fx-highlight-fill: #dbdddd;
       -fx-highlight-text-fill: #dbdddd;
     """
