@@ -36,8 +36,8 @@ data class ComputationState(
     // TODO need maybe update structure description per mode
   }
 
-  fun copyWithStructure(structure: Structure) =
-    ComputationState(range, data, opticalParams, mirror.copyWithStructure(structure), textDescriptions)
+  fun copyWithComputationDataAndNewStructure(structure: Structure) =
+    ComputationState(range, data.deepCopy(), opticalParams, mirror.copyWithStructure(structure), textDescriptions)
 
   fun updateStructureDescription(mode: String, description: String) {
     textDescriptions[mode.toLowerCase()] = description

@@ -11,9 +11,7 @@ import javafx.scene.control.Alert
 import javafx.scene.control.MenuItem
 import javafx.scene.input.*
 import javafx.scene.layout.AnchorPane
-import javafx.stage.FileChooser
 import javafx.stage.Stage
-import java.io.File
 
 class MenuController {
   @FXML
@@ -82,14 +80,7 @@ class MenuController {
 
   private fun initExportActionCallbacks() {
     exportComputedDataMenuItem.setOnAction {
-      initFileChooser(exportPath())
-        .let { chooser ->
-          chooser.initialFileName = exportFileName()
-          chooser.showSaveDialog(rootController.mainApp.primaryStage)
-        }
-        ?.let { file ->
-          activeState().writeComputedDataTo(file)
-        }
+      chooseFileAndSaveComputedData(rootController.mainApp.primaryStage, exportPath(), activeState())
     }
 
     exportMultipleComputedDataMenuItem.setOnAction {
@@ -111,8 +102,6 @@ class MenuController {
       }
     }
   }
-
-
 
 
   private fun safeExternalDispersionImport(isPermittivity: Boolean) {
@@ -177,9 +166,4 @@ class MenuController {
 
   @FXML
   private lateinit var randomizationMenuItem: MenuItem
-}
-
-private fun initFileChooser(dir: String) = FileChooser().apply {
-  extensionFilters.add(FileChooser.ExtensionFilter("Data Files", "*.txt", "*.dat"))
-  initialDirectory = File(dir)
 }

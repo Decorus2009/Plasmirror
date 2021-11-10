@@ -11,8 +11,6 @@ import java.io.File
 class MultipleExportDialogController {
   @FXML
   fun initialize() {
-    println("#Multiple export dialog controller init")
-
     initOpticalParamsHandlers()
     initAngleRBHandler()
     initDirectoryButtonHandler()

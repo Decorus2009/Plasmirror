@@ -1,14 +1,18 @@
 package ui.controllers
 
 import MainApp
+import core.state.State
 import core.state.saveConfig
+import core.util.exportFileName
+import core.util.writeComputedDataTo
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.AnchorPane
-import javafx.stage.Stage
+import javafx.stage.*
+import java.io.File
 import java.util.*
 
 fun disable(vararg labels: Label) = labels.forEach { it.isDisable = true }
@@ -107,4 +111,20 @@ fun buildValuesTable(x: List<Double>, yReal: List<Double>, yImaginary: List<Doub
       appendLine()
     }
   }.toString()
+}
+
+fun chooseFileAndSaveComputedData(window: Window, initialDirectory: String, state: State) {
+  initFileChooser(initialDirectory)
+    .let { chooser ->
+      chooser.initialFileName = exportFileName()
+      chooser.showSaveDialog(window)
+    }
+    ?.let { file ->
+      state.writeComputedDataTo(file)
+    }
+}
+
+fun initFileChooser(dir: String) = FileChooser().apply {
+  extensionFilters.add(FileChooser.ExtensionFilter("Data Files", "*.txt", "*.dat"))
+  initialDirectory = File(dir)
 }

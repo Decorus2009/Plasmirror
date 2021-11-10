@@ -62,10 +62,10 @@ material: AlGaAs, eps: adachi_simple, d: 110, df: 0.0, cAl: 0.35;
 x30
 type: excitonic,
 medium: { material: GaAs, eps: adachi_gauss, df: 0.0 },
-exciton: { w0: 1.63, G0: 0.0005, G: 0.01 },
+exciton: { w0: 1.63, G0: 0.0005, G: 0.01, wb: 3.205, Gb: 0.027, B: 1000000, C: (0, 0) },
 d: 10;
-
 material: AlGaAs, eps: adachi_simple, d: 100, df: 0.0, cAl: 0.35;
+
 // this is a single-line comment
 /*
     this is a multi-line comment

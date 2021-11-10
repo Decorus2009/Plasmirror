@@ -79,9 +79,9 @@ data class State(
     externalData.remove(data)
   }
 
-  fun copyWithNewStructure(structure: Structure) = State(
+  fun copyWithComputationDataAndNewStructure(structure: Structure) = State(
     id = UUID.randomUUID(),
-    computationState = computationState.copyWithStructure(structure),
+    computationState = computationState.copyWithComputationDataAndNewStructure(structure),
     viewState,
     externalData,
     active = false // TODO PLSMR-0002
@@ -106,6 +106,8 @@ data class State(
 
   /**
    * Generates a sequence of computation wavelengths
+   * It's assumed that [computationData().x] is empty
+   * so that [addAll(..)] call below works correctly
    */
   private fun generateWavelengths() = with(computationState.range) {
     generateSequence(start) { currentWavelength ->
@@ -117,12 +119,20 @@ data class State(
     }.toList().also { computationData().x.addAll(it) }
   }
 
-  private fun clearData() = computationData().clear()
+  fun clearData() = computationData().clear()
 
+  /**
+   * It's assumed that [computationData().yReal] is empty
+   * so that [addAll(...)] call below works correctly
+   * */
   private fun List<Double>.computeReal(computation: (wl: Double) -> Double) {
     computationData().yReal.addAll(map { computation(it) })
   }
 
+  /**
+   * It's assumed that [computationData().yReal] and [computationData().yImaginary] are both empty
+   * so that [addAll(...)] calls below work correctly
+   * */
   private fun List<Double>.computeComplex(computation: (wl: Double) -> Complex) {
     val values = map { computation(it) }
     computationData().yReal.addAll(values.map { it.real })

@@ -6,7 +6,6 @@ import core.structure.*
 import core.structure.layer.mutable.AbstractMutableLayer
 import core.structure.layer.mutable.DoubleVarParameter
 import core.util.mapInPlace
-import core.util.printInThread
 import core.validators.StateException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
@@ -38,15 +37,11 @@ class Randomizer(
   private val parallelism: Int,
   private val iterations: Int,
   private val saveIntermediateResults: Boolean,
-  private val chosenDirectory: File? = null
+  private val chosenDirectory: File? = null,
 ) {
   private val states = mutableMapOf<Int, State>()
-//  private val statesToAllLayers = mutableMapOf<StateId, List<ILayer>>()
-
   private val concurrencyLevel = min(Runtime.getRuntime().availableProcessors(), parallelism)
-
-  // for experiment reproduction
-  private val seed = 1L
+  private val seed = 1L // for experiment reproduction?
   private val randomGenerator = RandomGeneratorFactory.createRandomGenerator(Random(seed))
   private val iterationsCompleted = AtomicInteger()
 
@@ -56,11 +51,8 @@ class Randomizer(
     repeat(numberOfStates) {
       // for each state (which will be a copy of activeState, create its own structure
       // so there's no need to make a Structure copyable with all underlying blocks and layers copyable as well
-      val mutableStructure = mutableStructureDescriptionText
-        .buildMutableStructure()
-        .flatten()
+      val mutableStructure = mutableStructureDescriptionText.buildMutableStructure().flatten()
 
-      // right away check structure for presence of at least one varParam such that isVariable == true
       val hasVariableLayer = mutableStructure.allMutableLayers().any { layer -> layer.isVariable() }
       if (!hasVariableLayer) {
         throw StateException(
@@ -71,16 +63,8 @@ class Randomizer(
 
       // all states are initially copies of active state
       // but each state's structure is further modified during randomization procedure
-      val state = activeState().copyWithNewStructure(mutableStructure)
-
-      // [is] is zero-based index of current iteration
-      states[it] = state
-//      statesToAllLayers[state.id] = state.structure().allLayers()
+      states[it] = activeState().copyWithComputationDataAndNewStructure(mutableStructure)
     }
-
-
-
-    printInThread("Randomizer init finished: $this")
   }
 
   /**
@@ -94,114 +78,129 @@ class Randomizer(
    * 2. within that thread call runBlocking { GlobalScope.launch { randomizeAndCompute... } }
    * (launch will help keep parent's [Job] reference to stop children jobs with heavy computations if necessary)
    */
+  @ExperimentalCoroutinesApi
   suspend fun randomizeAndCompute(progressReportingChannel: Channel<Int>) = coroutineScope {
-    /**
-     * Case 1. #chunks < #states: 3 iterations, 5 cores -> partition size = 0, 5 states
-     *   Solution: for this case define:
-     *     * states number = 1
-     *     * partition size = #iterations
-     *
-     * Case 2. #chunks > #states: 38 iterations, 5 cores -> partition size = 7 -> 6 chunks (7, 7, 7, 7, 7, 3), 5 states
-     *   Solution: unite last 2 chunks: (7, 7, 7, 7, 7, 3) -> (7, 7, 7, 7, 10) -> #chunks == #states
+    // run multiple async computations
+    val defs = iterationChunks().mapIndexed { index, iterationsChunk ->
+      async {
+        randomizeAndComputeState(index, iterationsChunk.size, progressReportingChannel)
+      }
+    }
 
-     * Case 3. #chunks == #states: 20 iterations, 5 cores -> partition size = 4 -> 5 chunks (4, 4, 4, 4, 4), 5 states
-     *   Solution: it's OK initially
-     */
+    DEBUG_THREAD("Awaiting for all results")
 
+    val averagedAggregatedData = defs.awaitAll()
+      .reduce { acc, nextAggregatedData ->
+        acc.merge(nextAggregatedData)
+        acc
+      }
+      .also { it.averageBy(iterations) }
+
+    progressReportingChannel.close()
+    activeState().computationState.data = with(averagedAggregatedData) { Data(x, yReal, yImaginary) }
+
+    states.clear()
+  }
+
+  /**
+   * Case 1. #chunks < #states: 3 iterations, 5 cores -> partition size = 0, 5 states
+   *   Solution: for this case define:
+   *     * states number = 1
+   *     * partition size = #iterations
+   *
+   * Case 2. #chunks > #states: 38 iterations, 5 cores -> partition size = 7 -> 6 chunks (7, 7, 7, 7, 7, 3), 5 states
+   *   Solution: unite last 2 chunks: (7, 7, 7, 7, 7, 3) -> (7, 7, 7, 7, 10) -> #chunks == #states
+
+   * Case 3. #chunks == #states: 20 iterations, 5 cores -> partition size = 4 -> 5 chunks (4, 4, 4, 4, 4), 5 states
+   *   Solution: it's OK initially
+   */
+  private fun iterationChunks(): List<List<Int>> {
     val statesNumber = states.size
     val partitionSize = (iterations / concurrencyLevel).let { if (it == 0) iterations else it }
     val iterationsChunks = (1..iterations).chunked(partitionSize)
     val iterationsChunksNumber = iterationsChunks.size
 
     // case 2
-    // its size should be == [statesNumber]
-    val normalizedIterationsChunks = if (iterationsChunksNumber > statesNumber) {
-      if (iterationsChunksNumber - statesNumber > 1) {
-        throw IllegalStateException("Unusual state with #chunks: $iterationsChunksNumber, #states: $statesNumber")
-      }
-
-      val tempChunks = mutableListOf<List<Int>>()
-
-      // in case 2 statesNumber == concurrencyLevel
-      // iteration by all 'iteration chunks' except the last one
-      repeat(statesNumber) { stateInd ->
-        // penultimate chunk, next chunk should be the last and have size < [partitionSize]
-        if (stateInd == statesNumber - 1) {
-          val penultimateIterationsChunk = iterationsChunks[stateInd]
-          val lastIterationsChunk = iterationsChunks[stateInd + 1]
-          tempChunks[stateInd] = penultimateIterationsChunk + lastIterationsChunk
-        } else {
-          // a regular chunk, neither the penultimate not the last one
-          tempChunks += iterationsChunks[stateInd]
+    return when {
+      iterationsChunksNumber > statesNumber -> {
+        if (iterationsChunksNumber - statesNumber > 1) {
+          throw IllegalStateException("Unusual state with #chunks: $iterationsChunksNumber, #states: $statesNumber")
         }
-      }
 
-      tempChunks
-    } else {
-      iterationsChunks
-    }
+        val tempChunks = mutableListOf<List<Int>>()
 
-    val averagedAggregatedData = normalizedIterationsChunks
-      // run multiple async computations
-      .mapIndexed { index, iterationsChunk ->
-        async {
-          randomizeAndComputeState(index, iterationsChunk.size).also {
-            val currentlyCompleted = iterationsCompleted.incrementAndGet()
-            progressReportingChannel.send(currentlyCompleted)
+        // in case 2 statesNumber == concurrencyLevel
+        // iteration by all 'iteration chunks' except the last one
+        repeat(statesNumber) { stateInd ->
+          // penultimate chunk, next chunk should be the last and have size < [partitionSize]
+          if (stateInd == statesNumber - 1) {
+            val penultimateIterationsChunk = iterationsChunks[stateInd]
+            val lastIterationsChunk = iterationsChunks[stateInd + 1]
+            tempChunks[stateInd] = penultimateIterationsChunk + lastIterationsChunk
+          } else {
+            // a regular chunk, neither the penultimate not the last one
+            tempChunks += iterationsChunks[stateInd]
           }
         }
+        tempChunks
       }
-      .map { it.await() }
-      .reduce { acc, nextAggregatedData ->
-        acc.merge(nextAggregatedData)
-        acc
+      else -> {
+        iterationsChunks
       }
-      // average collected data
-      .also { it.normalizeBy(iterations) }
-
-    progressReportingChannel.close()
-
-    activeState().computationState.data = with(averagedAggregatedData) { Data(x, yReal, yImaginary) }
+    }
   }
 
   /** Called per coroutine */
-  private fun randomizeAndComputeState(stateIdx: Int, iterations: Int): AggregatedData {
+  @ExperimentalCoroutinesApi
+  private suspend fun randomizeAndComputeState(stateIdx: Int, iterations: Int, progressReportingChannel: Channel<Int>): AggregatedData {
     // [states] map is used in read-only mode here, seems to be thread-safe
     val state = states[stateIdx]
       ?: throw IllegalArgumentException("State with index $stateIdx not found. All states: $states")
     val aggregatedData = AggregatedData()
 
-    // main work: run [iterations] times: randomize, compute, collect result
-    // here we work with a separate copy of state (including deep copy of underlying structure)
+    /**
+    main work: run [iterations] times: randomize, compute, collect result;
+    here we work with a separate copy of state which includes:
+     * a deep copy of computation data which shouldn't be shared between states in order to avoid race conditions
+     * a deep copy of underlying structure for the same reason
+     */
     repeat(iterations) {
+
+      DEBUG_THREAD("Running computation #${it + 1}")
+
       with(state) {
         randomizeStructure()
+        clearData()
         compute()
-
         aggregatedData.merge(computationData())
+
+        if (!progressReportingChannel.isClosedForSend) {
+          progressReportingChannel.send(
+            iterationsCompleted.incrementAndGet()
+
+              .apply { DEBUG_THREAD("Computation #${it + 1} finished, sending progress report of $this") }
+
+          )
+        }
       }
     }
+
+    DEBUG_THREAD("Coroutine computations finished...")
 
     return aggregatedData
   }
 
-  private fun State.randomizeStructure() = structure()
-    .allMutableLayers()
-    .forEach { layer ->
-      layer.variableParameters()
-        .filter { it.isVariable }
-        .randomize()
-    }
+  private fun State.randomizeStructure() = structure().allMutableLayers().forEach { layer ->
+    layer.variableParameters()
+      .filter { it.isVariable }
+      .randomize()
+  }
 
-  // TODO save info about new random value for each var param
+  // TODO PLSMR-0002 save info about new random value for each var param
   private fun List<DoubleVarParameter>.randomize() = forEach { varParam ->
     varParam.variate {
-      varParam.requireIsVariableParameter()
-
       val random = randomGenerator.nextGaussian()
-      (random * varParam.deviation!! + varParam.meanValue!!).also {
-        println("A new random gaussian value $random has been generated. Var parameter has been set to $this")
-      }
+      random * varParam.deviation!! + varParam.meanValue!!
     }
   }
 
@@ -228,7 +227,7 @@ private fun Structure.allMutableLayers(): List<AbstractMutableLayer> = with(bloc
  * Each computation result for its own set of random values of variable parameters is
  * added to this [yReal] and [yImaginary] storages.
  *
- * In order to compute average value one should call [normalizeBy] method with argument value equal
+ * In order to compute average value one should call [averageBy] method with argument value equal
  * to a number of additions to this storage.
  */
 private class AggregatedData(
@@ -241,20 +240,41 @@ private class AggregatedData(
     require(yReal.size == other.yReal.size)
     require(yImaginary.size == other.yImaginary.size)
 
-    indices().forEach { index ->
+    x.indices.forEach { index ->
       yReal[index] += other.yReal[index]
-      yImaginary[index] += other.yImaginary[index]
+
+      if (yImaginary.isNotEmpty()) {
+        yImaginary[index] += other.yImaginary[index]
+      }
     }
   }
 
   fun merge(other: Data) {
-    require(x.size == other.x.size)
-    require(yReal.size == other.yReal.size)
-    require(yImaginary.size == other.yImaginary.size)
+    when {
+      isInInitialState() -> {
+        require(other.x.size == other.yReal.size)
 
-    indices().forEach { index ->
-      yReal[index] += other.yReal[index]
-      yImaginary[index] += other.yImaginary[index]
+        other.x.indices.forEach { ind ->
+          x += other.x[ind]
+          yReal += other.yReal[ind]
+        }
+        if (other.yImaginary.isNotEmpty()) {
+          other.yImaginary.forEach { yImaginary += it }
+        }
+      }
+      else -> {
+        require(x.size == other.x.size)
+        require(yReal.size == other.yReal.size)
+        require(yImaginary.size == other.yImaginary.size)
+
+        // accumulate yReal values during all per-coroutine-computations
+        // averaging will be provided later at the final step
+        x.indices.forEach { yReal[it] += other.yReal[it] }
+
+        if (other.yImaginary.isNotEmpty()) {
+          other.yImaginary.indices.forEach { yImaginary[it] += other.yImaginary[it] }
+        }
+      }
     }
   }
 
@@ -265,10 +285,18 @@ private class AggregatedData(
    * We can eventually compute an average values for [yReal] and [yImaginary] between all the computations
    * using this total aggregated data and a number of iterations ([value]).
    */
-  fun normalizeBy(value: Int) {
+  fun averageBy(value: Int) {
     yReal.mapInPlace { it / value }
     yImaginary.mapInPlace { it / value }
   }
 
-  private fun indices() = x.indices
+  /**
+   * Initially [this] contains empty lists of [x], [yReal] and [yImaginary]
+   */
+  private fun isInInitialState() = x.size == 0 && yReal.size == 0 && yImaginary.size == 0
+}
+
+fun DEBUG_THREAD(message: String) {
+  if (false)
+  println("${Thread.currentThread()}: $message")
 }

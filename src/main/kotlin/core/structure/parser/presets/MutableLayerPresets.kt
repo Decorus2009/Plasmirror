@@ -1,11 +1,12 @@
 package core.structure.parser.presets
 
 import com.fasterxml.jackson.databind.JsonNode
+import core.structure.description.DescriptionParameters
 import core.structure.layer.mutable.DoubleVarParameter
 import core.structure.layer.mutable.material.MutableAlGaAs
 import core.structure.layer.mutable.material.MutableGaAs
-import core.structure.description.DescriptionParameters
-import core.structure.parser.*
+import core.structure.layer.mutable.material.excitonic.MutableExcitonic
+import core.structure.parser.LayerType
 import core.util.*
 
 fun JsonNode.mutableGaAs(d: DoubleVarParameter, layerType: LayerType) = MutableGaAs(
@@ -21,6 +22,11 @@ fun JsonNode.mutableAlGaAs(d: DoubleVarParameter, layerType: LayerType) = Mutabl
   permittivityModel = requireAdachiBasedPermittivityModel(layerType)
 )
 
+fun JsonNode.mutableExcitonic(d: DoubleVarParameter) = MutableExcitonic(
+  d = d,
+  medium = mutableLayer(requireNode(DescriptionParameters.medium)),
+  mutableExciton = requireMutableExciton()
+)
 
 //TODO PLSMR-0002 not implemented
 /*

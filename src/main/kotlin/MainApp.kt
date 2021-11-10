@@ -31,9 +31,6 @@ class MainApp : Application() {
       rootLayout = load<AnchorPane>()
       rootController = getController()
       rootController.mainApp = this@MainApp
-
-//            rootCntrllr = rootController
-      println("Roots")
     }
     /**
     TODO Let state initialization be here, before the opening of the app window,

@@ -1,14 +1,15 @@
 package core.structure.parser.presets
 
 import com.fasterxml.jackson.databind.JsonNode
+import core.optics.AdachiBasedPermittivityModel
+import core.optics.particles.LorentzOscillator
+import core.structure.description.DescriptionParameters
 import core.structure.layer.immutable.AbstractLayer
 import core.structure.layer.immutable.composite.Orders
 import core.structure.layer.immutable.material.excitonic.Exciton
 import core.structure.layer.immutable.particles.*
 import core.structure.layer.mutable.AbstractMutableLayer
-import core.optics.AdachiBasedPermittivityModel
-import core.optics.particles.LorentzOscillator
-import core.structure.description.DescriptionParameters
+import core.structure.layer.mutable.material.excitonic.MutableExciton
 import core.structure.parser.*
 import core.util.*
 import core.validators.fail
@@ -46,7 +47,9 @@ fun mutableLayer(layerNode: JsonNode): AbstractMutableLayer = with(layerNode) {
 
   return when (layerType) {
     is LayerType.Material.GaAs -> mutableGaAs(d, layerType)
-//    is LayerType.Material.AlGaAs -> mutableAlGaAs(d, layerType)
+    is LayerType.Material.AlGaAs -> mutableAlGaAs(d, layerType)
+    is LayerType.Composite.Excitonic -> mutableExcitonic(d)
+
     else -> TODO("PLSMR-0002")
   }
 }
@@ -130,15 +133,28 @@ fun JsonNode.requireOrders(): Orders {
 
 fun JsonNode.requireExciton() = requireNode(DescriptionParameters.exciton).run {
   Exciton(
-    w0 = requireNonNegativeDouble(DescriptionParameters.w0), // TODO PLSMR-0002 VarParameter candidate
-    G0 = requireDouble(DescriptionParameters.g0), // TODO PLSMR-0002 VarParameter candidate
-    G = requireDouble(DescriptionParameters.g), // TODO PLSMR-0002 VarParameter candidate
-    wb = requireDouble(DescriptionParameters.wb), // TODO PLSMR-0002 VarParameter candidate
-    Gb = requireDouble(DescriptionParameters.gb), // TODO PLSMR-0002 VarParameter candidate
-    B = requireDouble(DescriptionParameters.b), // TODO PLSMR-0002 VarParameter candidate
+    w0 = requireNonNegativeDouble(DescriptionParameters.w0),
+    G0 = requireDouble(DescriptionParameters.g0),
+    G = requireDouble(DescriptionParameters.g),
+    wb = requireDouble(DescriptionParameters.wb),
+    Gb = requireDouble(DescriptionParameters.gb),
+    B = requireDouble(DescriptionParameters.b),
     C = requireComplex(DescriptionParameters.c), // TODO PLSMR-0002 VarParameter COMPLEX candidate
   )
 }
+
+fun JsonNode.requireMutableExciton() = requireNode(DescriptionParameters.exciton).run {
+  MutableExciton(
+    w0 = requireNonNegativeDoubleVarParameter(DescriptionParameters.w0),
+    G0 = requireDoubleVarParameter(DescriptionParameters.g0),
+    G = requireDoubleVarParameter(DescriptionParameters.g),
+    wb = requireDoubleVarParameter(DescriptionParameters.wb),
+    Gb = requireDoubleVarParameter(DescriptionParameters.gb),
+    B = requireDoubleVarParameter(DescriptionParameters.b),
+    C = requireComplex(DescriptionParameters.c), // TODO PLSMR-0002 VarParameter COMPLEX candidate
+  )
+}
+
 
 /**
  * Reads a part of user-provided structure description:

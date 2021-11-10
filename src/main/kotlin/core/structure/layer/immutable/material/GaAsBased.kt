@@ -1,12 +1,12 @@
 package core.structure.layer.immutable.material
 
-import core.structure.layer.immutable.AbstractLayer
 import core.math.Complex
 import core.optics.AdachiBasedPermittivityModel
 import core.optics.material.AlGaAs.AlGaAsAdachiModelWithGaussianBroadening
 import core.optics.material.AlGaAs.AlGaAsAdachiSimpleModel
 import core.optics.material.AlGaAsSb.AlGaAsSbAdachiModelWithTemperatureDependence
 import core.optics.toEnergy
+import core.structure.layer.immutable.AbstractLayer
 
 /**
  * Base class for AlGaAs-based layers (excluding AlGaAsSb).

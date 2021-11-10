@@ -8,7 +8,8 @@ import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.geometry.Pos
 import javafx.scene.Node
-import javafx.scene.chart.*
+import javafx.scene.chart.LineChart
+import javafx.scene.chart.NumberAxis
 import javafx.scene.control.Label
 import javafx.scene.input.MouseButton.PRIMARY
 import javafx.scene.input.MouseButton.SECONDARY
@@ -32,8 +33,6 @@ import java.util.*
 class LineChartController {
   @FXML
   fun initialize() {
-    println("#Line chart controller init")
-
     /* init number formatters for axises' values */
     xAxis.tickLabelFormatter = object : StringConverter<Number>() {
       override fun toString(number: Number) = String.format(Locale.ROOT, "%.1f", number.toDouble())

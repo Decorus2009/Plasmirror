@@ -1,6 +1,9 @@
 package ui.controllers.randomization
 
+import core.randomizer.DEBUG_THREAD
 import core.randomizer.Randomizer
+import core.state.activeState
+import core.util.exportPath
 import core.util.randomizationsExportPath
 import core.validators.*
 import javafx.application.Platform
@@ -9,6 +12,7 @@ import javafx.scene.control.*
 import javafx.stage.DirectoryChooser
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import ui.controllers.*
 import ui.controllers.state.StructureDescriptionController
 import java.io.File
@@ -19,27 +23,22 @@ class RandomizationController {
   private var iterations: Int = 0
   private var parallelism: Int = 0
 
+  @ExperimentalCoroutinesApi
   @FXML
   fun initialize() {
-    println("#Randomization controller init")
-
     initSaveIntermediateResultsCheckBoxHandler()
     initDirectoryButtonHandler()
     initRunButtonHandler()
   }
 
   private fun initSaveIntermediateResultsCheckBoxHandler() = saveIntermediateResultsCheckBox.setOnAction {
-    saveIntermediateResultsCheckBox.isSelected.let { isSelected ->
-      saveIntermediateResults = isSelected
+    saveIntermediateResults = saveIntermediateResultsCheckBox.isSelected
 
-      if (isSelected) {
-        saveIntermediateResults = true
-        enable(directoryButton)
-      } else {
-        saveIntermediateResults = false
-        chosenDirectory = null
-        disable(directoryButton)
-      }
+    if (saveIntermediateResultsCheckBox.isSelected) {
+      enable(directoryButton)
+    } else {
+      chosenDirectory = null
+      disable(directoryButton)
     }
   }
 
@@ -66,60 +65,63 @@ class RandomizationController {
         chosenDirectory
       )
 
-      println("Running randomized computations for $iterations iterations and $parallelism parallelism level")
-      println("Preparing a thread to run multiple coroutines in")
-      println("JavaFX thread: ${Thread.currentThread()}")
-
       thread {
-//        println("A separate thread created: ${Thread.currentThread()}")
         runBlocking {
-//          println("Starting runBlocking context")
           val parentJob = GlobalScope.launch {
             val timeMillis = withClockSuspended {
-//              println("Starting a parent job in runBlocking context")
               val progressReportingChannel = Channel<Int>()
+              // progress listener which runs in parallel
+              // with main concurrent computation activity in [randomizer.randomizeAndCompute]
+              startProgressListener(progressReportingChannel)
               randomizer.randomizeAndCompute(progressReportingChannel)
-
-              while (!progressReportingChannel.isClosedForReceive) {
-                val iterationsCompleted = progressReportingChannel.receive()
-                progressBar.progress = (iterationsCompleted.toDouble() / iterations)
-              }
-
-//              repeat(10) {
-//                delay(1000)
-////                println("Iteration: ${it + 1}")
-//
-//                progressBar.progress = ((it + 1).toDouble() / 10)
-//              }
             }
-            // [showComputationTimeSeconds] code is run on JavaFX thread
-            // setting label text is required to be run on JavaFX thread
+
+            // the code in the scope is run on JavaFX thread
             Platform.runLater {
               showComputationTimeSeconds(runningTimeLabel, timeMillis)
+              chooseFileAndSaveComputedData(directoryButton.scene.window, exportPath(), activeState())
             }
-//            println("launch finished")
           }
 
           stopButton.setOnMouseClicked {
-//            println("Cancelling parent job")
             parentJob.cancel("Stop button clicked")
             progressBar.color("red")
           }
         }
       }.join()
-//    showComputationTime(runningTimeLabel, timeMillis)
     } catch (ex: StateException) {
-      println(ex)
+      DEBUG_THREAD(ex.toString())
       alert(header = ex.headerMessage, content = ex.contentMessage)
     } catch (ex: ValidationException) {
-      println(ex)
+      DEBUG_THREAD(ex.toString())
       alert(header = ex.headerMessage, content = ex.contentMessage)
     } catch (ex: Exception) {
-      println(ex)
+      DEBUG_THREAD(ex.toString())
       alert(header = "Unknown error", content = "Unknown error while running randomized computations")
     }
   }
 
+  @ExperimentalCoroutinesApi
+  private fun CoroutineScope.startProgressListener(progressReportingChannel: Channel<Int>) {
+    launch {
+      while (!progressReportingChannel.isClosedForReceive) {
+        try {
+          val iterationsCompleted = progressReportingChannel.receive()
+
+          // record each 10th iterations, no need to switch context so often
+          if (iterationsCompleted % 10 == 0) {
+            Platform.runLater {
+              // called on JavaFX thread
+              progressBar.progress = iterationsCompleted.toDouble() / iterations
+            }
+          }
+        } catch (ignored: ClosedReceiveChannelException) {
+          // when the channel is closed on send-side, [receive] call (on which we've suspended earlier) throws
+          // ignore it
+        }
+      }
+    }
+  }
 
   private fun validate() {
     validatePositiveInt(iterationsTextField.text, "iterations")

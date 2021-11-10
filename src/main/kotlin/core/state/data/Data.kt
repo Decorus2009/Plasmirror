@@ -9,6 +9,12 @@ data class Data(
   @get:JsonProperty("yImaginary")
   val yImaginary: MutableList<Double> = mutableListOf()
 ) {
+  fun deepCopy() = Data().also { newData ->
+    newData.x.addAll(this.x)
+    newData.yReal.addAll(this.yReal)
+    newData.yImaginary.addAll(this.yImaginary)
+  }
+
   fun clear() {
     x.clear()
     yReal.clear()

@@ -1,14 +1,13 @@
 package core.structure.layer.mutable.material
 
-import core.structure.layer.mutable.AbstractMutableLayer
-import core.structure.layer.mutable.DoubleVarParameter
 import core.math.Complex
 import core.optics.AdachiBasedPermittivityModel
 import core.optics.material.AlGaAs.AlGaAsAdachiModelWithGaussianBroadening
 import core.optics.material.AlGaAs.AlGaAsAdachiSimpleModel
 import core.optics.material.AlGaAsSb.AlGaAsSbAdachiModelWithTemperatureDependence
 import core.optics.toEnergy
-import core.validators.fail
+import core.structure.layer.mutable.AbstractMutableLayer
+import core.structure.layer.mutable.DoubleVarParameter
 
 /**
  * Same as [core.layer.immutable.material.AlGaAsBase] but with mutability ability (used in randomization computations)
