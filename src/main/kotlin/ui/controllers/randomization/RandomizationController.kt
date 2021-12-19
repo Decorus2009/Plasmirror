@@ -10,6 +10,7 @@ import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.stage.DirectoryChooser
+import javafx.stage.Stage
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
@@ -23,12 +24,36 @@ class RandomizationController {
   private var iterations: Int = 0
   private var parallelism: Int = 0
 
+  private var parentJob: Job? = null
+
   @ExperimentalCoroutinesApi
   @FXML
   fun initialize() {
     initSaveIntermediateResultsCheckBoxHandler()
     initDirectoryButtonHandler()
     initRunButtonHandler()
+
+    // runButton.scene == null otherwise
+    Platform.runLater {
+      initOnCloseCallback()
+    }
+  }
+
+  private fun initOnCloseCallback() {
+    val stage = runButton.scene.window as Stage
+
+    with(stage) {
+      val closeMessage = "Window is closed, computation is interrupted"
+
+      setOnCloseRequest {
+        parentJob?.cancel(closeMessage)
+      }
+
+      onEscapePressed {
+        parentJob?.cancel(closeMessage)
+        close()
+      }
+    }
   }
 
   private fun initSaveIntermediateResultsCheckBoxHandler() = saveIntermediateResultsCheckBox.setOnAction {
@@ -67,7 +92,7 @@ class RandomizationController {
 
       thread {
         runBlocking {
-          val parentJob = GlobalScope.launch {
+          parentJob = GlobalScope.launch {
             val timeMillis = withClockSuspended {
               val progressReportingChannel = Channel<Int>()
               // progress listener which runs in parallel
@@ -84,7 +109,7 @@ class RandomizationController {
           }
 
           stopButton.setOnMouseClicked {
-            parentJob.cancel("Stop button clicked")
+            parentJob?.cancel("Stop button clicked")
             progressBar.color("red")
           }
         }
@@ -108,8 +133,8 @@ class RandomizationController {
         try {
           val iterationsCompleted = progressReportingChannel.receive()
 
-          // record each 10th iterations, no need to switch context so often
-          if (iterationsCompleted % 10 == 0) {
+          // record each 2nd iteration, no need to switch context so often
+          if (iterationsCompleted % 2 == 0) {
             Platform.runLater {
               // called on JavaFX thread
               progressBar.progress = iterationsCompleted.toDouble() / iterations

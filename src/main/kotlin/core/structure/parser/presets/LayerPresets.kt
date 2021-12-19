@@ -2,13 +2,13 @@ package core.structure.parser.presets
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import core.optics.ExternalDispersionsContainer
+import core.structure.description.DescriptionParameters
 import core.structure.layer.immutable.AbstractLayer
 import core.structure.layer.immutable.composite.*
 import core.structure.layer.immutable.material.*
 import core.structure.layer.immutable.material.excitonic.Excitonic
 import core.structure.layer.immutable.particles.*
-import core.optics.ExternalDispersionsContainer
-import core.structure.description.DescriptionParameters
 import core.structure.parser.*
 import core.util.*
 import core.validators.fail
@@ -67,10 +67,10 @@ fun JsonNode.userDefinedLayer(): AbstractLayer {
 
   val definitionNode = userDefinitions[key] ?: fail("Unknown material or type definition: $key")
 
-  /*
+  /**
   put definition node into the current one,
   values of fields in this node become overridden by those in definition node.
-  This is is convenient for the replacements similar to:
+  This is convenient for replacements similar to:
 
   material: custom_GaN ->
 

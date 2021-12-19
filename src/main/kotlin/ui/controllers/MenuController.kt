@@ -28,8 +28,10 @@ class MenuController {
       showWindow(fxmlPath = "fxml${sep}dispersions${sep}ExternalDispersionsManager.fxml", titleToShow = "External Dispersions")
     }
 
+    // NB: path separator is explicitly set as "/" due to an error
+    // (see https://github.com/Decorus2009/Plasmirror/issues/8)
     randomizationMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml${sep}randomization${sep}Randomization.fxml", titleToShow = "Randomization")
+      showWindow(fxmlPath = "fxml/state/Randomization.fxml", titleToShow = "Randomization"/*, RandomizationController::stageCloseCallback*/)
     }
 
     helpInfoMenuItem.setOnAction {

@@ -297,6 +297,6 @@ private class AggregatedData(
 }
 
 fun DEBUG_THREAD(message: String) {
-  if (false)
+  if (true)
   println("${Thread.currentThread()}: $message")
 }

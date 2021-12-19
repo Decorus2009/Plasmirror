@@ -49,6 +49,8 @@ fun mutableLayer(layerNode: JsonNode): AbstractMutableLayer = with(layerNode) {
     is LayerType.Material.GaAs -> mutableGaAs(d, layerType)
     is LayerType.Material.AlGaAs -> mutableAlGaAs(d, layerType)
     is LayerType.Composite.Excitonic -> mutableExcitonic(d)
+    is LayerType.Material.Custom -> mutableCustomLayer(d)
+    is LayerType.UserDefined -> mutableUserDefinedLayer()
 
     else -> TODO("PLSMR-0002")
   }

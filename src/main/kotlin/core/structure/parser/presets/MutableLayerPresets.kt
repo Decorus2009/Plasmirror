@@ -1,13 +1,15 @@
 package core.structure.parser.presets
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import core.structure.description.DescriptionParameters
+import core.structure.layer.mutable.AbstractMutableLayer
 import core.structure.layer.mutable.DoubleVarParameter
-import core.structure.layer.mutable.material.MutableAlGaAs
-import core.structure.layer.mutable.material.MutableGaAs
+import core.structure.layer.mutable.material.*
 import core.structure.layer.mutable.material.excitonic.MutableExcitonic
-import core.structure.parser.LayerType
+import core.structure.parser.*
 import core.util.*
+import core.validators.fail
 
 fun JsonNode.mutableGaAs(d: DoubleVarParameter, layerType: LayerType) = MutableGaAs(
   d = d,
@@ -28,6 +30,40 @@ fun JsonNode.mutableExcitonic(d: DoubleVarParameter) = MutableExcitonic(
   mutableExciton = requireMutableExciton()
 )
 
+fun JsonNode.mutableCustomLayer(d: DoubleVarParameter): AbstractMutableLayer {
+  val epsNode = requireNode(DescriptionParameters.eps)
+
+  return when (val type = epsNode.permittivityType()) {
+    is PermittivityType.Number -> MutableConstPermittivityLayer(
+      d = d,
+      eps = type.numberValue
+    )
+    is PermittivityType.ExternalDispersion -> TODO("Plasmirror-6")
+    is PermittivityType.Expression -> MutablePermittivityExpressionBasedLayer(
+      d = d,
+      epsExpr = type.exprText
+    )
+  }
+}
+
+/**
+ * This is a crutch because it's required to return [AbstractMutableLayer],
+ * whereas implementation is copied from [core.structure.parser.presets.LayerPresetsKt.userDefinedLayer]
+ *
+ * Need to fix it within
+ * https://github.com/Decorus2009/Plasmirror/issues/6
+ */
+fun JsonNode.mutableUserDefinedLayer(): AbstractMutableLayer {
+  val maybeMaterial = requireTextOrNullUpperCase(DescriptionParameters.material)
+  val maybeType = requireTextOrNullUpperCase(DescriptionParameters.type)
+  val key = maybeMaterial ?: maybeType ?: fail("Material or type should be specified for a layer")
+
+  val definitionNode = userDefinitions[key] ?: fail("Unknown material or type definition: $key")
+
+  (this as ObjectNode).setAll<ObjectNode>((definitionNode as ObjectNode))
+
+  return mutableLayer(this)
+}
 //TODO PLSMR-0002 not implemented
 /*
 fun JsonNode.mutableAlGaAsSb(d: Double) = core.structure.layer.immutable.material.AlGaAsSb(

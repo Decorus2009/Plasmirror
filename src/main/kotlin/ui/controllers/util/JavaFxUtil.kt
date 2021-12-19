@@ -45,13 +45,18 @@ fun showWindow(fxmlPath: String, titleToShow: String) {
     title = titleToShow
     scene = Scene(page)
     scene.stylesheets.add("css/all.css")
+
     /* works after pressing directory button or switching between angle and T modes. Why? */
-    addEventHandler(KeyEvent.KEY_RELEASED) { event: KeyEvent ->
-      if (KeyCode.ESCAPE == event.code) {
-        close()
-      }
-    }
+    onEscapePressed { close() }
     showAndWait()
+  }
+}
+
+fun Stage.onEscapePressed(body: () -> Unit) {
+  addEventHandler(KeyEvent.KEY_RELEASED) { event: KeyEvent ->
+    if (KeyCode.ESCAPE == event.code) {
+      body()
+    }
   }
 }
 
@@ -59,6 +64,7 @@ fun savingConfig(handler: () -> Unit) {
   handler()
   saveConfig()
 }
+
 /**
  * returns computation time in ms
  */
