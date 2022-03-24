@@ -5,7 +5,8 @@ import core.optics.particles.SbCardonaAdachi
 
 data class SbParticle(
   override val r: Double? = null
-) : IParticle {
+) : AbstractParticle(r) {
+
   override fun permittivity(wl: Double) = SbCardonaAdachi.permittivity(wl)
 }
 
@@ -14,7 +15,8 @@ enum class BiParticlePermittivityType { ORTHOGONAL, PARALLEL }
 data class BiParticle(
   override val r: Double? = null,
   val permittivityType: BiParticlePermittivityType
-) : IParticle {
+) : AbstractParticle(r) {
+
   override fun permittivity(wl: Double) = when (permittivityType) {
     BiParticlePermittivityType.ORTHOGONAL -> BiCardonaAdachi.Orthogonal.permittivity(wl)
     BiParticlePermittivityType.PARALLEL -> BiCardonaAdachi.Parallel.permittivity(wl)

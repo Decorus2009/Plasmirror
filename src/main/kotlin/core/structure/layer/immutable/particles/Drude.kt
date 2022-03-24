@@ -13,7 +13,7 @@ data class DrudeParticle(
   private val wPl: Double,
   private val g: Double,
   private val epsInf: Double
-) : IParticle {
+) : AbstractParticle(r) {
 
   override fun permittivity(wl: Double) = DrudeModel.permittivity(wl, wPl, g, epsInf)
 }
@@ -24,7 +24,7 @@ data class DrudeLorentzParticle(
   private val g: Double,
   private val epsInf: Double,
   private val oscillators: List<LorentzOscillator>
-) : IParticle {
+) : AbstractParticle(r) {
 
   override fun permittivity(wl: Double) = DrudeLorentzModel.permittivity(wl, wPl, g, epsInf, oscillators)
 }

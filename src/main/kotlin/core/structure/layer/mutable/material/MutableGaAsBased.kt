@@ -43,7 +43,7 @@ data class MutableGaAs(
   override val d: DoubleVarParameter,
   val dampingFactor: DoubleVarParameter,
   val permittivityModel: AdachiBasedPermittivityModel
-) : MutableAlGaAsBase(d, dampingFactor, cAl = DoubleVarParameter.constant(0.0), permittivityModel) {
+) : MutableAlGaAsBase(d, dampingFactor, cAl = DoubleVarParameter.ZERO_CONST, permittivityModel) {
 
   override fun variableParameters() = listOf(d, dampingFactor)
 }

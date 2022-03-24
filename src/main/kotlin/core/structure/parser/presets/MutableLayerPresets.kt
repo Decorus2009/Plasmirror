@@ -2,11 +2,15 @@ package core.structure.parser.presets
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
+import core.optics.ExternalDispersionsContainer
 import core.structure.description.DescriptionParameters
-import core.structure.layer.mutable.AbstractMutableLayer
-import core.structure.layer.mutable.DoubleVarParameter
+import core.structure.layer.immutable.composite.*
+import core.structure.layer.immutable.particles.*
+import core.structure.layer.mutable.*
+import core.structure.layer.mutable.composite.*
 import core.structure.layer.mutable.material.*
 import core.structure.layer.mutable.material.excitonic.MutableExcitonic
+import core.structure.layer.mutable.particles.*
 import core.structure.parser.*
 import core.util.*
 import core.validators.fail
@@ -24,10 +28,19 @@ fun JsonNode.mutableAlGaAs(d: DoubleVarParameter, layerType: LayerType) = Mutabl
   permittivityModel = requireAdachiBasedPermittivityModel(layerType)
 )
 
-fun JsonNode.mutableExcitonic(d: DoubleVarParameter) = MutableExcitonic(
+fun JsonNode.mutableAlGaAsSb(d: DoubleVarParameter) = MutableAlGaAsSb(
   d = d,
-  medium = mutableLayer(requireNode(DescriptionParameters.medium)),
-  mutableExciton = requireMutableExciton()
+  cAl = requireNonNegativeDoubleVarParameter(DescriptionParameters.cAl),
+  cAs = requireNonNegativeDoubleVarParameter(DescriptionParameters.cAs)
+)
+
+fun mutableGaN(d: DoubleVarParameter) = MutableGaN(
+  d = d
+)
+
+fun JsonNode.mutableAlGaN(d: DoubleVarParameter) = MutableAlGaN(
+  d = d,
+  cAl = requireNonNegativeDoubleVarParameter(DescriptionParameters.cAl)
 )
 
 fun JsonNode.mutableCustomLayer(d: DoubleVarParameter): AbstractMutableLayer {
@@ -36,7 +49,7 @@ fun JsonNode.mutableCustomLayer(d: DoubleVarParameter): AbstractMutableLayer {
   return when (val type = epsNode.permittivityType()) {
     is PermittivityType.Number -> MutableConstPermittivityLayer(
       d = d,
-      eps = type.numberValue
+      eps = ComplexVarParameter.constant(type.numberValue)
     )
     is PermittivityType.ExternalDispersion -> TODO("Plasmirror-6")
     is PermittivityType.Expression -> MutablePermittivityExpressionBasedLayer(
@@ -64,130 +77,66 @@ fun JsonNode.mutableUserDefinedLayer(): AbstractMutableLayer {
 
   return mutableLayer(this)
 }
-//TODO PLSMR-0002 not implemented
-/*
-fun JsonNode.mutableAlGaAsSb(d: Double) = core.structure.layer.immutable.material.AlGaAsSb(
+
+fun JsonNode.mutableExcitonic(d: DoubleVarParameter) = MutableExcitonic(
   d = d,
-  cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
-  cAs = requireNonNegativeDouble(DescriptionParameters.cAs)
+  medium = mutableLayer(requireNode(DescriptionParameters.medium)),
+  mutableExciton = requireMutableExciton()
 )
 
-fun mutableGaN(d: Double) = core.structure.layer.immutable.material.GaN(
-  d = d
+fun JsonNode.mutableEffectiveMedium(d: DoubleVarParameter, layerType: LayerType) = MutableEffectiveMedium(
+  d = d,
+  medium = mutableLayer(requireNode(DescriptionParameters.medium)),
+  particles = requireMutableParticles(layerType),
+  f = requireNonNegativeDoubleVarParameter(DescriptionParameters.f)
 )
 
-fun JsonNode.mutableAlGaN(d: Double) = core.structure.layer.immutable.material.AlGaN(
+fun JsonNode.mutableSpheresLattice(d: DoubleVarParameter, layerType: LayerType) = MutableSpheresLattice(
   d = d,
-  cAl = requireNonNegativeDouble(DescriptionParameters.cAl)
+  medium = mutableLayer(requireNode(DescriptionParameters.medium)),
+  particles = requireMutableParticles(layerType),
+  latticeFactor = requireNonNegativeDoubleVarParameter(DescriptionParameters.latticeFactor)
 )
 
-fun JsonNode.mutableCustomLayer(d: Double): ILayer {
-  val epsNode = requireNode(DescriptionParameters.eps)
-
-  return when (val type = epsNode.permittivityType()) {
-    is PermittivityType.Number -> ConstPermittivityLayer(
-      d = d,
-      eps = type.numberValue
-    )
-    is PermittivityType.ExternalDispersion -> ExternalPermittivityDispersionBasedLayer(
-      d = d,
-      permittivityDispersion = ExternalDispersionsContainer.externalDispersions[type.dispersionName]!!
-    )
-    is PermittivityType.Expression -> PermittivityExpressionBasedLayer(
-      d = d,
-      epsExpr = type.exprText
-    )
-  }
-}
-
-fun JsonNode.mutableUserDefinedLayer(): ILayer {
-  val maybeMaterial = requireTextOrNullUpperCase(DescriptionParameters.material)
-  val maybeType = requireTextOrNullUpperCase(DescriptionParameters.type)
-  val key = maybeMaterial ?: maybeType ?: fail("Material or type should be specified for a layer")
-
-  val definitionNode = userDefinitions[key] ?: fail("Unknown material or type definition: $key")
-
-  /*
-  put definition node into the current one,
-  values of fields in this node become overridden by those in definition node.
-  This is is convenient for the replacements similar to:
-
-  material: custom_GaN ->
-
-  material: custom,
-  eps: {
-    fun f(q)=5.1529+(92842.09/(q*q-86436))
-    return (f(x), 0)
-  }
-
-  Here "material" field value "custom_GaN" is replaced with "custom"
-  so that the further recursive call of [toLayer()] was successful
-  */
-  (this as ObjectNode).setAll<ObjectNode>((definitionNode as ObjectNode))
-
-  return toLayer()
-}
-
-fun JsonNode.mutableExcitonic(d: Double) = Excitonic(
+fun JsonNode.mutableMie(d: DoubleVarParameter, layerType: LayerType) = MutableMie(
   d = d,
-  medium = requireNode(DescriptionParameters.medium).toLayer(),
-  exciton = requireExciton()
-)
-
-fun JsonNode.mutableEffectiveMedium(d: Double, layerType: LayerType) = EffectiveMedium(
-  d = d,
-  medium = requireNode(DescriptionParameters.medium).toLayer(),
-  particles = requireParticles(layerType),
-  f = requireNonNegativeDouble(DescriptionParameters.f)
-)
-
-fun JsonNode.mutableSpheresLattice(d: Double, layerType: LayerType) = SpheresLattice(
-  d = d,
-  medium = requireNode(DescriptionParameters.medium).toLayer(),
-  particles = requireParticles(layerType),
-  latticeFactor = requireNonNegativeDouble(DescriptionParameters.latticeFactor)
-)
-
-fun JsonNode.mutableMie(d: Double, layerType: LayerType) = Mie(
-  d = d,
-  medium = requireNode(DescriptionParameters.medium).toLayer(),
-  particles = requireParticles(layerType),
-  f = requireNonNegativeDouble(DescriptionParameters.f),
+  medium = mutableLayer(requireNode(DescriptionParameters.medium)),
+  particles = requireMutableParticles(layerType),
+  f = requireNonNegativeDoubleVarParameter(DescriptionParameters.f),
   orders = requireOrders()
 )
 
-
-fun JsonNode.mutableDrudeParticle(r: Double?) = DrudeParticle(
+fun JsonNode.mutableDrudeParticle(r: DoubleVarParameter?) = MutableDrudeParticle(
   r = r,
-  wPl = requireNonNegativeDouble(DescriptionParameters.w),
-  g = requireDouble(DescriptionParameters.g),
-  epsInf = requireDouble(DescriptionParameters.epsInf)
+  wPl = requireNonNegativeDoubleVarParameter(DescriptionParameters.w),
+  g = requireDoubleVarParameter(DescriptionParameters.g),
+  epsInf = requireDoubleVarParameter(DescriptionParameters.epsInf)
 )
 
-fun JsonNode.mutableDrudeLorentzParticle(r: Double?) = DrudeLorentzParticle(
-  r = r,
-  wPl = requireNonNegativeDouble(DescriptionParameters.w),
-  g = requireDouble(DescriptionParameters.g),
-  epsInf = requireDouble(DescriptionParameters.epsInf),
-  oscillators = requireDrudeLorentzOscillators()
-)
+// TODO need to generalize LorentzOscillator and MutableLorentzOscillator, not that easy
+//fun JsonNode.mutableDrudeLorentzParticle(r: Double?) = DrudeLorentzParticle(
+//  r = r,
+//  wPl = requireNonNegativeDouble(DescriptionParameters.w),
+//  g = requireDouble(DescriptionParameters.g),
+//  epsInf = requireDouble(DescriptionParameters.epsInf),
+//  oscillators = requireDrudeLorentzOscillators()
+//)
 
-fun JsonNode.mutablecustomParticle(r: Double?): IParticle {
+fun JsonNode.mutableCustomParticle(r: DoubleVarParameter?): AbstractMutableParticle {
   val epsNode = requireNode(DescriptionParameters.eps)
 
   return when (val type = epsNode.permittivityType()) {
-    is PermittivityType.Number -> ConstPermittivityParticle(
+    is PermittivityType.Number -> MutableConstPermittivityParticle(
       r = r,
-      eps = type.numberValue
+      eps = ComplexVarParameter.constant(type.numberValue)
     )
-    is PermittivityType.ExternalDispersion -> ExternalPermittivityDispersionBasedParticle(
+    is PermittivityType.ExternalDispersion -> MutableExternalPermittivityDispersionBasedParticle(
       r = r,
       permittivityDispersion = ExternalDispersionsContainer.externalDispersions[type.dispersionName]!!
     )
-    is PermittivityType.Expression -> PermittivityExpressionBasedParticle(
+    is PermittivityType.Expression -> MutablePermittivityExpressionBasedParticle(
       r = r,
       epsExpr = type.exprText
     )
   }
 }
-*/

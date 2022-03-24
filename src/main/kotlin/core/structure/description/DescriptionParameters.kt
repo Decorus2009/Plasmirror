@@ -42,4 +42,7 @@ object DescriptionParameters {
   const val exprRightKwBoundary = "#"
   const val mean = "mean"
   const val deviation = "deviation"
+
+  const val real = "real"
+  const val imag = "imag"
 }

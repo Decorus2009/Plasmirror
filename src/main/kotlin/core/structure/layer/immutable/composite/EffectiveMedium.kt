@@ -1,7 +1,7 @@
 package core.structure.layer.immutable.composite
 
 import core.structure.layer.ILayer
-import core.structure.layer.immutable.particles.IParticle
+import core.structure.layer.IParticle
 import core.optics.composite.EffectiveMedium
 
 data class EffectiveMedium(

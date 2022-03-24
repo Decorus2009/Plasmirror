@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import core.optics.ExternalDispersionsContainer
 import core.structure.description.DescriptionParameters
+import core.structure.layer.IParticle
 import core.structure.layer.immutable.AbstractLayer
 import core.structure.layer.immutable.composite.*
 import core.structure.layer.immutable.material.*
@@ -15,21 +16,21 @@ import core.validators.fail
 
 fun JsonNode.GaAs(d: Double, layerType: LayerType) = GaAs(
   d = d,
-  dampingFactor = requireDouble(DescriptionParameters.dampingFactor), // TODO PLSMR-0002 VarParameter candidate
+  dampingFactor = requireDouble(DescriptionParameters.dampingFactor),
   permittivityModel = requireAdachiBasedPermittivityModel(layerType)
 )
 
 fun JsonNode.AlGaAs(d: Double, layerType: LayerType) = AlGaAs(
   d = d,
-  dampingFactor = requireDouble(DescriptionParameters.dampingFactor), // TODO PLSMR-0002 VarParameter candidate
-  cAl = requireNonNegativeDouble(DescriptionParameters.cAl), // TODO PLSMR-0002 VarParameter candidate
+  dampingFactor = requireDouble(DescriptionParameters.dampingFactor),
+  cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
   permittivityModel = requireAdachiBasedPermittivityModel(layerType)
 )
 
 fun JsonNode.AlGaAsSb(d: Double) = AlGaAsSb(
   d = d,
-  cAl = requireNonNegativeDouble(DescriptionParameters.cAl), // TODO PLSMR-0002 VarParameter candidate
-  cAs = requireNonNegativeDouble(DescriptionParameters.cAs) // TODO PLSMR-0002 VarParameter candidate
+  cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
+  cAs = requireNonNegativeDouble(DescriptionParameters.cAs)
 )
 
 fun GaN(d: Double) = core.structure.layer.immutable.material.GaN(
@@ -38,7 +39,7 @@ fun GaN(d: Double) = core.structure.layer.immutable.material.GaN(
 
 fun JsonNode.AlGaN(d: Double) = AlGaN(
   d = d,
-  cAl = requireNonNegativeDouble(DescriptionParameters.cAl) // TODO PLSMR-0002 VarParameter candidate
+  cAl = requireNonNegativeDouble(DescriptionParameters.cAl)
 )
 
 fun JsonNode.customLayer(d: Double): AbstractLayer {
@@ -98,41 +99,40 @@ fun JsonNode.effectiveMedium(d: Double, layerType: LayerType) = EffectiveMedium(
   d = d,
   medium = layer(requireNode(DescriptionParameters.medium)),
   particles = requireParticles(layerType),
-  f = requireNonNegativeDouble(DescriptionParameters.f) // TODO PLSMR-0002 VarParameter candidate
+  f = requireNonNegativeDouble(DescriptionParameters.f)
 )
 
 fun JsonNode.spheresLattice(d: Double, layerType: LayerType) = SpheresLattice(
   d = d,
   medium = layer(requireNode(DescriptionParameters.medium)),
   particles = requireParticles(layerType),
-  latticeFactor = requireNonNegativeDouble(DescriptionParameters.latticeFactor) // TODO PLSMR-0002 VarParameter candidate
+  latticeFactor = requireNonNegativeDouble(DescriptionParameters.latticeFactor)
 )
 
 fun JsonNode.mie(d: Double, layerType: LayerType) = Mie(
   d = d,
   medium = layer(requireNode(DescriptionParameters.medium)),
   particles = requireParticles(layerType),
-  f = requireNonNegativeDouble(DescriptionParameters.f), // TODO PLSMR-0002 VarParameter candidate
+  f = requireNonNegativeDouble(DescriptionParameters.f),
   orders = requireOrders()
 )
 
-
 fun JsonNode.DrudeParticle(r: Double?) = DrudeParticle(
-  r = r, // TODO PLSMR-0002 VarParameter candidate
-  wPl = requireNonNegativeDouble(DescriptionParameters.w), // TODO PLSMR-0002 VarParameter candidate
-  g = requireDouble(DescriptionParameters.g), // TODO PLSMR-0002 VarParameter candidate
-  epsInf = requireDouble(DescriptionParameters.epsInf) // TODO PLSMR-0002 VarParameter candidate
+  r = r,
+  wPl = requireNonNegativeDouble(DescriptionParameters.w),
+  g = requireDouble(DescriptionParameters.g),
+  epsInf = requireDouble(DescriptionParameters.epsInf)
 )
 
 fun JsonNode.DrudeLorentzParticle(r: Double?) = DrudeLorentzParticle(
   r = r,
-  wPl = requireNonNegativeDouble(DescriptionParameters.w), // TODO PLSMR-0002 VarParameter candidate
-  g = requireDouble(DescriptionParameters.g), // TODO PLSMR-0002 VarParameter candidate
-  epsInf = requireDouble(DescriptionParameters.epsInf), // TODO PLSMR-0002 VarParameter candidate
+  wPl = requireNonNegativeDouble(DescriptionParameters.w),
+  g = requireDouble(DescriptionParameters.g),
+  epsInf = requireDouble(DescriptionParameters.epsInf),
   oscillators = requireDrudeLorentzOscillators()
 )
 
-fun JsonNode.customParticle(r: Double?): IParticle {
+fun JsonNode.customParticle(r: Double?): AbstractParticle {
   val epsNode = requireNode(DescriptionParameters.eps)
 
   return when (val type = epsNode.permittivityType()) {

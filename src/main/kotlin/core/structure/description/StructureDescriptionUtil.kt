@@ -36,9 +36,11 @@ fun String.json() = """{"${DescriptionParameters.structure}":[${
     .removeSpaces()
     .replaceXWithRepeat()
     .addThicknessNodeToMedium()
-    .parseAndQuoteVarParams()
+    .parseAndQuoteVarRealParams()
     .quoteExpressions()
-    .quoteNumbers()
+//    .quoteNumbers()
+    .quoteRealNumbers()
+    .parseComplexNumbers()
     .quotePairedWords()
     .quoteWordsBeforeCurlyBraces()
     .split(";")
@@ -101,6 +103,22 @@ private fun String.quoteComplexNumbers() = replace(
 )
 
 /**
+ * eps:(-3.6E6, 2.4E-2) -> "eps": { "real": "-3.6E6", "imag": "2.4E-2" }
+
+ * it's interesting that imag corresponds to a 4th group
+ * e.g. 0-4 groups for "C:(90,-1.561E-2)" are: "C:(90,-1.561E-2)", "С", "90", "null", "-1.561E-2"
+ */
+private fun String.parseComplexNumbers(): String {
+  val realKw = DescriptionParameters.real
+  val imagKw = DescriptionParameters.imag
+
+  return replace(
+    Regex("\\b(\\w+)\\b:\\(($realNumberPattern),($realNumberPattern)\\)"),
+    "\"$1\":{\"$realKw\":\"$2\",\"$imagKw\":\"$4\"}"
+  )
+}
+
+/**
  * eps: drude -> "eps": "drude"
  * w0: 1.0 -> "w0": "1.0"
  */
@@ -109,13 +127,43 @@ private fun String.quotePairedWords() = replace(Regex("\\b(\\w+)\\b:(\\w+\\.*[0-
 /** particles: { -> "particles": { */
 private fun String.quoteWordsBeforeCurlyBraces() = replace(Regex("\\b(\\w+)\\b:\\{"), "\"$1\":{")
 
-/** cAl: var(-3.6E6, 2.4E-2) -> "cAl": { "var": true, "mean": "-3.6E6", "deviation": "2.4E-2" } */
-private fun String.parseAndQuoteVarParams() = replace(
-  Regex("\\b(\\w+)\\b:${DescriptionParameters.varExprKw}\\(($realNumberPattern),($realNumberPattern)\\)"),
-  "\"$1\":{\"${DescriptionParameters.varExprKw}\":true," +
-    "\"${DescriptionParameters.mean}\":\"$2\"," +
+/**
+ * cAl: var(-3.6E6, 2.4E-2) -> "cAl": { "var": true, "mean": "-3.6E6", "deviation": "2.4E-2" }
+ *
+ * it's interesting that deviation corresponds to a 4th group
+ * e.g. 0-4 groups for "d:var(90,-1.561E-2)" are: "d:var(90,-1.561E-2)", "d", "90", "null", "-1.561E-2"
+ */
+private fun String.parseAndQuoteVarRealParams(): String {
+  val varKw = DescriptionParameters.varExprKw
+  val meanKw = DescriptionParameters.mean
+  val devKw = DescriptionParameters.deviation
 
-    // it's interesting that deviation corresponds to a 4th group
-    // e.g. 0-4 groups for "d:var(90,-1.561E-2)" are: "d:var(90,-1.561E-2)", "d", "90", "null", "-1.561E-2"
-    "\"${DescriptionParameters.deviation}\":\"$4\"}"
-)
+  return replace(
+    Regex("\\b(\\w+)\\b:${varKw}\\(($realNumberPattern),($realNumberPattern)\\)"),
+    "\"$1\":{\"$varKw\":true,\"$meanKw\":\"$2\",\"$devKw\":\"$4\"}"
+  )
+}
+
+/**
+ * 3 cases:
+ *   A:(var(-3.6E6, 2.4E-2), -1.561E-2)
+ *   A:(-1.561E-2, var(-3.6E6, 2.4E-2))
+ *   A:(var(-3.6E6, 2.4E-2), var(8.125, -1.561E-2))
+ */
+private fun String.parseAndQuoteComplexVarParams1(): String {
+  val varKw = DescriptionParameters.varExprKw
+  val meanKw = DescriptionParameters.mean
+  val devKw = DescriptionParameters.deviation
+  val realKw = DescriptionParameters.real
+  val imagKw = DescriptionParameters.imag
+
+  // TODO нужен общий механизм, который выделяет части коплексного числа (группы)
+  //  группы отдельно парсятся уже существующими регекспами
+
+  Regex("\\b(\\w+)\\b:\\((${varKw}\\(($realNumberPattern),($realNumberPattern)\\)),($realNumberPattern)\\)")
+
+  return replace(
+    Regex("\\b(\\w+)\\b:\\((${varKw}\\(($realNumberPattern),($realNumberPattern)\\)),($realNumberPattern)\\)"),
+    "\"$1\":{\"$realKw\":\" {} \"   \"$varKw\":true,\"$meanKw\":\"$2\",\"$devKw\":\"$4\"}"
+  )
+}

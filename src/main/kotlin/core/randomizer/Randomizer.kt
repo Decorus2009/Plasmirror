@@ -200,7 +200,7 @@ class Randomizer(
   private fun List<DoubleVarParameter>.randomize() = forEach { varParam ->
     varParam.variate {
       val random = randomGenerator.nextGaussian()
-      random * varParam.deviation!! + varParam.meanValue!!
+      random * varParam.deviation + varParam.meanValue
     }
   }
 

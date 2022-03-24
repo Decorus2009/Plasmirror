@@ -6,6 +6,7 @@ import core.structure.layer.mutable.DoubleVarParameter
 import core.math.*
 import core.state.mapper
 import core.structure.description.DescriptionParameters
+import core.structure.layer.mutable.ComplexVarParameter
 import core.validators.jsonFail
 
 
@@ -16,21 +17,29 @@ fun JsonNode.requireNonNegativeInt(field: String) = requireInt(field).also { it.
 fun JsonNode.requirePositiveInt(field: String) = requireInt(field).also { it.checkIsPositive(field) }
 fun JsonNode.requirePositiveIntOrNull(field: String) = requireIntOrNull(field)?.also { it.checkIsPositive(field) }
 
+
 /** -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- **/
 fun JsonNode.requireDouble(field: String) = requireNode(field).requireDouble()
-fun JsonNode.requireDoubleOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleOrNull()
-
 fun JsonNode.requireDoubleVarParameter(field: String) = requireNode(field).requireDoubleVarParameter()
+
+fun JsonNode.requireDoubleOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleOrNull()
 fun JsonNode.requireDoubleVarParameterOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleVarParameterOrNull()
-fun JsonNode.requireNonNegativeDoubleVarParameter(field: String) = requireDoubleVarParameter(field).also {
-  if (!it.isVariable) it.varValue!!.checkIsNonNegative(field)
-}
 
 fun JsonNode.requireNonNegativeDouble(field: String) = requireDouble(field).also { it.checkIsNonNegative(field) }
+fun JsonNode.requireNonNegativeDoubleVarParameter(field: String) = requireDoubleVarParameter(field).also {
+  if (!it.isVariable) it.meanValue.checkIsNonNegative(field)
+}
+
 fun JsonNode.requirePositiveDoubleOrNull(field: String) = requireDoubleOrNull(field)?.also { it.checkIsPositive(field) }
+fun JsonNode.requirePositiveDoubleVarParameterOrNull(field: String) = requireDoubleVarParameterOrNull(field)?.also {
+  if (!it.isVariable) it.meanValue.checkIsPositive(field)
+}
+
 
 /** -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- **/
 fun JsonNode.requireComplex(field: String) = requireNode(field).requireComplex()
+fun JsonNode.requireComplexVarParameter(field: String) = requireNode(field).requireComplexVarParameter()
+
 
 /** -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- **/
 fun JsonNode.requireText(field: String) = requireNode(field).requireText()
@@ -80,27 +89,52 @@ fun JsonNode.requireDoubleVarParameterOrNull() = when {
 }
 
 /**
- * Try to read a double value first,
- * then try to read a complex number from string with predefined format: "('floating point value', 'floating point value')"
+ * Tries to read a double value first,
+ * then tries to read a complex number from string with predefined format: "('floating point value', 'floating point value')"
  */
 fun JsonNode.requireComplex() = requireComplexOrNull()
   ?: jsonFail(message = "Cannot read complex number value in node \"$this\"")
 
 fun JsonNode.requireComplexOrNull(): Complex? {
-  val text = requireTextOrNull() ?: return null
+  val text = requireTextOrNull()
 
   if (text.isRealNumber()) {
     return Complex.of(requireDouble())
   }
 
-  if (text.isComplexNumber()) {
-    val complexComponents = text.substring(1, text.length - 1).split(",")
-    val real = complexComponents.first().toDouble()
-    val imaginary = complexComponents.last().toDouble()
-    return Complex.of(real, imaginary)
+  val realComponentText = requireTextOrNull(DescriptionParameters.real) ?: return null
+  val imaginaryComponentText = requireTextOrNull(DescriptionParameters.imag) ?: return null
+
+  if (realComponentText.isRealNumber() && imaginaryComponentText.isRealNumber()) {
+    return Complex.of(realComponentText.toDouble(), imaginaryComponentText.toDouble())
   }
 
   return null
+}
+
+fun JsonNode.requireComplexVarParameter() = requireComplexVarParameterOrNull()
+  ?: jsonFail(message = "Cannot read double or var value in node \"$this\"")
+
+fun JsonNode.requireComplexVarParameterOrNull(): ComplexVarParameter? {
+  fun Double.toComplexVarParameter() = ComplexVarParameter.of(DoubleVarParameter.constant(this), DoubleVarParameter.ZERO_CONST)
+
+  return when {
+    isNumber -> asDouble().toComplexVarParameter()
+    isTextual -> {
+      val text = asText()
+
+      when {
+        text.toDoubleOrNull() != null -> asDouble().toComplexVarParameter()
+        else -> jsonFail(message = "Cannot read double or var value in text node \"$this\"")
+      }
+    }
+    isContainerNode -> ComplexVarParameter.of(
+      realDoubleVarParameter = requireDoubleVarParameter(DescriptionParameters.real),
+      imaginaryDoubleVarParameter = requireDoubleVarParameter(DescriptionParameters.imag),
+    )
+    isNullOrMissing -> null
+    else -> jsonFail(message = "Cannot read double or var value in node \"$this\"")
+  }
 }
 
 fun JsonNode.requireText(): String = when {
@@ -120,6 +154,7 @@ fun JsonNode.requireNodeOrNull(field: String): JsonNode? {
   if (!has(field) || get(field).isNullOrMissing) {
     return null
   }
+
   return get(field)
 }
 
@@ -129,9 +164,19 @@ inline fun <reified T> JsonNode.parse(): T {
   if (isNullOrMissing) {
     throw IllegalStateException("Null or missing node in the config")
   }
+
   return runCatching {
     mapper.readValue<T>(toString())
   }.getOrElse {
     throw IllegalStateException("Problem while parsing node: ${it.message}")
   }
 }
+
+
+fun JsonNode.isVarParameter() = has(DescriptionParameters.varExprKw) &&
+  requireDoubleOrNull(DescriptionParameters.mean) != null &&
+  requireDoubleOrNull(DescriptionParameters.deviation) != null
+
+fun JsonNode.isComplexNumber() =
+  requireDoubleOrNull(DescriptionParameters.real) != null &&
+    requireDoubleOrNull(DescriptionParameters.imag) != null

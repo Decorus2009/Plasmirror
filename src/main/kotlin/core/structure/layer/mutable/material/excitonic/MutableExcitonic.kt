@@ -4,8 +4,7 @@ import core.math.Complex
 import core.math.Complex.Companion.toComplex
 import core.math.TransferMatrix
 import core.optics.*
-import core.structure.layer.mutable.AbstractMutableLayer
-import core.structure.layer.mutable.DoubleVarParameter
+import core.structure.layer.mutable.*
 import org.apache.commons.math3.complex.Complex.I
 import java.lang.Math.PI
 import kotlin.math.pow
@@ -58,10 +57,9 @@ data class MutableExciton(
   val wb: DoubleVarParameter,
   val Gb: DoubleVarParameter,
   val B: DoubleVarParameter,
-  val C: Complex,
+  val C: ComplexVarParameter,
 ) {
-  // TODO PLSMR-0002 C is Complex, not used for now
-  fun variableParameters() = listOf(w0, G0, G, wb, Gb, B)
+  fun variableParameters() = listOf(w0, G0, G, wb, Gb, B) + C.variableParameters()
 }
 
 data class MutableExcitonic(
@@ -73,7 +71,7 @@ data class MutableExcitonic(
   override fun variableParameters() = listOf(d) + medium.variableParameters() + mutableExciton.variableParameters()
 
   override fun permittivity(wl: Double, temperature: Double) =
-    medium.permittivity(wl, temperature) * (excitonicContribution(wl, temperature) + 1.0 + mutableExciton.C)
+    medium.permittivity(wl, temperature) * (excitonicContribution(wl, temperature) + 1.0 + mutableExciton.C.requireValue())
 
   override fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double) = TransferMatrix().apply {
     val n = n(wl, temperature)

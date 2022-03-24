@@ -1,13 +1,14 @@
 package core.structure.layer.immutable.composite
 
 import core.structure.layer.ILayer
-import core.structure.layer.immutable.particles.IParticle
+import core.structure.layer.IParticle
 import core.optics.composite.mie.*
+import core.structure.layer.immutable.particles.AbstractParticle
 
 data class Mie(
   override val d: Double,
   override val medium: ILayer,
-  override val particles: IParticle,
+  override val particles: AbstractParticle,
   val f: Double,
   val orders: Orders
 ) : Composite(d, medium, particles) {

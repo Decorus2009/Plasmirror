@@ -24,14 +24,21 @@ import core.validators.fail
  *        return (f(x), 0)
  *      }
  *    }
+ *
+ * 5. a variable parameter
+ *    eps: {
+ *      var: true,
+ *      mean: 12.5,
+ *      deviation: 0.1
+ *    }
  */
 fun JsonNode.permittivityType(): PermittivityType {
   val maybeEpsText = requireTextOrNull()
 
   if (maybeEpsText != null) {
     // cases 1, 2
-    if (maybeEpsText.isNumber()) {
-      return PermittivityType.Number(requireComplex())
+    if (maybeEpsText.isRealNumber()) {
+      return PermittivityType.Number(requireComplex()) // read real number as complex
     }
 
     // case 3
@@ -41,8 +48,16 @@ fun JsonNode.permittivityType(): PermittivityType {
 
     fail("Permittivity dispersion \"$maybeEpsText\" not found for custom material type")
   }
-  // case 4
+  // cases 4, 5 (eps is a json node)
   else {
+    if (isComplexNumber()) {
+      return PermittivityType.Number(requireComplex())
+    }
+
+    if (isVarParameter()) {
+      return PermittivityType.Number(requireComplex(DescriptionParameters.mean))
+    }
+
     val exprText = requireTextOrNull(DescriptionParameters.expr)
       ?: fail("Cannot find permittivity expression for custom material type")
 

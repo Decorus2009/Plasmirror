@@ -7,7 +7,7 @@ import core.optics.toPermittivity
 data class ConstPermittivityParticle(
   override val r: Double? = null,
   val eps: Complex
-) : IParticle {
+) : AbstractParticle(r) {
 
   override fun permittivity(wl: Double) = eps
 }
@@ -15,7 +15,7 @@ data class ConstPermittivityParticle(
 data class PermittivityExpressionBasedParticle(
   override val r: Double? = null,
   val epsExpr: String
-) : IParticle {
+) : AbstractParticle(r) {
 
   private val expressionEvaluator = ExpressionEvaluator(epsExpr)
 
@@ -30,7 +30,7 @@ data class PermittivityExpressionBasedParticle(
 data class ExternalPermittivityDispersionBasedParticle(
   override val r: Double? = null,
   val permittivityDispersion: ExternalDispersion
-) : IParticle {
+) : AbstractParticle(r) {
 
   override fun permittivity(wl: Double): Complex {
     val spline = with(permittivityDispersion) {

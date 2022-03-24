@@ -10,6 +10,7 @@ import core.structure.layer.immutable.material.excitonic.Exciton
 import core.structure.layer.immutable.particles.*
 import core.structure.layer.mutable.AbstractMutableLayer
 import core.structure.layer.mutable.material.excitonic.MutableExciton
+import core.structure.layer.mutable.particles.*
 import core.structure.parser.*
 import core.util.*
 import core.validators.fail
@@ -48,9 +49,12 @@ fun mutableLayer(layerNode: JsonNode): AbstractMutableLayer = with(layerNode) {
   return when (layerType) {
     is LayerType.Material.GaAs -> mutableGaAs(d, layerType)
     is LayerType.Material.AlGaAs -> mutableAlGaAs(d, layerType)
-    is LayerType.Composite.Excitonic -> mutableExcitonic(d)
+    is LayerType.Material.AlGaAsSb -> mutableAlGaAsSb(d)
+    is LayerType.Material.GaN -> mutableGaN(d)
+    is LayerType.Material.AlGaN -> mutableAlGaN(d)
     is LayerType.Material.Custom -> mutableCustomLayer(d)
     is LayerType.UserDefined -> mutableUserDefinedLayer()
+    is LayerType.Composite.Excitonic -> mutableExcitonic(d)
 
     else -> TODO("PLSMR-0002")
   }
@@ -141,7 +145,7 @@ fun JsonNode.requireExciton() = requireNode(DescriptionParameters.exciton).run {
     wb = requireDouble(DescriptionParameters.wb),
     Gb = requireDouble(DescriptionParameters.gb),
     B = requireDouble(DescriptionParameters.b),
-    C = requireComplex(DescriptionParameters.c), // TODO PLSMR-0002 VarParameter COMPLEX candidate
+    C = requireComplex(DescriptionParameters.c),
   )
 }
 
@@ -153,7 +157,7 @@ fun JsonNode.requireMutableExciton() = requireNode(DescriptionParameters.exciton
     wb = requireDoubleVarParameter(DescriptionParameters.wb),
     Gb = requireDoubleVarParameter(DescriptionParameters.gb),
     B = requireDoubleVarParameter(DescriptionParameters.b),
-    C = requireComplex(DescriptionParameters.c), // TODO PLSMR-0002 VarParameter COMPLEX candidate
+    C = requireComplexVarParameter(DescriptionParameters.c),
   )
 }
 
@@ -193,31 +197,52 @@ fun JsonNode.requireDrudeLorentzOscillators() = requireNode(DescriptionParameter
   .map { it.second }
   .toList()
 
-fun JsonNode.requireParticles(layerType: LayerType) = requireNode(DescriptionParameters.particles).run {
+fun JsonNode.requireParticles(layerType: LayerType): AbstractParticle = requireNode(DescriptionParameters.particles).run {
   val r = when (layerType) {
-    is LayerType.Composite.Mie -> requireNonNegativeDouble(DescriptionParameters.r)  // TODO PLSMR-0002 VarParameter candidate
+    is LayerType.Composite.Mie -> requireNonNegativeDouble(DescriptionParameters.r)
     // "r" parameter can be provided only for Mie layer type
-    else -> requirePositiveDoubleOrNull(DescriptionParameters.r)?.let {  // TODO PLSMR-0002 VarParameter candidate
+    else -> requirePositiveDoubleOrNull(DescriptionParameters.r)?.let {
       fail("Particle radius should be provided only for Mie layer type")
     }
   }
 
-  val maybeParticlesType = requireTextOrNullUpperCase(DescriptionParameters.material)
-    ?: fail("Particles type should be described via \"material\" keyword")
-
-  val particleType = try {
-    ParticleType.valueOf(maybeParticlesType)
-  } catch (ex: IllegalArgumentException) {
-    fail("Unknown particles type \"$maybeParticlesType\"")
-  }
-
-  when (particleType) {
+  when (particleType()) {
     ParticleType.DRUDE -> DrudeParticle(r)
     ParticleType.DRUDE_LORENTZ -> DrudeLorentzParticle(r)
     ParticleType.CUSTOM -> customParticle(r)
     ParticleType.SB -> SbParticle(r)
     ParticleType.BI_ORTHOGONAL -> BiParticle(r, BiParticlePermittivityType.ORTHOGONAL)
     ParticleType.BI_PARALLEL -> BiParticle(r, BiParticlePermittivityType.PARALLEL)
+  }
+}
+
+fun JsonNode.requireMutableParticles(layerType: LayerType): AbstractMutableParticle = requireNode(DescriptionParameters.particles).run {
+  val r = when (layerType) {
+    is LayerType.Composite.Mie -> requireNonNegativeDoubleVarParameter(DescriptionParameters.r)
+    // "r" parameter can be provided only for Mie layer type
+    else -> requirePositiveDoubleVarParameterOrNull(DescriptionParameters.r)?.let {
+      fail("Particle radius should be provided only for Mie layer type")
+    }
+  }
+
+  when (particleType()) {
+    ParticleType.DRUDE -> mutableDrudeParticle(r)
+    ParticleType.DRUDE_LORENTZ -> TODO("DrudeLorentzParticle(r)")
+    ParticleType.CUSTOM -> mutableCustomParticle(r)
+    ParticleType.SB -> MutableSbParticle(r)
+    ParticleType.BI_ORTHOGONAL -> MutableBiParticle(r, BiParticlePermittivityType.ORTHOGONAL)
+    ParticleType.BI_PARALLEL -> MutableBiParticle(r, BiParticlePermittivityType.PARALLEL)
+  }
+}
+
+private fun JsonNode.particleType(): ParticleType {
+  val maybeParticlesType = requireTextOrNullUpperCase(DescriptionParameters.material)
+    ?: fail("Particles type should be described via \"material\" keyword")
+
+  return try {
+    ParticleType.valueOf(maybeParticlesType)
+  } catch (ex: IllegalArgumentException) {
+    fail("Unknown particles type \"$maybeParticlesType\"")
   }
 }
 

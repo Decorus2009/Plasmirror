@@ -2,7 +2,7 @@ package core.structure.layer.immutable.composite
 
 import core.structure.layer.ILayer
 import core.structure.layer.immutable.AbstractLayer
-import core.structure.layer.immutable.particles.IParticle
+import core.structure.layer.IParticle
 
 abstract class Composite(
   override val d: Double,
