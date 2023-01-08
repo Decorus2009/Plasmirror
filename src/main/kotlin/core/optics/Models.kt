@@ -9,6 +9,7 @@ enum class AdachiBasedPermittivityModel : KnownModel {
   ADACHI_MOD_GAUSS;
 }
 
+// TODO obsolete?
 enum class ParticlesPermittivityModel : KnownModel {
   DRUDE,
   DRUDE_LORENTZ,

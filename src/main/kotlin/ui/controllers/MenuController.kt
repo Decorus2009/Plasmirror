@@ -105,6 +105,7 @@ class MenuController {
     } catch (e: NullPointerException) {
       // ignore if a user has closed file chooser window without choosing a file itself
     } catch (e: Exception) {
+      println(e)
       alert(
         header = "Import error",
         content = "Error during file import: $e"

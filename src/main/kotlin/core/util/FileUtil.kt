@@ -13,8 +13,12 @@ object KnownPaths {
 
   val config = "$internalDir${sep}state${sep}config.json"
   val permittivitySbCardonaAdachi = "$internalDir${sep}interpolations${sep}eps_Sb_Cardona_Adachi.txt"
-  val permittivityBiOrthogonalAdachi = "$internalDir${sep}interpolations${sep}eps_Bi_E_orthogonal_c_axis_Adachi.txt"
-  val permittivityBiParallelAdachi = "$internalDir${sep}interpolations${sep}eps_Bi_E_parallel_c_axis_Adachi.txt"
+  val permittivitySbPallik = "$internalDir${sep}interpolations${sep}eps_Sb_Pallik.txt"
+  val permittivitySbAbInitioC05 = "$internalDir${sep}interpolations${sep}eps_Sb_Pallik.txt"
+  val permittivityCardonaAdachiBiOrthogonalAdachi = "$internalDir${sep}interpolations${sep}eps_Bi_E_orthogonal_c_axis_Adachi.txt"
+  val permittivityCardonaAdachiBiParallelAdachi = "$internalDir${sep}interpolations${sep}eps_Bi_E_parallel_c_axis_Adachi.txt"
+  val permittivityBiWernerExperiment = "$internalDir${sep}interpolations${sep}eps_Bi_Werner_2009_experiment_refractive_index_info.txt"
+  val permittivityBiWernerDFTCalculations = "$internalDir${sep}interpolations${sep}eps_Bi_Werner_2009_DFT_calculations_refractive_index_info.txt"
 
   val help = "data${sep}help.txt"
 

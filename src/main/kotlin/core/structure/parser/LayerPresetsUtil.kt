@@ -80,9 +80,14 @@ fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Description
     ParticleType.DRUDE -> DrudeParticle(r)
     ParticleType.DRUDE_LORENTZ -> DrudeLorentzParticle(r)
     ParticleType.CUSTOM -> customParticle(r)
-    ParticleType.SB -> SbParticle(r)
-    ParticleType.BI_ORTHOGONAL -> BiParticle(r, BiParticlePermittivityType.ORTHOGONAL)
-    ParticleType.BI_PARALLEL -> BiParticle(r, BiParticlePermittivityType.PARALLEL)
+
+    ParticleType.SB_CARDONA -> SbParticle(r, SbParticlePermittivityType.CARDONA_ADACHI)
+    ParticleType.SB_PALLIK -> SbParticle(r, SbParticlePermittivityType.PALLIK)
+
+    ParticleType.BI_CARDONA_ADACHI_ORTHOGONAL -> BiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_ORTHOGONAL)
+    ParticleType.BI_CARDONA_ADACHI_PARALLEL -> BiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_PARALLEL)
+    ParticleType.BI_WERNER_EXPERIMENT -> BiParticle(r, BiParticlePermittivityType.WERNER_EXPERIMENT)
+    ParticleType.BI_WERNER_DFT_CALCULATIONS -> BiParticle(r, BiParticlePermittivityType.WERNER_DFT_CALCULATIONS)
   }
 }
 
