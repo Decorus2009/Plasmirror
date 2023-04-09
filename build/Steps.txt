@@ -1,0 +1,8 @@
+1. run maven goal: jfx:jar (e.g. in Idea)
+	1.1. it will create target\Plasmirror-1.0-SNAPSHOT.jar file
+
+2. use this file as a source for .exe in Launch4j 3.13
+	2.1. Open Launch4j and open Plamirror build.xml file
+	2.2. Choose a correct executable file name and click on gear
+
+3. Copy "data" folder from project to the folder with .exe file (it's required for program run)
