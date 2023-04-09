@@ -6,3 +6,29 @@
 	2.2. Choose a correct executable file name and click on gear
 
 3. Copy "data" folder from project to the folder with .exe file (it's required for program run)
+
+
+IMPORTANT (problem with fxml files and "Location is not set" error):
+fxml and css files should be packed in jar along with src so that another JavaFX windows could be open (such as help window).
+For this I had to add these lines to pom.xml
+
+```
+<resource>
+    <directory>src/main/resources/fxml</directory>
+    <targetPath>fxml</targetPath>
+    <includes>
+        <include>**/*.fxml</include>
+    </includes>
+</resource>
+<resource>
+    <directory>src/main/resources/css</directory>
+    <targetPath>css</targetPath>
+    <includes>
+        <include>**/*.css</include>
+    </includes>
+</resource>
+```
+
+Also I had to change "fxml${sep}help${sep}HelpInfo.fxml" to "fxml/help/HelpInfo.fxml", etc.
+All this was made on Windows. No idea, what's going on here
+

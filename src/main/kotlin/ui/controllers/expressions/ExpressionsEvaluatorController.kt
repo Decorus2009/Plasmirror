@@ -216,7 +216,7 @@ class ExpressionsEvaluatorController {
   }
 
   private fun initHelp() = helpButton.setOnMouseClicked {
-    showWindow(fxmlPath = "fxml${sep}help${sep}ExpressionsHelp.fxml", titleToShow = "Expressions Help")
+    showWindow(fxmlPath = "fxml/help${sep}ExpressionsHelp.fxml", titleToShow = "Expressions Help")
   }
 
   private fun seriesData(values: List<Pair<Double, Double>>) = values.indices.map {

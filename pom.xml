@@ -213,5 +213,21 @@
                 </configuration>
             </plugin>
         </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources/fxml</directory>
+                <targetPath>fxml</targetPath>
+                <includes>
+                    <include>**/*.fxml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources/css</directory>
+                <targetPath>css</targetPath>
+                <includes>
+                    <include>**/*.css</include>
+                </includes>
+            </resource>
+        </resources>
     </build>
 </project>
