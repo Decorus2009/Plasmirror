@@ -18,4 +18,26 @@ fun String.removeMultiLineComments() = replace(Regex("\\s*[/]{2,}.*"), "")
  *
  * So the second replace function is used to remove all such strange chars
  */
-fun String.normalizeNumericText() = replace(",", ".").replace(Regex("[^-.\\w]*"), "")
+fun String.normalizeNumericText(): String {
+    val replaced = replace(",", ".").replace(Regex("[^-.\\w]*"), "")
+
+    val dotCount = replaced.count { it == '.' }
+
+    if (dotCount > 1) {
+        return replaced.replaceFirst(".", "")
+    }
+
+    return replaced
+}
+
+fun String.normalizeNumericTextForStrangeLocale(): String {
+    val replaced = replace(",", "").replace(Regex("[^-.\\w]*"), "")
+
+    val dotCount = replaced.count { it == '.' }
+
+    if (dotCount > 1) {
+        return replaced.replaceFirst(".", "")
+    }
+
+    return replaced
+}

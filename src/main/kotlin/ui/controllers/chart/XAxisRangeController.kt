@@ -1,6 +1,7 @@
 package ui.controllers.chart
 
 import core.util.normalizeNumericText
+import core.util.normalizeNumericTextForStrangeLocale
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control.TextField
@@ -30,7 +31,7 @@ class XAxisRangeController {
         textProperty().bindBidirectional(lowerBoundProperty(), converter)
         textProperty().addListener { _, _, newValue ->
           try {
-            lowerBound = newValue.normalizeNumericText().toDouble()
+            lowerBound = newValue.normalizeNumericTextForStrangeLocale().toDouble()
           } catch (ignored: NumberFormatException) {
           }
         }
@@ -40,7 +41,7 @@ class XAxisRangeController {
         textProperty().bindBidirectional(upperBoundProperty(), converter)
         textProperty().addListener { _, _, newValue ->
           try {
-            upperBound = newValue.normalizeNumericText().toDouble()
+            upperBound = newValue.normalizeNumericTextForStrangeLocale().toDouble()
           } catch (ignored: NumberFormatException) {
           }
         }
@@ -50,7 +51,7 @@ class XAxisRangeController {
         textProperty().bindBidirectional(tickUnitProperty(), converter)
         textProperty().addListener { _, _, newValue ->
           try {
-            tickUnit = newValue.normalizeNumericText().toDouble()
+//            tickUnit = newValue.normalizeNumericText().toDouble()
           } catch (ignored: NumberFormatException) {
           }
         }
@@ -59,9 +60,9 @@ class XAxisRangeController {
   }
 
   fun values() = Triple(
-    fromTextField.text.normalizeNumericText(),
-    toTextField.text.normalizeNumericText(),
-    tickTextField.text.normalizeNumericText()
+    fromTextField.text.normalizeNumericTextForStrangeLocale(),
+    toTextField.text.normalizeNumericTextForStrangeLocale(),
+    tickTextField.text.normalizeNumericTextForStrangeLocale()
   )
 
   fun setValues(start: Double, end: Double, tick: Double) {

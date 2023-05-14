@@ -4,9 +4,11 @@ import core.optics.Mode
 import core.state.activeState
 import core.state.data.Data
 import core.state.data.ExternalData
+import org.apache.commons.io.FileUtils
 import java.io.File
 import java.nio.file.*
 import java.util.*
+
 
 object KnownPaths {
   private val internalDir = "data${sep}internal"
@@ -27,7 +29,14 @@ object KnownPaths {
   val externalDispersionsDir = "$internalDir${sep}external_dispersions"
 }
 
-val sep: String = File.separator
+val sep: String
+  get() {
+    val os = System.getProperty("os.name")
+    if ("Windows 10" == os) {
+      return File.separator + File.separator
+    }
+    return File.separator
+  }
 
 fun String.requireFile() = File(this).also {
   if (!it.exists()) {
@@ -145,7 +154,15 @@ private fun safePath(path: String) = if (Files.isDirectory(Paths.get(path))) {
   Paths.get(".").toAbsolutePath().toString()
 }
 
-fun File.copy(newPath: String) = Files.copy(toPath(), Paths.get(newPath), StandardCopyOption.REPLACE_EXISTING)
+fun File.copy(newPath: String): Path? {
+  val copied = File(newPath)
+  FileUtils.copyFile(this, copied)
+
+  return copied.toPath()
+
+  // fails with NoSuchFileException using File.copy on Windows
+//  return Files.copy(toPath(), Paths.get(newPath), StandardCopyOption.REPLACE_EXISTING)
+}
 
 /**
  * Replaces file if one already exists

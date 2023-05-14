@@ -2,6 +2,7 @@ package core.layer.composite
 
 import core.layer.Layer
 import core.layer.particles.Particle
+import core.math.Complex
 
 abstract class Composite(
   protected open val medium: Layer,
@@ -14,5 +15,9 @@ abstract class Composite(
 
   fun mediumPermittivity(wl: Double, temperature: Double) = medium.permittivity(wl, temperature)
 
-  fun particlePermittivity(wl: Double) = particles.permittivity(wl)
+  fun particlePermittivity(wl: Double): Complex {
+    val perm = particles.permittivity(wl)
+    println("${wl} ${perm.real} ${perm.imaginary}")
+    return particles.permittivity(wl)
+  }
 }

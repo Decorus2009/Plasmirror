@@ -24,6 +24,8 @@ object ExternalDispersionsContainer {
    * [isPermittivity] is false if one imports refractive index dispersion
    */
   fun File.importExternalDispersion(isPermittivity: Boolean) {
+    println("Separator: ${sep}")
+
     // copy a file to "internal" directory in order to be protected from the deletion of an original one
     val newPath = copy("${KnownPaths.externalDispersionsDir}$sep$name")
     val name = name.removeExtension()

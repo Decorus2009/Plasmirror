@@ -70,6 +70,15 @@ class MultipleExportDialogController {
         )
       }
 
+//      val structureDescriptionController = structureDescriptionController()
+//      val currentStructureDescription = structureDescriptionController.structureDescription()
+//
+//              .replace(
+//                      Regex("(r)(\\s*):(\\s*)($realNumberPattern)"),
+//                      "$1$2:$3${angleStartTextField.text.toDouble()})"
+//              )
+//      structureDescriptionController.setStructureDescription()
+
       showExportCompleteInfo()
     } catch (ex: ExportValidationException) {
       alert(
@@ -91,7 +100,11 @@ class MultipleExportDialogController {
    * [mainWindowTextFieldToUpdate] is the text field in the main UI window value of which changes on every iteration
    * for building actual active state for computation
    */
-  private fun compute(start: TextField, end: TextField, step: TextField, mainWindowTextFieldToUpdate: TextField, limit: Double) {
+  private fun compute(start: TextField,
+                      end: TextField,
+                      step: TextField,
+                      mainWindowTextFieldToUpdate: TextField,
+                      limit: Double) {
     val initialMainWindowTextFieldValue = mainWindowTextFieldToUpdate.text
 
     var current = start.text.toDouble()

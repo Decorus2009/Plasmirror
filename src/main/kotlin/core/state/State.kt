@@ -133,8 +133,11 @@ data class State(
 
 enum class ComputationUnit { NM, EV }
 
+fun structureDescriptionController() = rootController.mainController.structureDescriptionController
+
 fun opticalParamsController() = rootController.mainController.opticalParamsController
 
 fun lightParamsController() = opticalParamsController().lightParamsController
 
 fun temperatureController() = opticalParamsController().temperatureController
+

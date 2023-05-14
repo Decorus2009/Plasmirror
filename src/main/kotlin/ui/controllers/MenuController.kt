@@ -97,6 +97,7 @@ class MenuController {
   private fun safeExternalDispersionImport(isPermittivity: Boolean) {
     try {
       initFileChooser(".").showOpenDialog(rootController.mainApp.primaryStage).let { file ->
+        file?.toPath()
         file?.importExternalDispersion(isPermittivity)
         showImportExternalDispersionCompleteInfo(file.name)
 

@@ -21,7 +21,7 @@ object DrudeLorentzModel {
     // sum by all oscillators (minus before each term is accounted in resultant sum)
     val sum = oscillators.fold(initial = Complex.ZERO) { acc, (f_i, g_i, w_i) ->
       val denominator = Complex.of(w * w) + Complex.I * w * g_i - w_i * w_i
-      acc + Complex.of(f_i) / denominator
+      acc + Complex.of(f_i) * g_i * w_i / denominator
     }
 
     return DrudePermittivity(wl, wPl, g, epsInf) - sum
