@@ -3,17 +3,19 @@ package core.structure.parser
 import com.fasterxml.jackson.databind.JsonNode
 import core.math.Complex
 import core.optics.ExternalDispersionsContainer
+import core.structure.description.DescriptionParameters
 import core.util.*
 import core.validators.StructureDescriptionException
+import core.validators.fail
 
 // call on 'eps' node
 /**
  * a layer may contain eps json node as
- * 1. a number: (eps: 3.6)
+ * 1. a number: 'eps: 3.6'
  *
- * 2. a complex number: (eps: (3.6, -0.1))
+ * 2. a complex number: 'eps: (3.6, -0.1)'
  *
- * 3. a link to an external dispersion file (only file name should be used without extension), e.g. eps: GaAsRII
+ * 3. a link to an external dispersion file, e.g. 'eps: GaAsRII' (file name without extension)
  *
  * 4. an expression, e.g.
  *    eps: {
@@ -22,14 +24,21 @@ import core.validators.StructureDescriptionException
  *        return (f(x), 0)
  *      }
  *    }
+ *
+ * 5. a variable parameter
+ *    eps: {
+ *      var: true,
+ *      mean: 12.5,
+ *      deviation: 0.1
+ *    }
  */
 fun JsonNode.permittivityType(): PermittivityType {
   val maybeEpsText = requireTextOrNull()
 
   if (maybeEpsText != null) {
     // cases 1, 2
-    if (maybeEpsText.isNumber()) {
-      return PermittivityType.Number(requireComplex())
+    if (maybeEpsText.isRealNumber()) {
+      return PermittivityType.Number(requireComplex()) // read real number as complex
     }
 
     // case 3
@@ -37,12 +46,20 @@ fun JsonNode.permittivityType(): PermittivityType {
       return PermittivityType.ExternalDispersion(maybeEpsText)
     }
 
-    throw StructureDescriptionException("Permittivity dispersion \"$maybeEpsText\" not found for custom material type")
+    fail("Permittivity dispersion \"$maybeEpsText\" not found for custom material type")
   }
-  // case 4
+  // cases 4, 5 (eps is a json node)
   else {
+    if (isComplexNumber()) {
+      return PermittivityType.Number(requireComplex())
+    }
+
+    if (isVarParameter()) {
+      return PermittivityType.Number(requireComplex(DescriptionParameters.mean))
+    }
+
     val exprText = requireTextOrNull(DescriptionParameters.expr)
-      ?: throw StructureDescriptionException("Cannot find permittivity expression for custom material type")
+      ?: fail("Cannot find permittivity expression for custom material type")
 
     return PermittivityType.Expression(exprText)
   }

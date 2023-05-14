@@ -1,13 +1,18 @@
 package ui.controllers
 
 import MainApp
+import core.state.State
+import core.state.saveConfig
+import core.util.exportFileName
+import core.util.writeComputedDataTo
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.AnchorPane
-import javafx.stage.Stage
+import javafx.stage.*
+import java.io.File
 import java.util.*
 
 fun disable(vararg labels: Label) = labels.forEach { it.isDisable = true }
@@ -40,14 +45,24 @@ fun showWindow(fxmlPath: String, titleToShow: String) {
     title = titleToShow
     scene = Scene(page)
     scene.stylesheets.add("css/all.css")
+
     /* works after pressing directory button or switching between angle and T modes. Why? */
-    addEventHandler(KeyEvent.KEY_RELEASED) { event: KeyEvent ->
-      if (KeyCode.ESCAPE == event.code) {
-        close()
-      }
-    }
+    onEscapePressed { close() }
     showAndWait()
   }
+}
+
+fun Stage.onEscapePressed(body: () -> Unit) {
+  addEventHandler(KeyEvent.KEY_RELEASED) { event: KeyEvent ->
+    if (KeyCode.ESCAPE == event.code) {
+      body()
+    }
+  }
+}
+
+fun savingConfig(handler: () -> Unit) {
+  handler()
+  saveConfig()
 }
 
 /**
@@ -63,6 +78,14 @@ fun withClock(block: () -> Unit): Double {
   val start = System.nanoTime()
   block()
   return (System.nanoTime() - start).toDouble() / 1E6
+}
+
+fun showComputationTimeMillis(label: Label, time: Double) {
+  label.text = "Time: ${String.format(Locale.US, "%.2f", time)}ms"
+}
+
+fun showComputationTimeSeconds(label: Label, time: Double) {
+  label.text = "Time: ${String.format(Locale.US, "%.2f", time / 1000)}s"
 }
 
 fun buildValuesTable(x: List<Double>, yReal: List<Double>, yImaginary: List<Double> = emptyList()): String {
@@ -82,16 +105,32 @@ fun buildValuesTable(x: List<Double>, yReal: List<Double>, yImaginary: List<Doub
     }
     appendLine()
 
-    x.forEachIndexed { idx, xValue ->
+    x.forEachIndexed { index, xValue ->
       append(String.format(Locale.US, "%.8f", xValue))
       append(columnSeparator)
-      append(String.format(Locale.US, "%.8f", yReal[idx]))
+      append(String.format(Locale.US, "%.8f", yReal[index]))
 
       if (yImaginary.isNotEmpty()) {
         append(columnSeparator)
-        append(String.format(Locale.US, "%.8f", yImaginary[idx]))
+        append(String.format(Locale.US, "%.8f", yImaginary[index]))
       }
       appendLine()
     }
   }.toString()
+}
+
+fun chooseFileAndSaveComputedData(window: Window, initialDirectory: String, state: State) {
+  initFileChooser(initialDirectory)
+    .let { chooser ->
+      chooser.initialFileName = exportFileName()
+      chooser.showSaveDialog(window)
+    }
+    ?.let { file ->
+      state.writeComputedDataTo(file)
+    }
+}
+
+fun initFileChooser(dir: String) = FileChooser().apply {
+  extensionFilters.add(FileChooser.ExtensionFilter("Data Files", "*.txt", "*.dat"))
+  initialDirectory = File(dir)
 }

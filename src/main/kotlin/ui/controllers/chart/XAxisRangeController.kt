@@ -22,8 +22,6 @@ class XAxisRangeController {
    */
   @FXML
   fun initialize() = Platform.runLater {
-    println("#XAxis range controller init")
-
     with(mainController.lineChartController.xAxis) {
       val converter = NumberStringConverter()
       with(fromTextField) {

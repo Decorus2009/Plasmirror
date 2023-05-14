@@ -7,7 +7,6 @@ import javafx.scene.control.TextField
 class ComputationRangeController {
   @FXML
   fun initialize() {
-    println("#Computation range controller init")
     activeState().computationState.range.let {
       startTextField.text = it.start.toString()
       endTextField.text = it.end.toString()

@@ -2,7 +2,7 @@ package ui.controllers
 
 import MainApp
 import core.optics.ExternalDispersionsContainer.importExternalDispersion
-import core.state.saveConfig
+import core.state.activeState
 import core.util.*
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
@@ -11,51 +11,78 @@ import javafx.scene.control.Alert
 import javafx.scene.control.MenuItem
 import javafx.scene.input.*
 import javafx.scene.layout.AnchorPane
-import javafx.stage.FileChooser
 import javafx.stage.Stage
-import java.io.File
 
 class MenuController {
   @FXML
   fun initialize() {
+    initShortcuts()
+    initImportActionCallbacks()
+    initExportActionCallbacks()
+
+    expressionsEvaluatorMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml${sep}expressions${sep}ExpressionsEvaluator.fxml", titleToShow = "Expressions Evaluator")
+    }
+
+    externalDispersionsMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml${sep}dispersions${sep}ExternalDispersionsManager.fxml", titleToShow = "External Dispersions")
+    }
+
+    // NB: path separator is explicitly set as "/" due to an error
+    // (see https://github.com/Decorus2009/Plasmirror/issues/8)
+    randomizationMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml/state/Randomization.fxml", titleToShow = "Randomization"/*, RandomizationController::stageCloseCallback*/)
+    }
+
+    helpInfoMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml${sep}help${sep}HelpInfo.fxml", titleToShow = "Help Info")
+    }
+
+    expressionsHelpMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml${sep}help${sep}ExpressionsHelp.fxml", titleToShow = "Expressions Help")
+    }
+  }
+
+  private fun initShortcuts() {
     importDataMenuItem.accelerator = KeyCodeCombination(KeyCode.I, KeyCombination.SHORTCUT_DOWN)
     importMultipleDataMenuItem.accelerator = KeyCodeCombination(KeyCode.I, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
     exportComputedDataMenuItem.accelerator = KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN)
     exportMultipleComputedDataMenuItem.accelerator = KeyCodeCombination(KeyCode.E, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN)
+  }
 
+  private fun initImportActionCallbacks() {
     importDataMenuItem.setOnAction {
       initFileChooser(importPath()).showOpenDialog(rootController.mainApp.primaryStage)?.let { file ->
-        chartController().importFrom(file)
+        savingConfig {
+          chartController().importFrom(file)
+        }
       }
     }
 
     importMultipleDataMenuItem.setOnAction {
-      initFileChooser(importPath()).showOpenMultipleDialog(rootController.mainApp.primaryStage)?.let { files ->
-        chartController().importFromMultiple(files)
+      savingConfig {
+        initFileChooser(importPath()).showOpenMultipleDialog(rootController.mainApp.primaryStage)?.let { files ->
+          chartController().importFromMultiple(files)
+        }
       }
     }
 
     importPermittivityDispersionMenuItem.setOnAction {
-      withConfigSaving {
+      savingConfig {
         safeExternalDispersionImport(isPermittivity = true)
       }
     }
 
     importRefractiveIndexDispersionMenuItem.setOnAction {
-      withConfigSaving {
+      savingConfig {
         safeExternalDispersionImport(isPermittivity = false)
       }
     }
+  }
 
+  private fun initExportActionCallbacks() {
     exportComputedDataMenuItem.setOnAction {
-      initFileChooser(exportPath())
-        .let { chooser ->
-          chooser.initialFileName = exportFileName()
-          chooser.showSaveDialog(rootController.mainApp.primaryStage)
-        }
-        ?.let { file ->
-          writeComputedDataTo(file)
-        }
+      chooseFileAndSaveComputedData(rootController.mainApp.primaryStage, exportPath(), activeState())
     }
 
     exportMultipleComputedDataMenuItem.setOnAction {
@@ -155,15 +182,7 @@ class MenuController {
 
   @FXML
   private lateinit var externalDispersionsMenuItem: MenuItem
-}
 
-private fun initFileChooser(dir: String) = FileChooser().apply {
-  extensionFilters.add(FileChooser.ExtensionFilter("Data Files", "*.txt", "*.dat"))
-  initialDirectory = File(dir)
-}
-
-
-fun withConfigSaving(handler: () -> Unit) {
-  handler()
-  saveConfig()
+  @FXML
+  private lateinit var randomizationMenuItem: MenuItem
 }

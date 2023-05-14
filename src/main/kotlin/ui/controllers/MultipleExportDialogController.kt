@@ -2,8 +2,7 @@ package ui.controllers
 
 import core.state.*
 import core.util.*
-import core.validators.ExportValidationException
-import core.validators.MultipleExportDialogParametersValidator
+import core.validators.*
 import javafx.fxml.FXML
 import javafx.scene.control.*
 import javafx.stage.DirectoryChooser
@@ -12,8 +11,6 @@ import java.io.File
 class MultipleExportDialogController {
   @FXML
   fun initialize() {
-    println("#Multiple export dialog controller init")
-
     initOpticalParamsHandlers()
     initAngleRBHandler()
     initDirectoryButtonHandler()
@@ -94,8 +91,8 @@ class MultipleExportDialogController {
   }
 
   /**
-   * provides multiple computations for active state in a parameter range defined by [start, end, step] tuple
-   * parameter: [angle, temperature]
+   * provides multiple computations for active state in a parameter range defined by [start, end, step].
+   * Variable parameters: [angle, temperature]
    *
    * [mainWindowTextFieldToUpdate] is the text field in the main UI window value of which changes on every iteration
    * for building actual active state for computation
@@ -117,37 +114,16 @@ class MultipleExportDialogController {
       with(activeState()) {
         prepare()
         compute()
+        writeComputedDataTo(File("${chosenDirectory!!.canonicalPath}$sep${exportFileName()}.txt"))
       }
 
       println("Computation successful for value ${mainWindowTextFieldToUpdate.text}")
-      writeComputedDataTo(File("${chosenDirectory!!.canonicalPath}$sep${exportFileName()}.txt"))
       current += inc
     }
 
     // restore initial UI parameter text field value in main window
     mainWindowTextFieldToUpdate.text = initialMainWindowTextFieldValue
   }
-
-//  private fun computeForAngles() {
-//    val initialAngle = lightParamsController().angleTextField.text
-//
-//    var currentAngle = angleStartTextField.text.toDouble()
-//    val angleTo = angleEndTextField.text.toDouble()
-//    val angleStep = angleStepTextField.text.toDouble()
-//
-//    while (currentAngle < 90.0 && currentAngle <= angleTo) {
-//      lightParamsController().angleTextField.text = currentAngle.toString()
-//
-//      computeForActiveState()
-//
-//      println("Computation successful for angle ${lightParamsController().angleTextField.text}")
-//      writeComputedDataTo(File("${chosenDirectory!!.canonicalPath}$sep${exportFileName()}.txt"))
-//      currentAngle += angleStep
-//    }
-//
-//    // restore initial UI angle value in text field in main window
-//    lightParamsController().angleTextField.text = initialAngle
-//  }
 
   private fun initAngleRBHandler() {
     anglesRB.selectedProperty().addListener { _, _, newValue: Boolean? ->
@@ -183,7 +159,7 @@ class MultipleExportDialogController {
   }
 
   private fun validateExportParams() = with(MultipleExportDialogParametersValidator) {
-    validateDirectory(chosenDirectory)
+    validateDirectory(chosenDirectory, shouldBeSelected = true)
 
     when {
       anglesRB.isSelected -> {
@@ -271,5 +247,5 @@ class MultipleExportDialogController {
   @FXML
   private lateinit var radioButtons: ToggleGroup
 
-  var chosenDirectory: File? = null
+  private var chosenDirectory: File? = null
 }

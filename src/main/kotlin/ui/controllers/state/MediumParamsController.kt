@@ -10,7 +10,6 @@ import ui.controllers.enable
 class MediumParamsController {
   @FXML
   fun initialize() {
-    println("#Medium parameters controller init")
     activeState().run {
       setLeftMedium(leftMedium())
       setRightMedium(rightMedium())

@@ -1,6 +1,7 @@
 package core.util
 
 import core.optics.Mode
+import core.state.State
 import core.state.activeState
 import core.state.data.Data
 import core.state.data.ExternalData
@@ -24,9 +25,10 @@ object KnownPaths {
 
   val help = "data${sep}help.txt"
 
-  val exportDir = "data${sep}for_export"
   val importDir = "data${sep}for_import"
+  val exportDir = "data${sep}for_export"
   val externalDispersionsDir = "$internalDir${sep}external_dispersions"
+  val randomizationsExportDir = "data${sep}for_export${sep}randomizations"
 }
 
 val sep: String
@@ -52,23 +54,23 @@ fun String.importMaybeComplexData() = requireFile().importMaybeComplexData()
 
 fun File.importMaybeComplexData() = ExternalData(name, readTwoOrThreeColumns())
 
-fun writeComputedDataTo(file: File) {
-  val activeState = activeState()
-  val computedReal = activeState.computationData().yReal
-  val computedImaginary = activeState.computationData().yImaginary
+// TODO activeState
+fun State.writeComputedDataTo(file: File) {
+  val computedReal = computationData().yReal
+  val computedImaginary = computationData().yImaginary
 
   val columnSeparator = "\t"
 
-  val wavelengths = activeState.computationData().x.toList()
+  val wavelengths = computationData().x.toList()
   StringBuilder().apply {
-    computedReal.indices.forEach { idx ->
-      append(String.format(Locale.US, "%.8f", wavelengths[idx]))
+    computedReal.indices.forEach { index ->
+      append(String.format(Locale.US, "%.8f", wavelengths[index]))
       append(columnSeparator)
-      append(String.format(Locale.US, "%.32f", computedReal[idx]))
+      append(String.format(Locale.US, "%.32f", computedReal[index]))
 
       if (computedImaginary.isNotEmpty()) {
         append(columnSeparator)
-        append(String.format(Locale.US, "%.32f", computedImaginary[idx]))
+        append(String.format(Locale.US, "%.32f", computedImaginary[index]))
       }
       append(System.lineSeparator())
     }
@@ -127,7 +129,7 @@ fun String.normalized(): String {
   }
 }
 
-
+// TODO activeState
 fun exportFileName() = with(activeState()) {
   StringBuilder().apply {
     val mode = computationState.opticalParams.mode
@@ -146,6 +148,8 @@ fun exportFileName() = with(activeState()) {
 fun importPath() = safePath(KnownPaths.importDir)
 
 fun exportPath() = safePath(KnownPaths.exportDir)
+
+fun randomizationsExportPath() = safePath(KnownPaths.randomizationsExportDir)
 
 private fun safePath(path: String) = if (Files.isDirectory(Paths.get(path))) {
   path

@@ -1,6 +1,6 @@
 package core.validators
 
-abstract class ValidationException(
+open class ValidationException(
   val headerMessage: String,
   val contentMessage: String,
   cause: Throwable? = null

@@ -22,7 +22,7 @@ class StructureDescriptionController {
       .subscribe { area.setStyleSpans(0, computeHighlighting(area.text)) }
     area.style = """
       -fx-font-family: system;
-      -fx-font-size: 13pt;
+      -fx-font-size: 11pt;
       -fx-highlight-fill: #dbdddd;
       -fx-highlight-text-fill: #dbdddd;
     """
@@ -57,9 +57,10 @@ class StructureDescriptionController {
       "\\bmie\\b" +
       ")"                                                              // Regex("(AlGaAsSb|GaAs|AlGaAs|custom|...)")
     val EXPRESSION_KW_PATTERN = "(\\bval\\b|\\bfun\\b|\\breturn\\b)"   // Regex("(val|fun|return)")
+    val VAR_PATTERN = "(\\bvar\\b)"                          // Regex("var")
 
     val PATTERN = Pattern.compile(
-      "(?<REPEAT>$REPEAT_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<DEF>$DEF_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<EXPRESSION>$EXPRESSION_KW_PATTERN)",
+      "(?<REPEAT>$REPEAT_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<DEF>$DEF_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<EXPRESSION>$EXPRESSION_KW_PATTERN)|(?<VAR>$VAR_PATTERN)",
       Pattern.CASE_INSENSITIVE
     )
 
@@ -75,6 +76,7 @@ class StructureDescriptionController {
         matcher.group("MODEL") != null -> "permittivity_model"
         matcher.group("LAYER") != null -> "layer"
         matcher.group("EXPRESSION") != null -> "expression"
+        matcher.group("VAR") != null -> "var"
         else -> null
       })!! /* never happens */
       spansBuilder.add(emptyList(), matcher.start() - lastKwEnd)

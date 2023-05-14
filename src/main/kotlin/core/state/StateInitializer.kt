@@ -4,8 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode
 import core.Mirror
 import core.state.data.Data
 import core.state.view.ViewState
-import core.structure.builder.Structure
-import core.structure.builder.buildStructure
+import core.structure.Structure
+import core.structure.buildStructure
 import core.util.parse
 import core.util.requireNode
 

@@ -9,6 +9,12 @@ data class Data(
   @get:JsonProperty("yImaginary")
   val yImaginary: MutableList<Double> = mutableListOf()
 ) {
+  fun deepCopy() = Data().also { newData ->
+    newData.x.addAll(this.x)
+    newData.yReal.addAll(this.yReal)
+    newData.yImaginary.addAll(this.yImaginary)
+  }
+
   fun clear() {
     x.clear()
     yReal.clear()
@@ -21,13 +27,13 @@ data class Data(
   }
 
   /**
-   * if yImaginary consists of NaNs only (i.e. when no yImaginary column was present in file, see [safeDouble]),
+   * If [yImaginary] consists of NaNs only (i.e. when no yImaginary column was present in file, see [safeDouble]),
    * replace it with empty list
    */
   fun normalize() = if (yImaginary.isMissing()) Data(x, yReal) else this
 
   /**
-  safeDouble NaN value is written by default in [safeDouble] method
+   * safeDouble NaN value is written by default in [safeDouble] method
    */
   private fun MutableList<Double>.isMissing() = all { it.isNaN() }
 

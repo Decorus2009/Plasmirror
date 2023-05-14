@@ -1,8 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.171" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controllers.MenuController">
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.StackPane?>
+
+<StackPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="30.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="ui.controllers.MenuController">
   <children>
     <AnchorPane prefHeight="200.0" prefWidth="200.0">
       <children>
@@ -30,6 +34,7 @@
               <items>
                 <MenuItem fx:id="expressionsEvaluatorMenuItem" mnemonicParsing="false" text="Expressions Evaluator..." />
                         <MenuItem fx:id="externalDispersionsMenuItem" mnemonicParsing="false" text="External Dispersions..." />
+                        <MenuItem fx:id="randomizationMenuItem" mnemonicParsing="false" text="Randomization..." />
               </items>
             </Menu>
             <Menu mnemonicParsing="false" text="Help">

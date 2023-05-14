@@ -4,16 +4,19 @@ import core.math.Complex
 import core.optics.Mode
 import core.state.data.ExternalData
 import core.state.view.ViewState
+import core.structure.Structure
 import core.util.normalized
 import rootController
+import java.util.*
 
 data class State(
   val id: StateId,
   val computationState: ComputationState,
   val viewState: ViewState,
   val externalData: MutableSet<ExternalData>,
-  var active: Boolean
+  var active: Boolean,
 ) {
+
   fun prepare() {
     updateFromUI()
     clearData()
@@ -64,6 +67,8 @@ data class State(
 
   fun mirror() = computationState.mirror
 
+  fun structure() = mirror().structure
+
   fun computationUnit() = computationState.range.unit
 
   fun addExternalData(data: ExternalData) = externalData.add(data)
@@ -73,6 +78,14 @@ data class State(
       ?: throw IllegalStateException("Cannot remove external data with name $seriesName. Data not found")
     externalData.remove(data)
   }
+
+  fun copyWithComputationDataAndNewStructure(structure: Structure) = State(
+    id = UUID.randomUUID(),
+    computationState = computationState.copyWithComputationDataAndNewStructure(structure),
+    viewState,
+    externalData,
+    active = false // TODO PLSMR-0002
+  )
 
   private fun opticalParams() = computationState.opticalParams
 
@@ -93,6 +106,8 @@ data class State(
 
   /**
    * Generates a sequence of computation wavelengths
+   * It's assumed that [computationData().x] is empty
+   * so that [addAll(..)] call below works correctly
    */
   private fun generateWavelengths() = with(computationState.range) {
     generateSequence(start) { currentWavelength ->
@@ -104,12 +119,20 @@ data class State(
     }.toList().also { computationData().x.addAll(it) }
   }
 
-  private fun clearData() = computationData().clear()
+  fun clearData() = computationData().clear()
 
+  /**
+   * It's assumed that [computationData().yReal] is empty
+   * so that [addAll(...)] call below works correctly
+   * */
   private fun List<Double>.computeReal(computation: (wl: Double) -> Double) {
     computationData().yReal.addAll(map { computation(it) })
   }
 
+  /**
+   * It's assumed that [computationData().yReal] and [computationData().yImaginary] are both empty
+   * so that [addAll(...)] calls below work correctly
+   * */
   private fun List<Double>.computeComplex(computation: (wl: Double) -> Complex) {
     val values = map { computation(it) }
     computationData().yReal.addAll(values.map { it.real })

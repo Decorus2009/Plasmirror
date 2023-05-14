@@ -1,19 +1,19 @@
 package core
 
-import core.layer.Layer
-import core.layer.composite.Mie
-import core.layer.material.ConstPermittivityLayer
+import core.structure.layer.ILayer
+import core.structure.layer.immutable.composite.Mie
+import core.structure.layer.immutable.material.ConstPermittivityLayer
 import core.math.Complex
 import core.math.TransferMatrix
 import core.optics.*
 import core.optics.Polarization.P
 import core.optics.Polarization.S
 import core.state.OpticalParams
-import core.structure.builder.Structure
-import core.structure.builder.buildStructure
+import core.structure.*
 import org.apache.commons.math3.complex.Complex.NaN
 import statesManager
 import kotlin.Double.Companion.POSITIVE_INFINITY
+import kotlin.math.pow
 
 /**
  * Mirror: left medium layer + structure + right medium layer
@@ -21,22 +21,23 @@ import kotlin.Double.Companion.POSITIVE_INFINITY
 // TODO all properties are vars? they can be changed on UI
 class Mirror(
   var structure: Structure,
-  var leftMediumLayer: Layer,
-  var rightMediumLayer: Layer
+  var leftMediumLayer: ILayer,
+  var rightMediumLayer: ILayer
 ) {
+
   fun updateVia(opticalParams: OpticalParams, textDescription: String) {
     structure = textDescription.buildStructure()
     leftMediumLayer = opticalParams.leftMedium.toLayer()
     rightMediumLayer = opticalParams.rightMedium.toLayer()
   }
 
-  // TODO use pow
-  fun reflectance(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
-    r(wl, pol, angle, temperature).abs().let { it * it }
+  fun copyWithStructure(structure: Structure) = Mirror(structure, leftMediumLayer, rightMediumLayer)
 
-  // TODO use pow
+  fun reflectance(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
+    r(wl, pol, angle, temperature).abs().pow(2)
+
   fun transmittance(wl: Double, pol: Polarization, angle: Double, temperature: Double): Double {
-    val t = t(wl, pol, angle, temperature).abs()
+    val T = t(wl, pol, angle, temperature).abs().pow(2)
 
     val n1 = leftMediumLayer.n(wl, temperature)
     val n2 = rightMediumLayer.n(wl, temperature)
@@ -45,23 +46,21 @@ class Mirror(
     val cos2 = cosThetaInLayer(rightMediumLayer.n(wl, temperature), wl, angle, temperature)
 
     return when (pol) {
-      P -> ((n2 * cos1) / (n1 * cos2)).abs() * t * t
-      else -> ((n2 * cos2) / (n1 * cos1)).abs() * t * t
+      P -> ((n2 * cos1) / (n1 * cos2)).abs() * T
+      S -> ((n2 * cos2) / (n1 * cos1)).abs() * T
     }
   }
 
   fun absorbance(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
     1.0 - reflectance(wl, pol, angle, temperature) - transmittance(wl, pol, angle, temperature)
 
-  fun refractiveIndex(wl: Double, temperature: Double) = structure.firstLayer().n(wl, temperature) // TODO fiststLayer check
+  fun refractiveIndex(wl: Double, temperature: Double) = firstLayer.n(wl, temperature) // TODO fiststLayer check
 
-  fun permittivity(wl: Double, temperature: Double) = structure.firstLayer().permittivity(wl, temperature) // TODO fiststLayer check
+  fun permittivity(wl: Double, temperature: Double) = firstLayer.permittivity(wl, temperature) // TODO fiststLayer check
 
-  fun extinctionCoefficient(wl: Double, temperature: Double) =
-    structure.firstLayer().extinctionCoefficient(wl, temperature)
+  fun extinctionCoefficient(wl: Double, temperature: Double) = firstLayer.extinctionCoefficient(wl, temperature)
 
-  fun scatteringCoefficient(wl: Double, temperature: Double) =
-    (structure.firstLayer() as Mie).scatteringCoefficient(wl, temperature)
+  fun scatteringCoefficient(wl: Double, temperature: Double) = (firstLayer as Mie).scatteringCoefficient(wl, temperature)
 
   private fun r(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
     matrix(wl, pol, angle, temperature).let { it[1, 0] / it[1, 1] * (-1.0) }
@@ -89,12 +88,14 @@ class Mirror(
    * *
    * @return transfer matrix for mirror
    */
+
+  // TODO refactor
   private fun matrix(wl: Double, pol: Polarization, angle: Double, temperature: Double): TransferMatrix {
     var prev = leftMediumLayer
     /* blank layer (for formal initialization) */
-    var first: Layer = ConstPermittivityLayer(d = POSITIVE_INFINITY, eps = Complex(NaN))
+    var first: ILayer = ConstPermittivityLayer(d = POSITIVE_INFINITY, eps = Complex(NaN))
     /* blank layer (for formal initialization) */
-    var beforeFirst: Layer = ConstPermittivityLayer(d = POSITIVE_INFINITY, eps = Complex(NaN))
+    var beforeFirst: ILayer = ConstPermittivityLayer(d = POSITIVE_INFINITY, eps = Complex(NaN))
 
     var periodMatrix: TransferMatrix
     var tempMatrix: TransferMatrix
@@ -107,7 +108,7 @@ class Mirror(
         periodMatrix = TransferMatrix.unaryMatrix()
 
         isFirst = true
-        var cur: Layer = ConstPermittivityLayer(d = POSITIVE_INFINITY, eps = Complex(NaN))  // blank layer (for formal initialization)
+        var cur: ILayer = ConstPermittivityLayer(d = POSITIVE_INFINITY, eps = Complex(NaN))  // blank layer (for formal initialization)
         for (j in 0..layers.size - 1) {
 
           cur = layers[j]
@@ -147,7 +148,7 @@ class Mirror(
    * @param rightLayer layer on the right side of the interface
    * @return interface matrix
    */
-  private fun interfaceMatrix(leftLayer: Layer, rightLayer: Layer, wl: Double, angle: Double, temperature: Double) =
+  private fun interfaceMatrix(leftLayer: ILayer, rightLayer: ILayer, wl: Double, angle: Double, temperature: Double) =
     TransferMatrix().apply {
       val n1 = leftLayer.n(wl, temperature)
       val n2 = rightLayer.n(wl, temperature)
@@ -171,7 +172,7 @@ class Mirror(
       setAntiDiagonal((n2e - n1e) / (n2e * 2.0))
     }
 
-  private fun Structure.firstLayer() = blocks.first().layers.first()
+  private val firstLayer get() = structure.blocks.first().layers.first()
 }
 
 private fun Structure.isOfSingleLayer() = blocks.size == 1 && blocks.first().layers.size == 1

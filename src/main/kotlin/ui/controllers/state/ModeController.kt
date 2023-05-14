@@ -9,7 +9,6 @@ import javafx.scene.control.ChoiceBox
 class ModeController {
   @FXML
   fun initialize() {
-    println("#Mode controller init")
     modeChoiceBox.run {
       value = activeState().mode().toString()
       selectionModel.selectedItemProperty().addListener { _, oldMode, newMode ->

@@ -1,36 +1,31 @@
 package ui.controllers
 
 import core.state.activeState
-import core.state.saveConfig
 import core.validators.StateException
 import core.validators.StructureDescriptionException
 import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.input.*
-import java.util.*
 
 class ControlsController {
   @FXML
   fun initialize() {
     computeButton.setOnAction {
       try {
-        activeState().prepare()
-        withClock { activeState().compute() }.also { showComputationTime(it) }
-        saveConfig()
-        /*
-        this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
-        (including rootController)
-        */
-        chartController().updateChart()
+        savingConfig {
+          activeState().prepare()
+          withClock { activeState().compute() }.also { showComputationTimeMillis(computationTimeLabel, it) }
+          /*
+          this call seems safe because it's invoked later on compute button click when all the controller hierarchy is set
+          (including rootController)
+          */
+          chartController().updateChart()
+        }
       } catch (ex: Exception) {
         handle(ex)
       }
     }
-  }
-
-  private fun showComputationTime(time: Double) {
-    computationTimeLabel.text = "Computation time: ${String.format(Locale.US, "%.2f", time)}ms"
   }
 
   private fun handle(ex: Exception) {

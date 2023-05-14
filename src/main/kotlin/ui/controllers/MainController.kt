@@ -8,7 +8,6 @@ import ui.controllers.state.StructureDescriptionController
 class MainController {
   @FXML
   fun initialize() {
-    println("#Main controller init")
     opticalParamsController.mainController = this
     controlsController.mainController = this
     lineChartController.mainController = this

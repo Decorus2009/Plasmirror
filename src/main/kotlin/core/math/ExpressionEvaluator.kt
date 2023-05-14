@@ -1,6 +1,6 @@
 package core.math
 
-import core.structure.parser.DescriptionParameters
+import core.structure.description.DescriptionParameters
 import core.validators.fail
 import org.mariuszgromada.math.mxparser.*
 import org.mariuszgromada.math.mxparser.Function
@@ -27,20 +27,20 @@ class ExpressionEvaluator(private val expr: String) {
 
   /**
    * '@val@', '@fun@' and '@return@' came from [core.structure.StructureInitializerKt.json] method which surrounded these
-   * keywords with @ in order to keep expression correct before removing all whitespaces and line-breaks
+   * keywords with '@' in order to keep expression correct before removing all whitespaces and line-breaks
    */
   fun prepare() {
     clearState()
     previousArguments += xArgument
 
     expr
-      .replace(DescriptionParameters.exprRightKWBoundary, " ")
-      .replace(DescriptionParameters.exprLeftKWBoundary, System.lineSeparator())
+      .replace(DescriptionParameters.exprRightKwBoundary, " ")
+      .replace(DescriptionParameters.exprLeftKwBoundary, System.lineSeparator())
       .split(System.lineSeparator(), "\n")
       .asSequence()
       .map { it.trim() }
       .filter { it.isNotBlank() }
-      .mapIndexed { idx, line -> LineDescriptor(line.trim(), idx + 1) }
+      .mapIndexed { index, line -> LineDescriptor(line.trim(), index + 1) }
       .toList()
       .apply { preValidate() }
       .filter { it.line.startsWithKnownPrefix() }
@@ -196,12 +196,12 @@ private fun List<LineDescriptor>.preValidate() {
     fail("Only one return expression is allowed")
   }
 
-  forEachIndexed { idx, descriptor ->
+  forEachIndexed { index, descriptor ->
     if (!descriptor.line.startsWithKnownPrefix()) {
       fail("""Unknown format in line ${descriptor.lineNumber}: "${descriptor.line}". Line should start with 'val', 'fun' or 'return'""")
     }
     // return should be the last expression
-    if (idx == lastIndex && !descriptor.line.startsWith(RET_PREFIX)) {
+    if (index == lastIndex && !descriptor.line.startsWith(RET_PREFIX)) {
       fail("Return expression must be the last statement")
     }
   }
@@ -225,7 +225,7 @@ private fun String.startsWithKnownPrefix() = KNOWN_PREFIXES.any { startsWith(it)
 private fun delimiterPosition(maybeComplexPair: String): Int {
   var counter = 0 // real expression might contain brackets with parameter separated by commas in functions calls
   val positions = mutableListOf<Int>()
-  maybeComplexPair.forEachIndexed { idx, char ->
+  maybeComplexPair.forEachIndexed { index, char ->
     when (char) {
       '(' -> {
         counter++
@@ -238,7 +238,7 @@ private fun delimiterPosition(maybeComplexPair: String): Int {
       }
       ',' -> {
         if (counter == 0) {
-          positions += idx
+          positions += index
         }
       }
     }
