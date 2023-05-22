@@ -55,8 +55,10 @@ fun mutableLayer(layerNode: JsonNode): AbstractMutableLayer = with(layerNode) {
     is LayerType.Material.Custom -> mutableCustomLayer(d)
     is LayerType.UserDefined -> mutableUserDefinedLayer()
     is LayerType.Composite.Excitonic -> mutableExcitonic(d)
+    is LayerType.Composite.Mie -> mutableMie(d, layerType)
 
-    else -> TODO("PLSMR-0002")
+
+    else -> throw IllegalArgumentException("Unsupported layer type: $layerType")
   }
 }
 
@@ -72,6 +74,7 @@ fun JsonNode.requireLayerType(): LayerType {
     maybeMaterial != null && maybeMaterial in userDefinitions.keys -> {
       return LayerType.UserDefined(name = maybeMaterial)
     }
+
     maybeMaterial != null && maybeMaterial in predefinedMaterialNames -> {
       return when (maybeMaterial) {
         GAAS -> LayerType.Material.GaAs
@@ -91,6 +94,7 @@ fun JsonNode.requireLayerType(): LayerType {
     maybeType != null && maybeType in userDefinitions.keys -> {
       return LayerType.UserDefined(name = maybeType)
     }
+
     maybeType != null && maybeType in predefinedCompositeNames -> {
       return when (maybeType) {
         EXCITONIC -> LayerType.Composite.Excitonic
@@ -127,9 +131,12 @@ fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Description
     ParticleType.DRUDE -> DrudeParticle(r)
     ParticleType.DRUDE_LORENTZ -> DrudeLorentzParticle(r)
     ParticleType.CUSTOM -> customParticle(r)
-    ParticleType.SB -> SbParticle(r)
-    ParticleType.BI_ORTHOGONAL -> BiParticle(r, BiParticlePermittivityType.ORTHOGONAL)
-    ParticleType.BI_PARALLEL -> BiParticle(r, BiParticlePermittivityType.PARALLEL)
+    ParticleType.SB_CARDONA -> SbParticle(r, SbParticlePermittivityType.CARDONA_ADACHI)
+    ParticleType.SB_PALLIK -> SbParticle(r, SbParticlePermittivityType.PALLIK)
+    ParticleType.BI_CARDONA_ADACHI_ORTHOGONAL -> BiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_ORTHOGONAL)
+    ParticleType.BI_CARDONA_ADACHI_PARALLEL -> BiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_PARALLEL)
+//    ParticleType.BI_WERNER_EXPERIMENT -> TODO()
+//    ParticleType.BI_WERNER_DFT_CALCULATIONS -> TODO()
   }
 }
 
@@ -144,7 +151,6 @@ fun JsonNode.requireAdachiBasedPermittivityModelFor(layerType: LayerType): Adach
 
   return AdachiBasedPermittivityModel.valueOf(maybeModelName)
 }
-
 
 
 //fun JsonNode.requireParticlesPermittivityModel(): ParticlesPermittivityModel {
@@ -267,9 +273,9 @@ fun JsonNode.requireDrudeLorentzOscillators() = requireNode(DescriptionParameter
     val params = oscillator.value
 
     order to LorentzOscillator(
-      f_i = params.requireDouble(DescriptionParameters.f), // TODO PLSMR-0002 VarParameter candidate
-      g_i = params.requireDouble(DescriptionParameters.g), // TODO PLSMR-0002 VarParameter candidate
-      w_i = params.requireDouble(DescriptionParameters.w) // TODO PLSMR-0002 VarParameter candidate
+      f_i = params.requireDouble(DescriptionParameters.f),
+      g_i = params.requireDouble(DescriptionParameters.g),
+      w_i = params.requireDouble(DescriptionParameters.w)
     )
   }
   .sortedBy { it.first }
@@ -289,11 +295,29 @@ fun JsonNode.requireParticles(layerType: LayerType): AbstractParticle = requireN
     ParticleType.DRUDE -> DrudeParticle(r)
     ParticleType.DRUDE_LORENTZ -> DrudeLorentzParticle(r)
     ParticleType.CUSTOM -> customParticle(r)
-    ParticleType.SB -> SbParticle(r)
-    ParticleType.BI_ORTHOGONAL -> BiParticle(r, BiParticlePermittivityType.ORTHOGONAL)
-    ParticleType.BI_PARALLEL -> BiParticle(r, BiParticlePermittivityType.PARALLEL)
+    ParticleType.SB_CARDONA -> SbParticle(r, SbParticlePermittivityType.CARDONA_ADACHI)
+    ParticleType.SB_PALLIK -> SbParticle(r, SbParticlePermittivityType.PALLIK)
+    ParticleType.BI_CARDONA_ADACHI_ORTHOGONAL -> BiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_ORTHOGONAL)
+    ParticleType.BI_CARDONA_ADACHI_PARALLEL -> BiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_PARALLEL)
   }
 }
+
+fun JsonNode.requireDrudeLorentzMutableOscillators() = requireNode(DescriptionParameters.oscillators)
+  .fields()
+  .asSequence()
+  .map { oscillator ->
+    val order = oscillator.key
+    val params = oscillator.value
+
+    order to MutableLorentzOscillator(
+      f_i = params.requireDoubleVarParameter(DescriptionParameters.f),
+      g_i = params.requireDoubleVarParameter(DescriptionParameters.g),
+      w_i = params.requireDoubleVarParameter(DescriptionParameters.w)
+    )
+  }
+  .sortedBy { it.first }
+  .map { it.second }
+  .toList()
 
 fun JsonNode.requireMutableParticles(layerType: LayerType): AbstractMutableParticle = requireNode(DescriptionParameters.particles).run {
   val r = when (layerType) {
@@ -306,11 +330,12 @@ fun JsonNode.requireMutableParticles(layerType: LayerType): AbstractMutableParti
 
   when (particleType()) {
     ParticleType.DRUDE -> mutableDrudeParticle(r)
-    ParticleType.DRUDE_LORENTZ -> TODO("DrudeLorentzParticle(r)")
+    ParticleType.DRUDE_LORENTZ -> mutableDrudeLorentzParticle(r)
     ParticleType.CUSTOM -> mutableCustomParticle(r)
-    ParticleType.SB -> MutableSbParticle(r)
-    ParticleType.BI_ORTHOGONAL -> MutableBiParticle(r, BiParticlePermittivityType.ORTHOGONAL)
-    ParticleType.BI_PARALLEL -> MutableBiParticle(r, BiParticlePermittivityType.PARALLEL)
+    ParticleType.SB_CARDONA -> MutableSbParticle(r, SbParticlePermittivityType.CARDONA_ADACHI)
+    ParticleType.SB_PALLIK -> MutableSbParticle(r, SbParticlePermittivityType.PALLIK)
+    ParticleType.BI_CARDONA_ADACHI_ORTHOGONAL -> MutableBiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_ORTHOGONAL)
+    ParticleType.BI_CARDONA_ADACHI_PARALLEL -> MutableBiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_PARALLEL)
   }
 }
 

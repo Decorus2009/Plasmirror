@@ -1,13 +1,16 @@
 package core.structure.layer.mutable.particles
 
-import core.math.*
+
+import core.math.Complex
+import core.math.ComplexSplineDescriptor
+import core.math.ExpressionEvaluator
 import core.optics.ExternalDispersion
 import core.optics.toPermittivity
 import core.structure.layer.mutable.ComplexVarParameter
-import core.structure.layer.mutable.DoubleVarParameter
+import core.structure.layer.mutable.VarParameter
 
 data class MutableConstPermittivityParticle(
-  override val r: DoubleVarParameter? = null,
+  override val r: VarParameter<Double>? = null,
   val eps: ComplexVarParameter
 ) : AbstractMutableParticle(r) {
 
@@ -18,7 +21,7 @@ data class MutableConstPermittivityParticle(
 
 // TODO: Plasmirror-4
 data class MutablePermittivityExpressionBasedParticle(
-  override val r: DoubleVarParameter? = null,
+  override val r: VarParameter<Double>? = null,
   val epsExpr: String
 ) : AbstractMutableParticle(r) {
 
@@ -35,7 +38,7 @@ data class MutablePermittivityExpressionBasedParticle(
 }
 
 data class MutableExternalPermittivityDispersionBasedParticle(
-  override val r: DoubleVarParameter? = null,
+  override val r: VarParameter<Double>? = null,
   val permittivityDispersion: ExternalDispersion
 ) : AbstractMutableParticle(r) {
 

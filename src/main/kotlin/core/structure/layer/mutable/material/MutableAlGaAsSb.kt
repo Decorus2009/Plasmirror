@@ -2,12 +2,12 @@ package core.structure.layer.mutable.material
 
 import core.optics.material.AlGaAsSb.AlGaAsSb
 import core.structure.layer.mutable.AbstractMutableLayer
-import core.structure.layer.mutable.DoubleVarParameter
+import core.structure.layer.mutable.VarParameter
 
 data class MutableAlGaAsSb(
-  override val d: DoubleVarParameter,
-  private val cAl: DoubleVarParameter,
-  private val cAs: DoubleVarParameter
+  override val d: VarParameter<Double>,
+  private val cAl: VarParameter<Double>,
+  private val cAs: VarParameter<Double>
 ) : AbstractMutableLayer(d) {
   override fun variableParameters() = listOf(d, cAl, cAs)
 

@@ -3,8 +3,13 @@ package core.structure.layer.mutable.material.excitonic
 import core.math.Complex
 import core.math.Complex.Companion.toComplex
 import core.math.TransferMatrix
-import core.optics.*
-import core.structure.layer.mutable.*
+import core.optics.Polarization
+import core.optics.cosThetaInLayer
+import core.optics.toEnergy
+import core.optics.toWavelength
+import core.structure.layer.mutable.AbstractMutableLayer
+import core.structure.layer.mutable.ComplexVarParameter
+import core.structure.layer.mutable.VarParameter
 import org.apache.commons.math3.complex.Complex.I
 import java.lang.Math.PI
 import kotlin.math.pow
@@ -23,47 +28,20 @@ import kotlin.math.pow
  * [Gb] - Gb parameter (~ G)
  * [B] = f_exc / N_cv * f_b is a magnitude coefficient which should vary from 2Ry (bulk material) to 16Ry (2D)
  */
-
-// TODO PLSMR-0002 it is possible unite it with [Exciton]?
-//  e.g.
-//    /*
-//    data class GeneralExciton<T where T is Double | DoubleVarParameter> (
-//      val w0: T,
-//      val G0: T,
-//      val G: T,
-//      val wb: T,
-//      val Gb: T,
-//      val B: T,
-//      val C: Complex
-//    )
-//     */
-//   .
-//   or use a concept of ValueContainer<T where T is Double | DoubleVarParameter> with method requireValue()
-//   then
-//    data class GeneralExciton<T where T is Double | DoubleVarParameter> (
-//      val w0: ValueContainer<T>,
-//      val G0: ValueContainer<T>,
-//      val G: ValueContainer<T>,
-//      val wb: ValueContainer<T>,
-//      val Gb: ValueContainer<T>,
-//      val B: ValueContainer<T>,
-//      val C: Complex
-//    )
-
 data class MutableExciton(
-  val w0: DoubleVarParameter,
-  val G0: DoubleVarParameter,
-  val G: DoubleVarParameter,
-  val wb: DoubleVarParameter,
-  val Gb: DoubleVarParameter,
-  val B: DoubleVarParameter,
+  val w0: VarParameter<Double>,
+  val G0: VarParameter<Double>,
+  val G: VarParameter<Double>,
+  val wb: VarParameter<Double>,
+  val Gb: VarParameter<Double>,
+  val B: VarParameter<Double>,
   val C: ComplexVarParameter,
 ) {
   fun variableParameters() = listOf(w0, G0, G, wb, Gb, B) + C.variableParameters()
 }
 
 data class MutableExcitonic(
-  override val d: DoubleVarParameter,
+  override val d: VarParameter<Double>,
   val medium: AbstractMutableLayer,
   val mutableExciton: MutableExciton,
 ) : AbstractMutableLayer(d) {

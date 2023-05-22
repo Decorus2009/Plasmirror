@@ -32,6 +32,10 @@
   -fx-fill: #6856e1;
 }
 
+.range {
+  -fx-fill: #6856e1;
+}
+
 .selection {
   -fx-fill: #e5e5e5;
   -fx-stroke: #e5e5e5;

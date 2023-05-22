@@ -5,14 +5,14 @@ import core.math.TransferMatrix
 import core.optics.Polarization
 import core.optics.composite.SpheresLattice
 import core.structure.layer.mutable.AbstractMutableLayer
-import core.structure.layer.mutable.DoubleVarParameter
+import core.structure.layer.mutable.VarParameter
 import core.structure.layer.mutable.particles.AbstractMutableParticle
 
 data class MutableSpheresLattice(
-  override val d: DoubleVarParameter,
+  override val d: VarParameter<Double>,
   override val medium: AbstractMutableLayer,
   override val particles: AbstractMutableParticle,
-  private val latticeFactor: DoubleVarParameter
+  private val latticeFactor: VarParameter<Double>
 ) : MutableComposite(d, medium, particles) {
 
   override fun variableParameters() = listOf(d, latticeFactor) + super.variableParameters()

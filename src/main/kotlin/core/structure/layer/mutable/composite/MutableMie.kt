@@ -1,16 +1,18 @@
 package core.structure.layer.mutable.composite
 
-import core.optics.composite.mie.*
+import core.optics.composite.mie.MieAll
+import core.optics.composite.mie.MieOne
+import core.optics.composite.mie.MieTwo
 import core.structure.layer.immutable.composite.Orders
 import core.structure.layer.mutable.AbstractMutableLayer
-import core.structure.layer.mutable.DoubleVarParameter
+import core.structure.layer.mutable.VarParameter
 import core.structure.layer.mutable.particles.AbstractMutableParticle
 
 data class MutableMie(
-  override val d: DoubleVarParameter,
+  override val d: VarParameter<Double>,
   override val medium: AbstractMutableLayer,
   override val particles: AbstractMutableParticle,
-  val f: DoubleVarParameter,
+  val f: VarParameter<Double>,
   val orders: Orders
 ) : MutableComposite(d, medium, particles) {
 

@@ -7,7 +7,9 @@ import core.state.data.Data
 import core.state.data.ExternalData
 import org.apache.commons.io.FileUtils
 import java.io.File
-import java.nio.file.*
+import java.nio.file.Files
+import java.nio.file.Path
+import java.nio.file.Paths
 import java.util.*
 
 
@@ -29,6 +31,7 @@ object KnownPaths {
   val exportDir = "data${sep}for_export"
   val externalDispersionsDir = "$internalDir${sep}external_dispersions"
   val randomizationsExportDir = "data${sep}for_export${sep}randomizations"
+  val valueRangeComputationsExportDir = exportDir
 }
 
 val sep: String
@@ -150,6 +153,8 @@ fun importPath() = safePath(KnownPaths.importDir)
 fun exportPath() = safePath(KnownPaths.exportDir)
 
 fun randomizationsExportPath() = safePath(KnownPaths.randomizationsExportDir)
+
+fun valueRangeComputationsExportPath() = safePath(KnownPaths.valueRangeComputationsExportDir)
 
 private fun safePath(path: String) = if (Files.isDirectory(Paths.get(path))) {
   path

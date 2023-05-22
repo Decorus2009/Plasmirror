@@ -4,27 +4,33 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.node.ObjectNode
 import core.optics.ExternalDispersionsContainer
 import core.structure.description.DescriptionParameters
-import core.structure.layer.IParticle
 import core.structure.layer.immutable.AbstractLayer
-import core.structure.layer.immutable.composite.*
+import core.structure.layer.immutable.composite.EffectiveMedium
+import core.structure.layer.immutable.composite.Mie
+import core.structure.layer.immutable.composite.SpheresLattice
 import core.structure.layer.immutable.material.*
 import core.structure.layer.immutable.material.excitonic.Excitonic
 import core.structure.layer.immutable.particles.*
-import core.structure.parser.*
-import core.util.*
+import core.structure.parser.LayerType
+import core.structure.parser.PermittivityType
+import core.structure.parser.permittivityType
+import core.util.requireDouble
+import core.util.requireNode
+import core.util.requireNonNegativeDouble
+import core.util.requireTextOrNullUpperCase
 import core.validators.fail
 
 fun JsonNode.GaAs(d: Double, layerType: LayerType) = GaAs(
   d = d,
   dampingFactor = requireDouble(DescriptionParameters.dampingFactor),
-  permittivityModel = requireAdachiBasedPermittivityModel(layerType)
+  permittivityModel = requireAdachiBasedPermittivityModelFor(layerType)
 )
 
 fun JsonNode.AlGaAs(d: Double, layerType: LayerType) = AlGaAs(
   d = d,
   dampingFactor = requireDouble(DescriptionParameters.dampingFactor),
   cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
-  permittivityModel = requireAdachiBasedPermittivityModel(layerType)
+  permittivityModel = requireAdachiBasedPermittivityModelFor(layerType)
 )
 
 fun JsonNode.AlGaAsSb(d: Double) = AlGaAsSb(
@@ -50,10 +56,12 @@ fun JsonNode.customLayer(d: Double): AbstractLayer {
       d = d,
       eps = type.numberValue
     )
+
     is PermittivityType.ExternalDispersion -> ExternalPermittivityDispersionBasedLayer(
       d = d,
       permittivityDispersion = ExternalDispersionsContainer.externalDispersions[type.dispersionName]!!
     )
+
     is PermittivityType.Expression -> PermittivityExpressionBasedLayer(
       d = d,
       epsExpr = type.exprText
@@ -77,13 +85,13 @@ fun JsonNode.userDefinedLayer(): AbstractLayer {
 
   material: custom,
   eps: {
-    fun f(q)=5.1529+(92842.09/(q*q-86436))
-    return (f(x), 0)
+  fun f(q)=5.1529+(92842.09/(q*q-86436))
+  return (f(x), 0)
   }
 
   Here "material" field value "custom_GaN" is replaced with "custom"
   so that the further recursive call of [toLayer()] was successful
-  */
+   */
   (this as ObjectNode).setAll<ObjectNode>((definitionNode as ObjectNode))
 
   return layer(this)
@@ -140,10 +148,12 @@ fun JsonNode.customParticle(r: Double?): AbstractParticle {
       r = r,
       eps = type.numberValue
     )
+
     is PermittivityType.ExternalDispersion -> ExternalPermittivityDispersionBasedParticle(
       r = r,
       permittivityDispersion = ExternalDispersionsContainer.externalDispersions[type.dispersionName]!!
     )
+
     is PermittivityType.Expression -> PermittivityExpressionBasedParticle(
       r = r,
       epsExpr = type.exprText

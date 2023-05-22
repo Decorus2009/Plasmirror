@@ -36,6 +36,10 @@ object DescriptionParameters {
 
   const val valExprKw = "val"
   const val varExprKw = "var"
+  const val rangeExprKw = "range"
+  const val start = "start"
+  const val end = "end"
+  const val step = "step"
   const val funExprKw = "fun"
   const val returnExprKw = "return"
   const val exprLeftKwBoundary = "@"
