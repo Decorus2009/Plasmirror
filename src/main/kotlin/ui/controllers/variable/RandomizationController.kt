@@ -1,4 +1,4 @@
-package ui.controllers.randomization
+package ui.controllers.variable
 
 import core.randomizer.DEBUG_THREAD
 import core.randomizer.Randomizer

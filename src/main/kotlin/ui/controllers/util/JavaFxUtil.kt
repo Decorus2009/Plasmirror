@@ -8,10 +8,13 @@ import core.util.writeComputedDataTo
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.control.*
+import javafx.scene.control.Alert.AlertType
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.AnchorPane
-import javafx.stage.*
+import javafx.stage.FileChooser
+import javafx.stage.Stage
+import javafx.stage.Window
 import java.io.File
 import java.util.*
 
@@ -29,12 +32,13 @@ fun enable(vararg checkBoxes: CheckBox) = checkBoxes.forEach { it.isDisable = fa
 fun enable(vararg buttons: Button) = buttons.forEach { it.isDisable = false }
 fun enable(vararg colorPickers: ColorPicker) = colorPickers.forEach { it.isDisable = false }
 
-fun alert(title: String = "Error", header: String, content: String): Optional<ButtonType> = with(Alert(Alert.AlertType.ERROR)) {
-  this.title = title
-  this.headerText = header
-  this.contentText = content
-  showAndWait()
-}
+fun alert(title: String = "Error", header: String, content: String, alertType: AlertType = AlertType.ERROR): Optional<ButtonType> =
+  with(Alert(alertType)) {
+    this.title = title
+    this.headerText = header
+    this.contentText = content
+    showAndWait()
+  }
 
 fun showWindow(fxmlPath: String, titleToShow: String) {
   val page = with(FXMLLoader()) {
@@ -97,6 +101,7 @@ fun buildValuesTable(x: List<Double>, yReal: List<Double>, yImaginary: List<Doub
       yImaginary.isEmpty() -> {
         append(String.format(Locale.US, "%16s", "y"))
       }
+
       else -> {
         append(String.format(Locale.US, "%20s", "yReal"))
         append(columnSeparator)

@@ -4,12 +4,13 @@ import core.state.*
 import core.state.data.Data
 import core.structure.*
 import core.structure.layer.mutable.AbstractMutableLayer
-import core.structure.layer.mutable.DoubleVarParameter
+import core.structure.layer.mutable.DoubleRandParameter
 import core.util.mapInPlace
 import core.validators.StateException
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.commons.math3.random.RandomGeneratorFactory
+import ui.controllers.savingConfig
 import java.io.File
 import java.util.*
 import java.util.concurrent.atomic.AtomicInteger
@@ -57,7 +58,7 @@ class Randomizer(
       if (!hasVariableLayer) {
         throw StateException(
           headerMessage = "Non-variable structure",
-          contentMessage = "Structure must have at least one layer with at least one var parameter"
+          contentMessage = "Structure must have at least one variable layer"
         )
       }
 
@@ -79,7 +80,15 @@ class Randomizer(
    * (launch will help keep parent's [Job] reference to stop children jobs with heavy computations if necessary)
    */
   @ExperimentalCoroutinesApi
-  suspend fun randomizeAndCompute(progressReportingChannel: Channel<Int>) = coroutineScope {
+  suspend fun randomizeAndCompute(progressReportingChannel: Channel<Int>) = coroutineScope {    // to save the current UI state (if one changes params on UI e.g. computation range,
+    // click on run would result in computation over old state
+    // (because compute button hasn't been clicked which saves the new state)
+    //
+    // such a "save state" behaviour is simulated here
+    savingConfig {
+      activeState().prepare()
+    }
+
     // run multiple async computations
     val defs = iterationChunks().mapIndexed { index, iterationsChunk ->
       async {
@@ -144,6 +153,7 @@ class Randomizer(
         }
         tempChunks
       }
+
       else -> {
         iterationsChunks
       }
@@ -192,12 +202,13 @@ class Randomizer(
 
   private fun State.randomizeStructure() = structure().allMutableLayers().forEach { layer ->
     layer.variableParameters()
+      .filterIsInstance<DoubleRandParameter>()
       .filter { it.isVariable }
       .randomize()
   }
 
   // TODO PLSMR-0002 save info about new random value for each var param
-  private fun List<DoubleVarParameter>.randomize() = forEach { varParam ->
+  private fun List<DoubleRandParameter>.randomize() = forEach { varParam ->
     varParam.variate {
       val random = randomGenerator.nextGaussian()
       random * varParam.deviation + varParam.meanValue
@@ -211,7 +222,7 @@ class Randomizer(
 /**
  * [this] structure is required to be flattened and all its layers are of [AbstractMutableLayer] type
  */
-private fun Structure.allMutableLayers(): List<AbstractMutableLayer> = with(blocks) {
+fun Structure.allMutableLayers(): List<AbstractMutableLayer> = with(blocks) {
   require(size == 1)
   require(first().repeat == 1)
 
@@ -262,6 +273,7 @@ private class AggregatedData(
           other.yImaginary.forEach { yImaginary += it }
         }
       }
+
       else -> {
         require(x.size == other.x.size)
         require(yReal.size == other.yReal.size)
@@ -298,5 +310,5 @@ private class AggregatedData(
 
 fun DEBUG_THREAD(message: String) {
   if (true)
-  println("${Thread.currentThread()}: $message")
+    println("${Thread.currentThread()}: $message")
 }

@@ -2,10 +2,12 @@ package core.structure.layer.mutable.material
 
 import core.math.Complex
 import core.math.ExpressionEvaluator
-import core.structure.layer.mutable.*
+import core.structure.layer.mutable.AbstractMutableLayer
+import core.structure.layer.mutable.ComplexVarParameter
+import core.structure.layer.mutable.VarParameter
 
 data class MutableConstPermittivityLayer(
-  override val d: DoubleVarParameter,
+  override val d: VarParameter<Double>,
   val eps: ComplexVarParameter
 ) : AbstractMutableLayer(d) {
   override fun variableParameters() = listOf(d) + eps.variableParameters()
@@ -16,7 +18,7 @@ data class MutableConstPermittivityLayer(
 
 // TODO: Plasmirror-4
 data class MutablePermittivityExpressionBasedLayer(
-  override val d: DoubleVarParameter,
+  override val d: VarParameter<Double>,
   val epsExpr: String
 ) : AbstractMutableLayer(d) {
 

@@ -2,11 +2,12 @@ package core.util
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
-import core.structure.layer.mutable.DoubleVarParameter
-import core.math.*
+import core.math.Complex
+import core.math.checkIsNonNegative
+import core.math.checkIsPositive
 import core.state.mapper
 import core.structure.description.DescriptionParameters
-import core.structure.layer.mutable.ComplexVarParameter
+import core.structure.layer.mutable.*
 import core.validators.jsonFail
 
 
@@ -20,19 +21,49 @@ fun JsonNode.requirePositiveIntOrNull(field: String) = requireIntOrNull(field)?.
 
 /** -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- **/
 fun JsonNode.requireDouble(field: String) = requireNode(field).requireDouble()
-fun JsonNode.requireDoubleVarParameter(field: String) = requireNode(field).requireDoubleVarParameter()
+fun JsonNode.requireDoubleVarParameter(field: String): VarParameter<Double> = requireNode(field).requireDoubleVarParameter()
 
 fun JsonNode.requireDoubleOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleOrNull()
 fun JsonNode.requireDoubleVarParameterOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleVarParameterOrNull()
 
 fun JsonNode.requireNonNegativeDouble(field: String) = requireDouble(field).also { it.checkIsNonNegative(field) }
 fun JsonNode.requireNonNegativeDoubleVarParameter(field: String) = requireDoubleVarParameter(field).also {
-  if (!it.isVariable) it.meanValue.checkIsNonNegative(field)
+  when (it) {
+    is DoubleRangeParameter -> {
+//      check(it.start > 0.0) { "start value of an range parameter must be positive" }
+//      check(it.end > 0.0) { "end value of an range parameter must be positive" }
+      check(it.step > 0.0) { "step value of an range parameter must be non-negative" }
+      check(it.end - it.start >= 0) { "requirement: end - start >= 0" }
+    }
+
+    is DoubleRandParameter -> {
+      if (!it.isVariable) check(it.meanValue >= 0.0) { "mean value of a var parameter must be non-negative" }
+    }
+
+    is DoubleConstParameter -> {
+      check(it.value >= 0.0) { "value of a const parameter must be non-negative" }
+    }
+  }
 }
 
 fun JsonNode.requirePositiveDoubleOrNull(field: String) = requireDoubleOrNull(field)?.also { it.checkIsPositive(field) }
 fun JsonNode.requirePositiveDoubleVarParameterOrNull(field: String) = requireDoubleVarParameterOrNull(field)?.also {
-  if (!it.isVariable) it.meanValue.checkIsPositive(field)
+  when (it) {
+    is DoubleRangeParameter -> {
+//      check(it.start > 0.0) { "start value of an range parameter must be positive" }
+//      check(it.end > 0.0) { "end value of an range parameter must be positive" }
+      check(it.step > 0.0) { "step value of an range parameter must be positive" }
+      check(it.end - it.start >= 0) { "requirement: end - start >= 0" }
+    }
+
+    is DoubleRandParameter -> {
+      if (!it.isVariable) check(it.meanValue > 0.0) { "mean value of a var parameter must be positive" }
+    }
+
+    is DoubleConstParameter -> {
+      check(it.value > 0.0) { "value of a const parameter must be positive" }
+    }
+  }
 }
 
 
@@ -67,25 +98,43 @@ fun JsonNode.requireDoubleOrNull() = when {
   else -> jsonFail(message = "Cannot read floating point value in node \"$this\"")
 }
 
-fun JsonNode.requireDoubleVarParameter() = requireDoubleVarParameterOrNull()
+fun JsonNode.requireDoubleVarParameter(): VarParameter<Double> = requireDoubleVarParameterOrNull()
   ?: jsonFail(message = "Cannot read double or var value in node \"$this\"")
 
-fun JsonNode.requireDoubleVarParameterOrNull() = when {
-  isNumber -> DoubleVarParameter.constant(asDouble())
+fun JsonNode.requireDoubleVarParameterOrNull(): VarParameter<Double>? = when {
+  isNumber -> DoubleConstParameter.constant(asDouble())
   isTextual -> {
     val text = asText()
 
     when {
-      text.toDoubleOrNull() != null -> DoubleVarParameter.constant(text.toDouble())
+      text.toDoubleOrNull() != null -> DoubleConstParameter.constant(text.toDouble())
       else -> jsonFail(message = "Cannot read double or var value in text node \"$this\"")
     }
   }
-  isContainerNode -> DoubleVarParameter.variable(
-    meanValue = requireDouble(DescriptionParameters.mean),
-    deviation = requireDouble(DescriptionParameters.deviation)
-  )
+
+  isContainerNode -> {
+    when {
+      isVarParameter() -> {
+        DoubleRandParameter.variable(
+          meanValue = requireDouble(DescriptionParameters.mean),
+          deviation = requireDouble(DescriptionParameters.deviation)
+        )
+      }
+
+      isRangeParameter() -> {
+        DoubleRangeParameter.range(
+          start = requireDouble(DescriptionParameters.start),
+          end = requireDouble(DescriptionParameters.end),
+          step = requireDouble(DescriptionParameters.step),
+        )
+      }
+
+      else -> jsonFail(message = "Cannot parse container node \"$this\" as a var or range parameter")
+    }
+  }
+
   isNullOrMissing -> null
-  else -> jsonFail(message = "Cannot read double or var value in node \"$this\"")
+  else -> jsonFail(message = "Cannot read double or var or range value in node \"$this\"")
 }
 
 /**
@@ -116,7 +165,8 @@ fun JsonNode.requireComplexVarParameter() = requireComplexVarParameterOrNull()
   ?: jsonFail(message = "Cannot read double or var value in node \"$this\"")
 
 fun JsonNode.requireComplexVarParameterOrNull(): ComplexVarParameter? {
-  fun Double.toComplexVarParameter() = ComplexVarParameter.of(DoubleVarParameter.constant(this), DoubleVarParameter.ZERO_CONST)
+  fun Double.toComplexVarParameter() =
+    ComplexConstParameter.of(DoubleConstParameter.constant(this), DoubleConstParameter.ZERO_CONST)
 
   return when {
     isNumber -> asDouble().toComplexVarParameter()
@@ -128,10 +178,28 @@ fun JsonNode.requireComplexVarParameterOrNull(): ComplexVarParameter? {
         else -> jsonFail(message = "Cannot read double or var value in text node \"$this\"")
       }
     }
-    isContainerNode -> ComplexVarParameter.of(
-      realDoubleVarParameter = requireDoubleVarParameter(DescriptionParameters.real),
-      imaginaryDoubleVarParameter = requireDoubleVarParameter(DescriptionParameters.imag),
-    )
+
+    isContainerNode -> {
+      /*
+            val real: VarParameter<Double> = requireDoubleVarParameter(DescriptionParameters.real)
+            val imag: VarParameter<Double> = requireDoubleVarParameter(DescriptionParameters.imag)
+
+            when {
+              real is DoubleRandParameter && imag is DoubleRandParameter -> {}
+              real is DoubleRangeParameter && imag is DoubleRangeParameter -> {}
+              real is DoubleConstParameter && imag is DoubleConstParameter -> {}
+
+              else -> jsonFail(message = "Check parameters specified for a complex value. The both shouble var")
+            }
+      */
+
+      requireNodeOrNull(DescriptionParameters.real)?.isVarParameter()
+      ComplexRandParameter.of(
+        realDoubleRandParameter = requireDoubleVarParameter(DescriptionParameters.real),
+        imaginaryDoubleRandParameter = requireDoubleVarParameter(DescriptionParameters.imag),
+      )
+    }
+
     isNullOrMissing -> null
     else -> jsonFail(message = "Cannot read double or var value in node \"$this\"")
   }
@@ -176,6 +244,11 @@ inline fun <reified T> JsonNode.parse(): T {
 fun JsonNode.isVarParameter() = has(DescriptionParameters.varExprKw) &&
   requireDoubleOrNull(DescriptionParameters.mean) != null &&
   requireDoubleOrNull(DescriptionParameters.deviation) != null
+
+fun JsonNode.isRangeParameter() = has(DescriptionParameters.rangeExprKw) &&
+  requireDoubleOrNull(DescriptionParameters.start) != null &&
+  requireDoubleOrNull(DescriptionParameters.end) != null &&
+  requireDoubleOrNull(DescriptionParameters.step) != null
 
 fun JsonNode.isComplexNumber() =
   requireDoubleOrNull(DescriptionParameters.real) != null &&

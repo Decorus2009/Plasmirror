@@ -1,7 +1,9 @@
 package core.structure.layer.mutable.particles
 
-import core.optics.particles.*
-import core.structure.layer.mutable.DoubleVarParameter
+import core.optics.particles.DrudeLorentzModel
+import core.optics.particles.DrudeModel
+import core.optics.particles.LorentzOscillator
+import core.structure.layer.mutable.VarParameter
 
 /**
  * [r] radius; is essential only for Mie layer (spheres lattice uses d / 2)
@@ -10,10 +12,10 @@ import core.structure.layer.mutable.DoubleVarParameter
  * [epsInf] high-frequency permittivity
  */
 data class MutableDrudeParticle(
-  override val r: DoubleVarParameter? = null,
-  private val wPl: DoubleVarParameter,
-  private val g: DoubleVarParameter,
-  private val epsInf: DoubleVarParameter
+  override val r: VarParameter<Double>? = null,
+  private val wPl: VarParameter<Double>,
+  private val g: VarParameter<Double>,
+  private val epsInf: VarParameter<Double>
 ) : AbstractMutableParticle(r) {
 
   override fun variableParameters() = listOfNotNull(r, wPl, g, epsInf)
@@ -22,13 +24,29 @@ data class MutableDrudeParticle(
 }
 
 // TODO need to generalize LorentzOscillator and MutableLorentzOscillator, not that easy
-//data class MutableDrudeLorentzParticle(
-//  override val r: DoubleVarParameter? = null,
-//  private val wPl: DoubleVarParameter,
-//  private val g: DoubleVarParameter,
-//  private val epsInf: DoubleVarParameter,
-//  private val oscillators: List<LorentzOscillator>
-//) : AbstractMutableParticle(r) {
-//
-//  override fun permittivity(wl: Double) = DrudeLorentzModel.permittivity(wl, wPl, g, epsInf, oscillators)
-//}
+data class MutableDrudeLorentzParticle(
+  override val r: VarParameter<Double>? = null,
+  private val wPl: VarParameter<Double>,
+  private val g: VarParameter<Double>,
+  private val epsInf: VarParameter<Double>,
+  private val oscillators: List<MutableLorentzOscillator>
+) : AbstractMutableParticle(r) {
+  override fun variableParameters() = listOfNotNull(r, wPl, g, epsInf) + oscillators.flatMap { it.variableParameters() }
+
+  override fun permittivity(wl: Double) =
+    DrudeLorentzModel.permittivity(
+      wl,
+      wPl.requireValue(),
+      g.requireValue(),
+      epsInf.requireValue(),
+      oscillators.map { (f_i, g_i, w_i) -> LorentzOscillator(f_i.requireValue(), g_i.requireValue(), w_i.requireValue()) }
+    )
+}
+
+data class MutableLorentzOscillator(
+  val f_i: VarParameter<Double>,
+  val g_i: VarParameter<Double>,
+  val w_i: VarParameter<Double>
+) {
+  fun variableParameters() = listOf(f_i, g_i, w_i)
+}

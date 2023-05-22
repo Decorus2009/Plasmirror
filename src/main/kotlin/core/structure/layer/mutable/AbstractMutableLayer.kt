@@ -1,12 +1,12 @@
 package core.structure.layer.mutable
 
+import core.optics.Polarization
 import core.structure.layer.ILayer
 import core.structure.layer.layerMatrix
-import core.optics.Polarization
 
-abstract class AbstractMutableLayer(open val d: DoubleVarParameter) : ILayer {
+abstract class AbstractMutableLayer(open val d: VarParameter<Double>) : ILayer {
 
-  abstract fun variableParameters(): List<DoubleVarParameter>
+  abstract fun variableParameters(): List<VarParameter<Double>>
 
   fun isVariable() = variableParameters().any { it.isVariable }
 

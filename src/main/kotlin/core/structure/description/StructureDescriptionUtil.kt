@@ -1,7 +1,10 @@
 package core.structure.description
 
 import core.state.mapper
-import core.util.*
+import core.util.complexNumberPattern
+import core.util.realNumberPattern
+import core.util.removeComments
+import core.util.requireNode
 
 /**
  * Maps structure string representation to a json object
@@ -37,6 +40,7 @@ fun String.json() = """{"${DescriptionParameters.structure}":[${
     .replaceXWithRepeat()
     .addThicknessNodeToMedium()
     .parseAndQuoteVarRealParams()
+    .parseAndQuoteRangeRealParams()
     .quoteExpressions()
 //    .quoteNumbers()
     .quoteRealNumbers()
@@ -141,6 +145,18 @@ private fun String.parseAndQuoteVarRealParams(): String {
   return replace(
     Regex("\\b(\\w+)\\b:${varKw}\\(($realNumberPattern),($realNumberPattern)\\)"),
     "\"$1\":{\"$varKw\":true,\"$meanKw\":\"$2\",\"$devKw\":\"$4\"}"
+  )
+}
+
+private fun String.parseAndQuoteRangeRealParams(): String {
+  val rangeKw = DescriptionParameters.rangeExprKw
+  val start = DescriptionParameters.start
+  val end = DescriptionParameters.end
+  val step = DescriptionParameters.step
+
+  return replace(
+    Regex("\\b(\\w+)\\b:${rangeKw}\\(($realNumberPattern),($realNumberPattern),($realNumberPattern)\\)"),
+    "\"$1\":{\"$rangeKw\":true,\"$start\":\"$2\",\"$end\":\"$4\",\"$step\":\"\$6\"}"
   )
 }
 

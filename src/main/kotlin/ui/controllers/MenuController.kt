@@ -3,13 +3,18 @@ package ui.controllers
 import MainApp
 import core.optics.ExternalDispersionsContainer.importExternalDispersion
 import core.state.activeState
-import core.util.*
+import core.util.exportPath
+import core.util.importPath
+import core.util.sep
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Scene
 import javafx.scene.control.Alert
 import javafx.scene.control.MenuItem
-import javafx.scene.input.*
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCodeCombination
+import javafx.scene.input.KeyCombination
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.AnchorPane
 import javafx.stage.Stage
 
@@ -32,6 +37,12 @@ class MenuController {
     // (see https://github.com/Decorus2009/Plasmirror/issues/8)
     randomizationMenuItem.setOnAction {
       showWindow(fxmlPath = "fxml/state/Randomization.fxml", titleToShow = "Randomization"/*, RandomizationController::stageCloseCallback*/)
+    }
+
+    // NB: path separator is explicitly set as "/" due to an error
+    // (see https://github.com/Decorus2009/Plasmirror/issues/8)
+    valueRangeComputationMenuItem.setOnAction {
+      showWindow(fxmlPath = "fxml/state/ValueRangeComputation.fxml", titleToShow = "Multiple computations"/*, RandomizationController::stageCloseCallback*/)
     }
 
     helpInfoMenuItem.setOnAction {
@@ -185,4 +196,7 @@ class MenuController {
 
   @FXML
   private lateinit var randomizationMenuItem: MenuItem
+
+  @FXML
+  private lateinit var valueRangeComputationMenuItem: MenuItem
 }

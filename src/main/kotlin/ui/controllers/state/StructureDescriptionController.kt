@@ -57,10 +57,11 @@ class StructureDescriptionController {
       "\\bmie\\b" +
       ")"                                                              // Regex("(AlGaAsSb|GaAs|AlGaAs|custom|...)")
     val EXPRESSION_KW_PATTERN = "(\\bval\\b|\\bfun\\b|\\breturn\\b)"   // Regex("(val|fun|return)")
-    val VAR_PATTERN = "(\\bvar\\b)"                          // Regex("var")
+    val VAR_PATTERN = "(\\bvar\\b)"                                    // Regex("var")
+    val RANGE_PATTERN = "(\\brange\\b)"                                // Regex("range")
 
     val PATTERN = Pattern.compile(
-      "(?<REPEAT>$REPEAT_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<DEF>$DEF_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<EXPRESSION>$EXPRESSION_KW_PATTERN)|(?<VAR>$VAR_PATTERN)",
+      "(?<REPEAT>$REPEAT_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<DEF>$DEF_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<EXPRESSION>$EXPRESSION_KW_PATTERN)|(?<VAR>$VAR_PATTERN)|(?<RANGE>$RANGE_PATTERN)",
       Pattern.CASE_INSENSITIVE
     )
 
@@ -77,6 +78,7 @@ class StructureDescriptionController {
         matcher.group("LAYER") != null -> "layer"
         matcher.group("EXPRESSION") != null -> "expression"
         matcher.group("VAR") != null -> "var"
+        matcher.group("RANGE") != null -> "range"
         else -> null
       })!! /* never happens */
       spansBuilder.add(emptyList(), matcher.start() - lastKwEnd)

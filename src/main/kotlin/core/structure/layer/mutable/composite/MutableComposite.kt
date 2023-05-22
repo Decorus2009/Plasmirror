@@ -1,11 +1,11 @@
 package core.structure.layer.mutable.composite
 
 import core.structure.layer.mutable.AbstractMutableLayer
-import core.structure.layer.mutable.DoubleVarParameter
+import core.structure.layer.mutable.VarParameter
 import core.structure.layer.mutable.particles.AbstractMutableParticle
 
 abstract class MutableComposite(
-  override val d: DoubleVarParameter,
+  override val d: VarParameter<Double>,
   protected open val medium: AbstractMutableLayer,
   protected open val particles: AbstractMutableParticle
 ) : AbstractMutableLayer(d) {
