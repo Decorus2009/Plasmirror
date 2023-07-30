@@ -61,7 +61,7 @@ object MieAll : Mie {
 //*** Series expansion terminated after NSTOP terms
 //    Logarithmic derivatives calculated from NMX on down
     xStop = x + 4.0 * x.pow(1.0 / 3.0) + 2.0
-    val nStop = xStop;
+    var nStop = xStop;
 
     var angleStep = 0.0
     if (numberOfAngles > 1) {
@@ -100,7 +100,19 @@ object MieAll : Mie {
     var chiPrev = cos(x)
     var xiPrev = Complex(psiPrev, -chiPrev)
 
+
+//    nStop = 2.0
     for (ind in 1 until nStop.toInt() + 1) {
+
+//      if (ind == 1) continue
+
+//      if (ind != nStop.toInt()) {
+//        println("Computing is skipped for ${ind}, nStop.toInt() + 1: ${nStop.toInt() + 1}")
+//        continue
+//      }
+
+      println("Computing for ${ind}")
+
       val psi = (2.0 * ind - 1.0) * psiPrev / x - psiPrevPrev
       val chi = (2.0 * ind - 1.0) * chiPrev / x - chiPrevPrev
       val xi = Complex(psi, -chi)

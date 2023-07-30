@@ -24,6 +24,7 @@ data class Mie(
 
   override fun extinctionCoefficient(wl: Double, temperature: Double) =
     mieModel.extinctionCoefficient(wl, mediumPermittivity(wl, temperature), particlePermittivity(wl), f, particles.r!!)
+      .also { println("$wl $it") }
 }
 
 enum class Orders {
