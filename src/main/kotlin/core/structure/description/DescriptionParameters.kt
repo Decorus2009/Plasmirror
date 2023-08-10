@@ -33,6 +33,8 @@ object DescriptionParameters {
   const val r = "r"
   const val expr = "expr"
   const val external = "external"
+  const val matrixElement = "matr_el" // TODO temporary passed from front
+
 
   const val valExprKw = "val"
   const val varExprKw = "var"

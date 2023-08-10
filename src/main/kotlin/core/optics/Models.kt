@@ -2,11 +2,12 @@ package core.optics
 
 interface KnownModel
 
-enum class AdachiBasedPermittivityModel : KnownModel {
+enum class AlGaAsPermittivityModel : KnownModel {
   ADACHI_SIMPLE,
   ADACHI_T,
   ADACHI_GAUSS,
-  ADACHI_MOD_GAUSS;
+  ADACHI_MOD_GAUSS,
+  TANGUY_95
 }
 
 // TODO obsolete?
@@ -20,7 +21,7 @@ enum class ParticlesPermittivityModel : KnownModel {
 }
 
 val knownDispersionModels: Set<KnownModel> = setOf(
-  *AdachiBasedPermittivityModel.values(),
+  *AlGaAsPermittivityModel.values(),
   *ParticlesPermittivityModel.values()
 )
 

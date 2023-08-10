@@ -43,7 +43,8 @@ class StructureDescriptionController {
       "\\badachi_T\\b|" +
       "\\badachi_gauss\\b|" +
       "\\badachi_mod_gauss\\b" +
-      ")"                                                               // Regex("(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss)")
+      "\\btanguy_95\\b" +
+      ")"                        // Regex("(adachi_simple|adachi_T|adachi_gauss|adachi_mod_gauss|tanguy_95)")
     val LAYER_PATTERN = "(" +
       "\\bAlGaAsSb\\b|" +
       "\\bGaAs\\b|" +

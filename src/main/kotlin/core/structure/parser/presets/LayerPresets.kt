@@ -14,23 +14,24 @@ import core.structure.layer.immutable.particles.*
 import core.structure.parser.LayerType
 import core.structure.parser.PermittivityType
 import core.structure.parser.permittivityType
-import core.util.requireDouble
-import core.util.requireNode
-import core.util.requireNonNegativeDouble
-import core.util.requireTextOrNullUpperCase
+import core.util.*
 import core.validators.fail
 
 fun JsonNode.GaAs(d: Double, layerType: LayerType) = GaAs(
   d = d,
   dampingFactor = requireDouble(DescriptionParameters.dampingFactor),
-  permittivityModel = requireAdachiBasedPermittivityModelFor(layerType)
+  g = requireDoubleOrNull(), // optional parameter for Tanguy models
+  matrixElement = requireDoubleOrNull(), // TODO temporary passed from front
+  permittivityModel = requireBasedPermittivityModelFor(layerType)
 )
 
 fun JsonNode.AlGaAs(d: Double, layerType: LayerType) = AlGaAs(
   d = d,
-  dampingFactor = requireDouble(DescriptionParameters.dampingFactor),
+  dampingFactor = requireDoubleOrNull(DescriptionParameters.dampingFactor),
   cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
-  permittivityModel = requireAdachiBasedPermittivityModelFor(layerType)
+  g = requireDoubleOrNull(DescriptionParameters.g), // optional parameter for Tanguy models,
+  matrixElement = requireDoubleOrNull(DescriptionParameters.matrixElement), // TODO temporary passed from front
+  permittivityModel = requireBasedPermittivityModelFor(layerType)
 )
 
 fun JsonNode.AlGaAsSb(d: Double) = AlGaAsSb(

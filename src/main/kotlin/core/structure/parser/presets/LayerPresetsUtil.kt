@@ -1,7 +1,7 @@
 package core.structure.parser.presets
 
 import com.fasterxml.jackson.databind.JsonNode
-import core.optics.AdachiBasedPermittivityModel
+import core.optics.AlGaAsPermittivityModel
 import core.optics.particles.LorentzOscillator
 import core.structure.description.DescriptionParameters
 import core.structure.layer.immutable.AbstractLayer
@@ -140,16 +140,17 @@ fun JsonNode.requireParticlesFor(layerType: LayerType) = requireNode(Description
   }
 }
 
-fun JsonNode.requireAdachiBasedPermittivityModelFor(layerType: LayerType): AdachiBasedPermittivityModel {
+fun JsonNode.requireBasedPermittivityModelFor(layerType: LayerType): AlGaAsPermittivityModel {
   val maybeModelName = requireTextUpperCase(DescriptionParameters.eps)
-  val permittivityModelNames = AdachiBasedPermittivityModel.values().map { it.name }
+  val permittivityModelNames = AlGaAsPermittivityModel.values().map { it.name }
+
   val isLayerTypeAllowed = layerType is LayerType.Material.GaAs || layerType is LayerType.Material.AlGaAs
 
   check(maybeModelName in permittivityModelNames && isLayerTypeAllowed) {
     "Unknown permittivity model \"$maybeModelName\""
   }
 
-  return AdachiBasedPermittivityModel.valueOf(maybeModelName)
+  return AlGaAsPermittivityModel.valueOf(maybeModelName)
 }
 
 
@@ -282,25 +283,26 @@ fun JsonNode.requireDrudeLorentzOscillators() = requireNode(DescriptionParameter
   .map { it.second }
   .toList()
 
-fun JsonNode.requireParticles(layerType: LayerType): AbstractParticle = requireNode(DescriptionParameters.particles).run {
-  val r = when (layerType) {
-    is LayerType.Composite.Mie -> requireNonNegativeDouble(DescriptionParameters.r)
-    // "r" parameter can be provided only for Mie layer type
-    else -> requirePositiveDoubleOrNull(DescriptionParameters.r)?.let {
-      fail("Particle radius should be provided only for Mie layer type")
+fun JsonNode.requireParticles(layerType: LayerType): AbstractParticle =
+  requireNode(DescriptionParameters.particles).run {
+    val r = when (layerType) {
+      is LayerType.Composite.Mie -> requireNonNegativeDouble(DescriptionParameters.r)
+      // "r" parameter can be provided only for Mie layer type
+      else -> requirePositiveDoubleOrNull(DescriptionParameters.r)?.let {
+        fail("Particle radius should be provided only for Mie layer type")
+      }
+    }
+
+    when (particleType()) {
+      ParticleType.DRUDE -> DrudeParticle(r)
+      ParticleType.DRUDE_LORENTZ -> DrudeLorentzParticle(r)
+      ParticleType.CUSTOM -> customParticle(r)
+      ParticleType.SB_CARDONA -> SbParticle(r, SbParticlePermittivityType.CARDONA_ADACHI)
+      ParticleType.SB_PALLIK -> SbParticle(r, SbParticlePermittivityType.PALLIK)
+      ParticleType.BI_CARDONA_ADACHI_ORTHOGONAL -> BiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_ORTHOGONAL)
+      ParticleType.BI_CARDONA_ADACHI_PARALLEL -> BiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_PARALLEL)
     }
   }
-
-  when (particleType()) {
-    ParticleType.DRUDE -> DrudeParticle(r)
-    ParticleType.DRUDE_LORENTZ -> DrudeLorentzParticle(r)
-    ParticleType.CUSTOM -> customParticle(r)
-    ParticleType.SB_CARDONA -> SbParticle(r, SbParticlePermittivityType.CARDONA_ADACHI)
-    ParticleType.SB_PALLIK -> SbParticle(r, SbParticlePermittivityType.PALLIK)
-    ParticleType.BI_CARDONA_ADACHI_ORTHOGONAL -> BiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_ORTHOGONAL)
-    ParticleType.BI_CARDONA_ADACHI_PARALLEL -> BiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_PARALLEL)
-  }
-}
 
 fun JsonNode.requireDrudeLorentzMutableOscillators() = requireNode(DescriptionParameters.oscillators)
   .fields()
@@ -319,25 +321,32 @@ fun JsonNode.requireDrudeLorentzMutableOscillators() = requireNode(DescriptionPa
   .map { it.second }
   .toList()
 
-fun JsonNode.requireMutableParticles(layerType: LayerType): AbstractMutableParticle = requireNode(DescriptionParameters.particles).run {
-  val r = when (layerType) {
-    is LayerType.Composite.Mie -> requireNonNegativeDoubleVarParameter(DescriptionParameters.r)
-    // "r" parameter can be provided only for Mie layer type
-    else -> requirePositiveDoubleVarParameterOrNull(DescriptionParameters.r)?.let {
-      fail("Particle radius should be provided only for Mie layer type")
+fun JsonNode.requireMutableParticles(layerType: LayerType): AbstractMutableParticle =
+  requireNode(DescriptionParameters.particles).run {
+    val r = when (layerType) {
+      is LayerType.Composite.Mie -> requireNonNegativeDoubleVarParameter(DescriptionParameters.r)
+      // "r" parameter can be provided only for Mie layer type
+      else -> requirePositiveDoubleVarParameterOrNull(DescriptionParameters.r)?.let {
+        fail("Particle radius should be provided only for Mie layer type")
+      }
+    }
+
+    when (particleType()) {
+      ParticleType.DRUDE -> mutableDrudeParticle(r)
+      ParticleType.DRUDE_LORENTZ -> mutableDrudeLorentzParticle(r)
+      ParticleType.CUSTOM -> mutableCustomParticle(r)
+      ParticleType.SB_CARDONA -> MutableSbParticle(r, SbParticlePermittivityType.CARDONA_ADACHI)
+      ParticleType.SB_PALLIK -> MutableSbParticle(r, SbParticlePermittivityType.PALLIK)
+      ParticleType.BI_CARDONA_ADACHI_ORTHOGONAL -> MutableBiParticle(
+        r,
+        BiParticlePermittivityType.CARDONA_ADACHI_ORTHOGONAL
+      )
+      ParticleType.BI_CARDONA_ADACHI_PARALLEL -> MutableBiParticle(
+        r,
+        BiParticlePermittivityType.CARDONA_ADACHI_PARALLEL
+      )
     }
   }
-
-  when (particleType()) {
-    ParticleType.DRUDE -> mutableDrudeParticle(r)
-    ParticleType.DRUDE_LORENTZ -> mutableDrudeLorentzParticle(r)
-    ParticleType.CUSTOM -> mutableCustomParticle(r)
-    ParticleType.SB_CARDONA -> MutableSbParticle(r, SbParticlePermittivityType.CARDONA_ADACHI)
-    ParticleType.SB_PALLIK -> MutableSbParticle(r, SbParticlePermittivityType.PALLIK)
-    ParticleType.BI_CARDONA_ADACHI_ORTHOGONAL -> MutableBiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_ORTHOGONAL)
-    ParticleType.BI_CARDONA_ADACHI_PARALLEL -> MutableBiParticle(r, BiParticlePermittivityType.CARDONA_ADACHI_PARALLEL)
-  }
-}
 
 private fun JsonNode.particleType(): ParticleType {
   val maybeParticlesType = requireTextOrNullUpperCase(DescriptionParameters.material)

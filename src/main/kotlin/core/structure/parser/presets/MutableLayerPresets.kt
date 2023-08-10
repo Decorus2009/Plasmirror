@@ -17,15 +17,15 @@ import core.validators.fail
 
 fun JsonNode.mutableGaAs(d: VarParameter<Double>, layerType: LayerType) = MutableGaAs(
   d = d,
-  dampingFactor = requireDoubleVarParameter(DescriptionParameters.dampingFactor),
-  permittivityModel = requireAdachiBasedPermittivityModelFor(layerType)
+  dampingFactor = requireDoubleVarParameterOrNull(DescriptionParameters.dampingFactor),
+  permittivityModel = requireBasedPermittivityModelFor(layerType)
 )
 
 fun JsonNode.mutableAlGaAs(d: VarParameter<Double>, layerType: LayerType) = MutableAlGaAs(
   d = d,
-  dampingFactor = requireDoubleVarParameter(DescriptionParameters.dampingFactor),
+  dampingFactor = requireDoubleVarParameterOrNull(DescriptionParameters.dampingFactor),
   cAl = requireNonNegativeDoubleVarParameter(DescriptionParameters.cAl),
-  permittivityModel = requireAdachiBasedPermittivityModelFor(layerType)
+  permittivityModel = requireBasedPermittivityModelFor(layerType)
 )
 
 fun JsonNode.mutableAlGaAsSb(d: VarParameter<Double>) = MutableAlGaAsSb(

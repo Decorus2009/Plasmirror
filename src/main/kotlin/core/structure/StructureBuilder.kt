@@ -44,9 +44,9 @@ private fun List<JsonNode>.buildBlocks(blockBuilder: List<JsonNode>.() -> Block)
     .filterNot { it.repeat == 0 }
 }
 
-private fun List<JsonNode>.layersBlockBuilder() = block { node -> layer(node) }
+private fun List<JsonNode>.layersBlockBuilder() = block(::layer)
 
-private fun List<JsonNode>.mutableLayersBlockBuilder() = block { node -> mutableLayer(node) }
+private fun List<JsonNode>.mutableLayersBlockBuilder() = block(::mutableLayer)
 
 private fun List<JsonNode>.block(layerBuilder: (JsonNode) -> ILayer) = Block(
   repeat = first().requireNonNegativeInt(DescriptionParameters.repeat),

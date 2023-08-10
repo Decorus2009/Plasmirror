@@ -3,7 +3,7 @@ package core.state
 import com.fasterxml.jackson.annotation.JsonProperty
 import core.structure.layer.immutable.material.*
 import core.math.Complex
-import core.optics.AdachiBasedPermittivityModel
+import core.optics.AlGaAsPermittivityModel
 import core.optics.ExternalMediumType
 
 data class Medium(
@@ -23,10 +23,10 @@ data class Medium(
       ConstPermittivityLayer(d = Double.POSITIVE_INFINITY, eps = Complex.ONE)
     }
     ExternalMediumType.GAAS_ADACHI -> {
-      GaAs(d = Double.POSITIVE_INFINITY, permittivityModel = AdachiBasedPermittivityModel.ADACHI_SIMPLE)
+      GaAs(d = Double.POSITIVE_INFINITY, permittivityModel = AlGaAsPermittivityModel.ADACHI_SIMPLE)
     }
     ExternalMediumType.GAAS_GAUSS -> {
-      GaAs(d = Double.POSITIVE_INFINITY, permittivityModel = AdachiBasedPermittivityModel.ADACHI_GAUSS)
+      GaAs(d = Double.POSITIVE_INFINITY, permittivityModel = AlGaAsPermittivityModel.ADACHI_GAUSS)
     }
     ExternalMediumType.GAN -> {
       GaN(d = Double.POSITIVE_INFINITY)
