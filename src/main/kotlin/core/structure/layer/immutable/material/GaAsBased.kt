@@ -67,7 +67,6 @@ abstract class AlGaAsBase(
 
       AlGaAsPermittivityModel.ADACHI_SIMPLE_TANGUY_95 -> {
         check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Tanguy models" }
-        check(gParam != null) { "g parameter 'g_param' is required for AlGaAs or GaAs layer with Tanguy99 model" }
 
         AlGaAsAdachiSimpleModelWithTanguy95ImaginaryPart(cAl, gamma).permittivity(w)
       }
