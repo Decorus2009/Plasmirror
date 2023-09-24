@@ -22,6 +22,8 @@ fun JsonNode.GaAs(d: Double, layerType: LayerType) = GaAs(
   dampingFactor = requireDouble(DescriptionParameters.dampingFactor),
   g = requireDoubleOrNull(), // optional parameter for Tanguy models
   matrixElement = requireDoubleOrNull(), // TODO temporary passed from front
+  gParam = requireDoubleOrNull(DescriptionParameters.gParam),
+  infraredPermittivity = requireDoubleOrNull(DescriptionParameters.epsInfra),
   permittivityModel = requireBasedPermittivityModelFor(layerType)
 )
 
@@ -29,8 +31,10 @@ fun JsonNode.AlGaAs(d: Double, layerType: LayerType) = AlGaAs(
   d = d,
   dampingFactor = requireDoubleOrNull(DescriptionParameters.dampingFactor),
   cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
-  g = requireDoubleOrNull(DescriptionParameters.g), // optional parameter for Tanguy models,
+  g = requireDoubleOrNull(DescriptionParameters.g), // ffor Tanguy models
   matrixElement = requireDoubleOrNull(DescriptionParameters.matrixElement), // TODO temporary passed from front
+  gParam = requireDoubleOrNull(DescriptionParameters.gParam),
+  infraredPermittivity = requireDoubleOrNull(DescriptionParameters.epsInfra),
   permittivityModel = requireBasedPermittivityModelFor(layerType)
 )
 
@@ -63,10 +67,23 @@ fun JsonNode.customLayer(d: Double): AbstractLayer {
       permittivityDispersion = ExternalDispersionsContainer.externalDispersions[type.dispersionName]!!
     )
 
+    is PermittivityType.CustomModel -> KnownCustomModelBasedLayer(
+      d = d,
+      modelName = type.modelName,
+      m_e = requireDoubleOrNull(DescriptionParameters.m_e), // for Tanguy models,
+      m_hh = requireDoubleOrNull(DescriptionParameters.m_hh), // for Tanguy models
+      excitonRydberg = requireDoubleOrNull(DescriptionParameters.excitonRydberg), // for Tanguy models
+      Eg = requireDoubleOrNull(DescriptionParameters.Eg), // for Tanguy models
+      matrixElement = requireDoubleOrNull(DescriptionParameters.matrixElement), // for Tanguy models
+      infraredPermittivity = requireDoubleOrNull(DescriptionParameters.epsInfra),
+      gamma = requireDoubleOrNull(DescriptionParameters.g),
+    )
+
     is PermittivityType.Expression -> PermittivityExpressionBasedLayer(
       d = d,
       epsExpr = type.exprText
     )
+
   }
 }
 
@@ -159,5 +176,9 @@ fun JsonNode.customParticle(r: Double?): AbstractParticle {
       r = r,
       epsExpr = type.exprText
     )
+
+    is PermittivityType.CustomModel -> {
+      TODO("Custom permittivity model for particles is not implemented")
+    }
   }
 }

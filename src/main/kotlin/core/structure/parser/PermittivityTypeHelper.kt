@@ -3,6 +3,9 @@ package core.structure.parser
 import com.fasterxml.jackson.databind.JsonNode
 import core.math.Complex
 import core.optics.ExternalDispersionsContainer
+import core.optics.KnownCustomModels
+import core.optics.KnownModel
+import core.optics.isKnownCustomModel
 import core.structure.description.DescriptionParameters
 import core.util.*
 import core.validators.StructureDescriptionException
@@ -17,7 +20,10 @@ import core.validators.fail
  *
  * 3. a link to an external dispersion file, e.g. 'eps: GaAsRII' (file name without extension)
  *
- * 4. an expression, e.g.
+ * 4. known custom model, e.g.
+ *    eps: tanguy95_general
+ *
+ * 5. an expression, e.g.
  *    eps: {
  *      expr: {
  *        fun f(q)=5.1529+(92842.09/(q*q-86436))
@@ -25,7 +31,7 @@ import core.validators.fail
  *      }
  *    }
  *
- * 5. a variable parameter
+ * 6. a variable parameter
  *    eps: {
  *      var: true,
  *      mean: 12.5,
@@ -46,9 +52,14 @@ fun JsonNode.permittivityType(): PermittivityType {
       return PermittivityType.ExternalDispersion(maybeEpsText)
     }
 
-    fail("Permittivity dispersion \"$maybeEpsText\" not found for custom material type")
+    // case 4
+    if (maybeEpsText.isKnownCustomModel()) {
+      return PermittivityType.CustomModel(maybeEpsText)
+    }
+
+    fail("Permittivity dispersion or known custom model with name \"$maybeEpsText\" not found for custom material type")
   }
-  // cases 4, 5 (eps is a json node)
+  // cases 5, 6 (eps is a json node)
   else {
     if (isComplexNumber()) {
       return PermittivityType.Number(requireComplex())
@@ -69,4 +80,5 @@ sealed class PermittivityType {
   class Number(val numberValue: Complex) : PermittivityType()
   class ExternalDispersion(val dispersionName: String) : PermittivityType()
   class Expression(val exprText: String) : PermittivityType()
+  class CustomModel(val modelName: String): PermittivityType()
 }

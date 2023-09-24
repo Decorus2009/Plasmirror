@@ -7,7 +7,13 @@ enum class AlGaAsPermittivityModel : KnownModel {
   ADACHI_T,
   ADACHI_GAUSS,
   ADACHI_MOD_GAUSS,
-  TANGUY_95
+  TANGUY_95,
+  TANGUY_99,
+  ADACHI_SIMPLE_TANGUY_95
+}
+
+enum class KnownCustomModels {
+  TANGUY_95_GENERAL
 }
 
 // TODO obsolete?
@@ -25,4 +31,6 @@ val knownDispersionModels: Set<KnownModel> = setOf(
   *ParticlesPermittivityModel.values()
 )
 
+
 fun String.isKnownModel() = toUpperCase() in knownDispersionModels.map { it.toString() }
+fun String.isKnownCustomModel() = toUpperCase() in KnownCustomModels.values().map { it.toString() }

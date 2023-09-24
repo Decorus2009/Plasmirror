@@ -2,8 +2,8 @@ package core.structure.layer.immutable.material
 
 import core.structure.layer.immutable.AbstractLayer
 import core.math.*
-import core.optics.ExternalDispersion
-import core.optics.toPermittivity
+import core.optics.*
+import core.optics.material.tanguy.GeneralTanguy95Model
 
 data class ConstPermittivityLayer(
   override val d: Double,
@@ -41,5 +41,43 @@ data class ExternalPermittivityDispersionBasedLayer(
 
     val value = spline.safeValue(wl)
     return if (permittivityDispersion.isPermittivity) value else value.toPermittivity()
+  }
+}
+
+data class KnownCustomModelBasedLayer(
+  override val d: Double,
+  val modelName: String,
+  val m_e: Double?,
+  val m_hh: Double?,
+  val excitonRydberg: Double?,
+  val Eg: Double?,
+  val gamma: Double?,
+  val matrixElement: Double?,
+  val infraredPermittivity: Double?,
+) : AbstractLayer(d) {
+
+  override fun permittivity(wl: Double, temperature: Double): Complex {
+    // might throw if model name does not correspond to any known model, however the check has already been made before
+    when (KnownCustomModels.valueOf(modelName.toUpperCase())) {
+      KnownCustomModels.TANGUY_95_GENERAL -> {
+        check(m_e != null) { "Electron mass 'm_e' is required for general Tanguy95 model" }
+        check(m_hh != null) { "Heavy hole mass 'm_hh' is required for general Tanguy95 model" }
+        check(excitonRydberg != null) { "Exciton rydberg energy 'exciton_rydberg' is required for general Tanguy95 model" }
+        check(Eg != null) { "Eg parameter 'Eg' is required for general Tanguy95 model" }
+        check(gamma != null) { "Gamma 'G' is required for general Tanguy95 model" }
+        check(matrixElement != null) { "Matrix element parameter 'matr_el' is required for AlGaAs or GaAs layer with Tanguy models" }
+        check(infraredPermittivity != null) { "Infrared permittivity parameter 'eps_infra' is required for AlGaAs or GaAs layer with Tanguy models" }
+
+        return GeneralTanguy95Model(
+          m_e = m_e,
+          m_hh = m_hh,
+          Eg = Eg,
+          excitonRydberg = excitonRydberg,
+          gamma = gamma,
+          dipoleMatrixElementSq = matrixElement,
+          infraredPermittivity = infraredPermittivity
+        ).permittivity(wl.toEnergy())
+      }
+    }
   }
 }

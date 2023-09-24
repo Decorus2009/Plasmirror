@@ -5,7 +5,6 @@ import core.optics.AlGaAsPermittivityModel
 import core.optics.material.AlGaAs.AlGaAsAdachiModelWithGaussianBroadening
 import core.optics.material.AlGaAs.AlGaAsAdachiSimpleModel
 import core.optics.material.AlGaAsSb.AlGaAsSbAdachiModelWithTemperatureDependence
-import core.optics.material.AlGaAsWithGamma.Tanguy95Model
 import core.optics.toEnergy
 import core.structure.layer.mutable.AbstractMutableLayer
 import core.structure.layer.mutable.DoubleConstParameter
@@ -47,6 +46,14 @@ abstract class MutableAlGaAsBase(
 
       AlGaAsPermittivityModel.TANGUY_95 -> {
         TODO("TANGUY_95 model is not yet supported for mutable layers")
+      }
+
+      AlGaAsPermittivityModel.TANGUY_99 -> {
+        TODO("TANGUY_99 model is not yet supported for mutable layers")
+      }
+
+      AlGaAsPermittivityModel.ADACHI_SIMPLE_TANGUY_95 -> {
+        TODO("ADACHI_SIMPLE_TANGUY_99 model is not yet supported for mutable layers")
       }
     }
   }

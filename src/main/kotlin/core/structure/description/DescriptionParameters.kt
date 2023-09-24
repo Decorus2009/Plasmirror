@@ -16,6 +16,7 @@ object DescriptionParameters {
   const val latticeFactor = "lattice_factor"
   const val eps = "eps"
   const val epsInf = "eps_inf"
+  const val epsInfra = "eps_infra"
   const val d = "d"
   const val n = "n"
   const val dampingFactor = "df"
@@ -33,7 +34,12 @@ object DescriptionParameters {
   const val r = "r"
   const val expr = "expr"
   const val external = "external"
-  const val matrixElement = "matr_el" // TODO temporary passed from front
+  const val matrixElement = "matr_el"
+  const val gParam = "g_param"
+  const val m_e = "m_e"
+  const val m_hh = "m_hh"
+  const val Eg = "eg"
+  const val excitonRydberg = "exciton_rydberg"
 
 
   const val valExprKw = "val"

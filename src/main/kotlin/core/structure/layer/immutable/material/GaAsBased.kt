@@ -4,7 +4,8 @@ import core.math.Complex
 import core.optics.AlGaAsPermittivityModel
 import core.optics.material.AlGaAs.*
 import core.optics.material.AlGaAsSb.AlGaAsSbAdachiModelWithTemperatureDependence
-import core.optics.material.AlGaAsWithGamma.Tanguy95Model
+import core.optics.material.AlGaAsWithGamma.AlGaAsTanguy95Model
+import core.optics.material.AlGaAsWithGamma.AlGaAsTanguy99Model
 import core.optics.toEnergy
 import core.structure.layer.immutable.AbstractLayer
 
@@ -22,8 +23,10 @@ abstract class AlGaAsBase(
   override val d: Double,
   private val dampingFactor: Double?,
   private val cAl: Double,
-  private val G: Double? = null,
+  private val gamma: Double? = null,
   private val matrixElement: Double? = null, // TODO temporary passed from front
+  private val gParam: Double? = null,
+  private val infraredPermittivity: Double? = null,
   private val permittivityModel: AlGaAsPermittivityModel,
 ) : AbstractLayer(d) {
 
@@ -47,12 +50,26 @@ abstract class AlGaAsBase(
       AlGaAsPermittivityModel.ADACHI_T -> {
         AlGaAsSbAdachiModelWithTemperatureDependence(w, cAl, cAs = 1.0, T = temperature).permittivity()
       }
-      AlGaAsPermittivityModel.TANGUY_95 -> {
-        check(G != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Tanguy models" }
-        check(matrixElement != null) { "Gamma parameter 'matr_el' is required for AlGaAs or GaAs layer with Tanguy models" }
 
-        return (Tanguy95Model(cAl, G, matrixElement).permittivity(w) * Complex.of(1E-17))
-          .also { println("$wl\t${it.real}\t${it.imaginary}") }
+      AlGaAsPermittivityModel.TANGUY_95 -> {
+        check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Tanguy models" }
+
+        return AlGaAsTanguy95Model(cAl, gamma).permittivity(w)
+      }
+      AlGaAsPermittivityModel.TANGUY_99 -> {
+        check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Tanguy models" }
+        check(matrixElement != null) { "Matrix element parameter 'matr_el' is required for AlGaAs or GaAs layer with Tanguy models" }
+        check(infraredPermittivity != null) { "Infrared permittivity parameter 'eps_infra' is required for AlGaAs or GaAs layer with Tanguy models" }
+        check(gParam != null) { "g parameter 'g_param' is required for AlGaAs or GaAs layer with Tanguy99 model" }
+
+        return AlGaAsTanguy99Model(cAl, gamma, gParam, matrixElement, infraredPermittivity).permittivity(w)
+      }
+
+      AlGaAsPermittivityModel.ADACHI_SIMPLE_TANGUY_95 -> {
+        check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Tanguy models" }
+        check(gParam != null) { "g parameter 'g_param' is required for AlGaAs or GaAs layer with Tanguy99 model" }
+
+        AlGaAsAdachiSimpleModelWithTanguy95ImaginaryPart(cAl, gamma).permittivity(w)
       }
     }
   }
@@ -63,8 +80,19 @@ data class GaAs(
   val dampingFactor: Double = 0.0, // default value is used for external media initialization in [core.state.Medium.toLayer]
   val g: Double? = null,
   val matrixElement: Double? = null, // TODO temporary passed from front
+  val gParam: Double? = null,
+  val infraredPermittivity: Double? = null,
   val permittivityModel: AlGaAsPermittivityModel
-) : AlGaAsBase(d, dampingFactor, cAl = 0.0, g, matrixElement, permittivityModel)
+) : AlGaAsBase(
+  d = d,
+  dampingFactor = dampingFactor,
+  cAl = 0.0,
+  gamma = g,
+  matrixElement = matrixElement,
+  gParam = gParam,
+  infraredPermittivity = infraredPermittivity,
+  permittivityModel = permittivityModel
+)
 
 data class AlGaAs(
   override val d: Double,
@@ -72,5 +100,16 @@ data class AlGaAs(
   val cAl: Double,
   val g: Double? = null,
   val matrixElement: Double? = null, // TODO temporary passed from front
+  val gParam: Double? = null,
+  val infraredPermittivity: Double? = null,
   val permittivityModel: AlGaAsPermittivityModel
-) : AlGaAsBase(d, dampingFactor, cAl, g, matrixElement, permittivityModel)
+) : AlGaAsBase(
+  d = d,
+  dampingFactor = dampingFactor,
+  cAl = cAl,
+  gamma = g,
+  matrixElement = matrixElement,
+  gParam = gParam,
+  infraredPermittivity = infraredPermittivity,
+  permittivityModel = permittivityModel
+)

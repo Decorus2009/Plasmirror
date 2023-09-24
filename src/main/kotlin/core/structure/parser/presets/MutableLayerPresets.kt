@@ -53,10 +53,13 @@ fun JsonNode.mutableCustomLayer(d: VarParameter<Double>): AbstractMutableLayer {
     )
 
     is PermittivityType.ExternalDispersion -> TODO("Plasmirror-6")
+
     is PermittivityType.Expression -> MutablePermittivityExpressionBasedLayer(
       d = d,
       epsExpr = type.exprText
     )
+
+    is PermittivityType.CustomModel -> TODO()
   }
 }
 
@@ -141,5 +144,7 @@ fun JsonNode.mutableCustomParticle(r: VarParameter<Double>?): AbstractMutablePar
       r = r,
       epsExpr = type.exprText
     )
+
+    is PermittivityType.CustomModel -> TODO()
   }
 }
