@@ -20,10 +20,11 @@ import core.validators.fail
 fun JsonNode.GaAs(d: Double, layerType: LayerType) = GaAs(
   d = d,
   dampingFactor = requireDouble(DescriptionParameters.dampingFactor),
-  g = requireDoubleOrNull(), // optional parameter for Tanguy models
-  matrixElement = requireDoubleOrNull(), // TODO temporary passed from front
-  gParam = requireDoubleOrNull(DescriptionParameters.gParam),
-  infraredPermittivity = requireDoubleOrNull(DescriptionParameters.epsInfra),
+  g = requireDoubleOrNull(DescriptionParameters.g),                           // optional parameter for Tanguy models
+  epsInf = requireDoubleOrNull(DescriptionParameters.epsInf),                 // optional parameter for Adachi1988,1992 models
+  matrixElement = requireDoubleOrNull(DescriptionParameters.matrixElement),   // optional parameter for Tanguy models
+  gParam = requireDoubleOrNull(DescriptionParameters.gParam),                 // optional parameter for Tanguy models
+  infraredPermittivity = requireDoubleOrNull(DescriptionParameters.epsInfra), // optional parameter for Tanguy models
   permittivityModel = requireBasedPermittivityModelFor(layerType)
 )
 
@@ -31,10 +32,11 @@ fun JsonNode.AlGaAs(d: Double, layerType: LayerType) = AlGaAs(
   d = d,
   dampingFactor = requireDoubleOrNull(DescriptionParameters.dampingFactor),
   cAl = requireNonNegativeDouble(DescriptionParameters.cAl),
-  g = requireDoubleOrNull(DescriptionParameters.g), // ffor Tanguy models
-  matrixElement = requireDoubleOrNull(DescriptionParameters.matrixElement), // TODO temporary passed from front
-  gParam = requireDoubleOrNull(DescriptionParameters.gParam),
-  infraredPermittivity = requireDoubleOrNull(DescriptionParameters.epsInfra),
+  g = requireDoubleOrNull(DescriptionParameters.g),                           // optional parameter for Tanguy models
+  epsInf = requireDoubleOrNull(DescriptionParameters.epsInf),                 // optional parameter for Adachi1988,1992 models
+  matrixElement = requireDoubleOrNull(DescriptionParameters.matrixElement),   // optional parameter for Tanguy models
+  gParam = requireDoubleOrNull(DescriptionParameters.gParam),                 // optional parameter for Tanguy models
+  infraredPermittivity = requireDoubleOrNull(DescriptionParameters.epsInfra), // optional parameter for Tanguy models
   permittivityModel = requireBasedPermittivityModelFor(layerType)
 )
 
@@ -70,11 +72,11 @@ fun JsonNode.customLayer(d: Double): AbstractLayer {
     is PermittivityType.CustomModel -> KnownCustomModelBasedLayer(
       d = d,
       modelName = type.modelName,
-      m_e = requireDoubleOrNull(DescriptionParameters.m_e), // for Tanguy models,
-      m_hh = requireDoubleOrNull(DescriptionParameters.m_hh), // for Tanguy models
-      excitonRydberg = requireDoubleOrNull(DescriptionParameters.excitonRydberg), // for Tanguy models
-      Eg = requireDoubleOrNull(DescriptionParameters.Eg), // for Tanguy models
-      matrixElement = requireDoubleOrNull(DescriptionParameters.matrixElement), // for Tanguy models
+      m_e = requireDoubleOrNull(DescriptionParameters.m_e),                       // optional parameter for Tanguy models,
+      m_hh = requireDoubleOrNull(DescriptionParameters.m_hh),                     // optional parameter for Tanguy models
+      excitonRydberg = requireDoubleOrNull(DescriptionParameters.excitonRydberg), // optional parameter for Tanguy models
+      Eg = requireDoubleOrNull(DescriptionParameters.Eg),                         // optional parameter for Tanguy models
+      matrixElement = requireDoubleOrNull(DescriptionParameters.matrixElement),   // optional parameter for Tanguy models
       infraredPermittivity = requireDoubleOrNull(DescriptionParameters.epsInfra),
       gamma = requireDoubleOrNull(DescriptionParameters.g),
     )
@@ -140,7 +142,9 @@ fun JsonNode.mie(d: Double, layerType: LayerType) = Mie(
   medium = layer(requireNode(DescriptionParameters.medium)),
   particles = requireParticles(layerType),
   f = requireNonNegativeDouble(DescriptionParameters.f),
-  orders = requireOrders()
+  orders = requireOrders(),
+  includeMediumAbsorption = requireBooleanOrNull(DescriptionParameters.includeMediumAbsorption) ?: false
+//    .also { println("include_medium_absorption: ${it}") }?: false
 )
 
 fun JsonNode.DrudeParticle(r: Double?) = DrudeParticle(

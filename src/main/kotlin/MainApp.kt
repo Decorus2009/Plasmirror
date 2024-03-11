@@ -1,4 +1,5 @@
 import core.state.StatesManager
+import core.util.KnownPaths
 import javafx.application.Application
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
@@ -6,6 +7,7 @@ import javafx.scene.Scene
 import javafx.scene.layout.AnchorPane
 import javafx.stage.Stage
 import ui.controllers.RootController
+import java.io.File
 
 @FXML
 lateinit var rootController: RootController
@@ -32,6 +34,14 @@ class MainApp : Application() {
       rootController = getController()
       rootController.mainApp = this@MainApp
     }
+
+    val errorsLog = File(KnownPaths.errorLogPath)
+    if (errorsLog.exists()) {
+      errorsLog.writeText("")
+    } else {
+      errorsLog.createNewFile()
+    }
+
     /**
     TODO Let state initialization be here, before the opening of the app window,
     but after the loading of all the ui.controllers.

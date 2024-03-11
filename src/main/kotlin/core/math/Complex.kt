@@ -42,4 +42,6 @@ class Complex(real: Double, imaginary: Double) : ApacheComplex(real, imaginary) 
   override fun pow(x: Double) = of(ApacheComplex(real, imaginary).pow(x))
 
   override fun sqrt() = of(super.sqrt())
+
+  fun sq() = pow(2.0)
 }

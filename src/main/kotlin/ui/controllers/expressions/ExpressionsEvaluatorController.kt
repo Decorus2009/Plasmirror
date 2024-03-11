@@ -198,8 +198,8 @@ class ExpressionsEvaluatorController {
           yMax = 10.0
         } else {
           val allYValues = chart.data.flatMap { series -> series.data.map { it.yValue as Double } }
-          yMin = allYValues.minBy { it }!!
-          yMax = allYValues.maxBy { it }!!
+          yMin = allYValues.minByOrNull { it }!!
+          yMax = allYValues.maxByOrNull { it }!!
         }
 
         with(yAxis) {

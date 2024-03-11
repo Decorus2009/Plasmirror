@@ -32,6 +32,8 @@ object KnownPaths {
   val externalDispersionsDir = "$internalDir${sep}external_dispersions"
   val randomizationsExportDir = "data${sep}for_export${sep}randomizations"
   val valueRangeComputationsExportDir = exportDir
+
+  val errorLogPath = "data${sep}internal${sep}error_log.txt"
 }
 
 val sep: String

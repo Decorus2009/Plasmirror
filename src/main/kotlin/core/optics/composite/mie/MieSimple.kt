@@ -18,19 +18,33 @@ object MieTwo : MieSimple
 
 interface MieSimple : Mie {
   override fun extinctionCoefficient(
-    wl: Double, mediumPermittivity: Complex, particlePermittivity: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r).first
+    wl: Double,
+    mediumPermittivity: Complex,
+    particlePermittivity: Complex,
+    f: Double,
+    r: Double,
+    includeMediumAbsorption: Boolean
+  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r, includeMediumAbsorption).first
 
   override fun scatteringCoefficient(
-    wl: Double, mediumPermittivity: Complex, particlePermittivity: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r).second
+    wl: Double,
+    mediumPermittivity: Complex,
+    particlePermittivity: Complex,
+    f: Double,
+    r: Double,
+  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r, includeMediumAbsorption = false).second
 
   fun a(x: Double, mSq: Complex) = listOf(a1(x, mSq), a2(x, mSq))
 
   fun b(x: Double, mSq: Complex) = listOf(b1(x, mSq), b2())
 
   private fun alphaExtAlphaSca(
-    wl: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
+    wl: Double,
+    mediumPermittivity: Complex,
+    metalPermittivity: Complex,
+    f: Double,
+    r: Double,
+    includeMediumAbsorption: Boolean
   ): Pair<Double, Double> {
     val k = 2.0 * PI * mediumPermittivity.toRefractiveIndex().real / wl.toCm()
     val x = k * r.toCm()
@@ -46,7 +60,9 @@ interface MieSimple : Mie {
       .mapIndexed { index, (a, b) -> (2 * (index + 1) + 1) * (a.abs().pow(2) + b.abs().pow(2)) }
       .sum()
 
-    return common2 * Cext to common2 * Csca
+    val alphaMedium = if (includeMediumAbsorption) alphaMedium(wl, mediumPermittivity) else 0.0
+
+    return (common2 * Cext + alphaMedium) to common2 * Csca
   }
 
   private fun a1(x: Double, mSq: Complex): Complex {
@@ -62,4 +78,10 @@ interface MieSimple : Mie {
   private fun b1(x: Double, mSq: Complex) = -I / 45.0 * x.pow(5) * (mSq - 1.0)
 
   private fun b2() = ZERO
+
+  private fun alphaMedium(wl: Double, mediumPermittivity: Complex): Double {
+    val imaginaryRefractiveIndex = mediumPermittivity.toRefractiveIndex().imaginary
+
+    return 4.0 * Math.PI * imaginaryRefractiveIndex / wl.toCm()
+  }
 }

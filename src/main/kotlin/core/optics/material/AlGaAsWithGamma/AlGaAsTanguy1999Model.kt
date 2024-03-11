@@ -2,14 +2,13 @@ package core.optics.material.AlGaAsWithGamma
 
 import core.math.Complex
 import core.math.digamma.Digamma
-import kotlin.math.pow
 
 
 /**
  * Phys. Rev. B 60, 10660, 1999, "Analytical expression of the complex dielectric function for the Hulthén potential" Christian Tanguy
  * https://doi.org/10.1103/PhysRevB.60.10660
  */
-class AlGaAsTanguy99Model(
+class AlGaAsTanguy1999Model(
   val cAl: Double,
   val G: Double, // Gamma, Г
   val gParam: Double,

@@ -2,6 +2,7 @@ package core.optics.composite.mie
 
 import core.math.Complex
 import core.math.toCm
+import core.optics.toEnergy
 import core.optics.toRefractiveIndex
 import java.lang.Math.*
 import kotlin.math.pow
@@ -20,15 +21,29 @@ object MieAll : Mie {
   private lateinit var mx: Complex
 
   override fun extinctionCoefficient(
-    wl: Double, mediumPermittivity: Complex, particlePermittivity: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r).first
+    wl: Double,
+    mediumPermittivity: Complex,
+    particlePermittivity: Complex,
+    f: Double,
+    r: Double,
+    includeMediumAbsorption: Boolean
+  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r, includeMediumAbsorption).first
 
   override fun scatteringCoefficient(
-    wl: Double, mediumPermittivity: Complex, particlePermittivity: Complex, f: Double, r: Double
-  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r).second
+    wl: Double,
+    mediumPermittivity: Complex,
+    particlePermittivity: Complex,
+    f: Double,
+    r: Double,
+  ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r, includeMediumAbsorption = false).second
 
   private fun alphaExtAlphaSca(
-    wl: Double, mediumPermittivity: Complex, metalPermittivity: Complex, f: Double, r: Double
+    wl: Double,
+    mediumPermittivity: Complex,
+    metalPermittivity: Complex,
+    f: Double,
+    r: Double,
+    includeMediumAbsorption: Boolean
   ): Pair<Double, Double> {
     val numberOfAngles = 20
     val nSemiconductor = mediumPermittivity.toRefractiveIndex()
@@ -42,8 +57,14 @@ object MieAll : Mie {
     val (Qext, Qsca) = bohrenHuffmanMie(x, numberOfAngles)
     val Cext = Qext * common1
     val Csca = Qsca * common1
+    val alphaMedium = if (includeMediumAbsorption) alphaMedium(wl, mediumPermittivity) else 0.0
 
-    return common2 * Cext to common2 * Csca
+    val m = Complex.of(4.0 * Math.PI * r.pow(3)) * ( (metalPermittivity - mediumPermittivity) / (metalPermittivity + mediumPermittivity * 2.0) )
+
+      //(metalPermittivity / mediumPermittivity).sqrt()
+    println("${wl.toEnergy()} ${m.real} ${m.imaginary}")
+
+    return (common2 * Cext + alphaMedium) to common2 * Csca
   }
 
   private fun bohrenHuffmanMie(x: Double, NANG: Int): Pair<Double, Double> {
@@ -110,8 +131,6 @@ object MieAll : Mie {
 //        println("Computing is skipped for ${ind}, nStop.toInt() + 1: ${nStop.toInt() + 1}")
 //        continue
 //      }
-
-      println("Computing for ${ind}")
 
       val psi = (2.0 * ind - 1.0) * psiPrev / x - psiPrevPrev
       val chi = (2.0 * ind - 1.0) * chiPrev / x - chiPrevPrev
@@ -247,5 +266,12 @@ object MieAll : Mie {
       val bCommon = D[i] * m + Complex(i / x)
       b[i] = (bCommon * psi[i] - psi[i - 1]) / (bCommon * xi[i] - xi[i - 1])
     }
+  }
+
+  // TODO copy from MieSimple
+  private fun alphaMedium(wl: Double, mediumPermittivity: Complex): Double {
+    val imaginaryRefractiveIndex = mediumPermittivity.toRefractiveIndex().imaginary
+
+    return 4.0 * Math.PI * imaginaryRefractiveIndex / wl.toCm()
   }
 }

@@ -7,10 +7,10 @@ import kotlin.math.sqrt
 /**
  * J. Appl. Phys. 58, R1 (1985) - simple Adachi model for AlGaAs
  */
-object AlGaAsAdachiSimpleModel {
+object Adachi1985Model {
   fun permittivity(w: Double, cAl: Double): Complex {
     var energy = w
-    val Eg = 1.425 + 1.155 * cAl + 0.37 * cAl * cAl
+    val Eg = AlGaAs.Ioffe.E0(cAl)
     // nonrecursive
     if (energy > Eg) {
       energy = Eg

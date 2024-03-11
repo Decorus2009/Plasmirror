@@ -59,7 +59,9 @@ fun String.asArray() = mapper.readTree(this)
 
 
 /** removes all spaces, \n */
-private fun String.removeSpaces() = replace(Regex("\\s+"), "")
+private fun String.removeSpaces() = this
+  .replace(Regex("\\s+"), "")
+  .replace(Regex("[\\x00-\\x1F\\x7F]"), "") // to avoid JsonParseException: Illegal character ((CTRL-CHAR, code 0))
 
 /**
  * surround val, fun and return with '@' to avoid expr break after spaces deletion

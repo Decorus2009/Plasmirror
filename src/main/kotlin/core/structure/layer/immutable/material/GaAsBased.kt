@@ -2,10 +2,12 @@ package core.structure.layer.immutable.material
 
 import core.math.Complex
 import core.optics.AlGaAsPermittivityModel
+import core.optics.AlGaAsPermittivityModel.*
 import core.optics.material.AlGaAs.*
 import core.optics.material.AlGaAsSb.AlGaAsSbAdachiModelWithTemperatureDependence
-import core.optics.material.AlGaAsWithGamma.AlGaAsTanguy95Model
-import core.optics.material.AlGaAsWithGamma.AlGaAsTanguy99Model
+import core.optics.material.AlGaAsWithGamma.AlGaAsTanguy1995ManualModel
+import core.optics.material.AlGaAsWithGamma.AlGaAsTanguy1995Model
+import core.optics.material.AlGaAsWithGamma.AlGaAsTanguy1999Model
 import core.optics.toEnergy
 import core.structure.layer.immutable.AbstractLayer
 
@@ -24,6 +26,7 @@ abstract class AlGaAsBase(
   private val dampingFactor: Double?,
   private val cAl: Double,
   private val gamma: Double? = null,
+  private val epsInf: Double? = null,
   private val matrixElement: Double? = null, // TODO temporary passed from front
   private val gParam: Double? = null,
   private val infraredPermittivity: Double? = null,
@@ -34,41 +37,60 @@ abstract class AlGaAsBase(
     val w = wl.toEnergy()
 
     return when (permittivityModel) {
-      AlGaAsPermittivityModel.ADACHI_SIMPLE -> {
-        check(dampingFactor != null) { "Gamma parameter 'df' is required for AlGaAs or GaAs layer with Adachi based models" }
+      ADACHI_SIMPLE -> {
+        check(dampingFactor != null) { "Damping factor parameter 'df' is required for AlGaAs or GaAs layer with Adachi based models" }
 
-        AlGaAsAdachiSimpleModel.permittivityWithScaledImaginaryPart(w, cAl, dampingFactor)
+        Adachi1985Model.permittivityWithScaledImaginaryPart(w, cAl, dampingFactor)
       }
-      AlGaAsPermittivityModel.ADACHI_GAUSS -> {
-        AlGaAsAdachiModelWithGaussianBroadening.permittivity(w, cAl)
-      }
-      AlGaAsPermittivityModel.ADACHI_MOD_GAUSS -> {
-        check(dampingFactor != null) { "Gamma parameter 'df' is required for AlGaAs or GaAs layer with Adachi based models" }
+      ADACHI_1989 -> {
+        check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Adachi based models" }
 
-        AlGaAsAdachiModelWithGaussianBroadening.permittivityWithScaledImaginaryPart(w, cAl, dampingFactor)
+        Adachi1989Model(cAl, gamma).permittivity(w)
       }
-      AlGaAsPermittivityModel.ADACHI_T -> {
+      ADACHI_1992 -> {
+        check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Adachi_1992 model" }
+        check(epsInf != null) { "Eps infinity parameter 'eps_inf' is required for AlGaAs or GaAs layer with Adachi_1992 model" }
+
+        Adachi1992BookModel(cAl, gamma, epsInf).permittivity(w)
+      }
+      ADACHI_GAUSS -> {
+        AlGaAsDjurisic1999Model.permittivity(w, cAl)
+      }
+      ADACHI_MOD_GAUSS -> {
+        check(dampingFactor != null) { "Damping factor parameter 'df' is required for AlGaAs or GaAs layer with Adachi based models" }
+
+        AlGaAsDjurisic1999Model.permittivityWithScaledImaginaryPart(w, cAl, dampingFactor)
+      }
+      ADACHI_T -> {
         AlGaAsSbAdachiModelWithTemperatureDependence(w, cAl, cAs = 1.0, T = temperature).permittivity()
       }
 
-      AlGaAsPermittivityModel.TANGUY_95 -> {
+      TANGUY_1995 -> {
         check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Tanguy models" }
 
-        return AlGaAsTanguy95Model(cAl, gamma).permittivity(w)
+        return AlGaAsTanguy1995Model(cAl, gamma).permittivity(w)
       }
-      AlGaAsPermittivityModel.TANGUY_99 -> {
+      TANGUY_1999 -> {
         check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Tanguy models" }
         check(matrixElement != null) { "Matrix element parameter 'matr_el' is required for AlGaAs or GaAs layer with Tanguy models" }
         check(infraredPermittivity != null) { "Infrared permittivity parameter 'eps_infra' is required for AlGaAs or GaAs layer with Tanguy models" }
         check(gParam != null) { "g parameter 'g_param' is required for AlGaAs or GaAs layer with Tanguy99 model" }
 
-        return AlGaAsTanguy99Model(cAl, gamma, gParam, matrixElement, infraredPermittivity).permittivity(w)
+        return AlGaAsTanguy1999Model(cAl, gamma, gParam, matrixElement, infraredPermittivity).permittivity(w)
       }
 
-      AlGaAsPermittivityModel.ADACHI_SIMPLE_TANGUY_95 -> {
+      ADACHI_SIMPLE_TANGUY_1995 -> {
         check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Tanguy models" }
 
-        AlGaAsAdachiSimpleModelWithTanguy95ImaginaryPart(cAl, gamma).permittivity(w)
+        AlGaAsAdachi1985ModelWithTanguy1995ImaginaryPart(cAl, gamma).permittivity(w)
+      }
+
+      TANGUY_95_MANUAL -> {
+        check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Tanguy models" }
+        check(matrixElement != null) { "Matrix element parameter 'matr_el' is required for AlGaAs or GaAs layer with Tanguy models" }
+        check(infraredPermittivity != null) { "Infrared permittivity parameter 'eps_infra' is required for AlGaAs or GaAs layer with Tanguy models" }
+
+        AlGaAsTanguy1995ManualModel(cAl, gamma, matrixElement, infraredPermittivity).permittivity(w)
       }
     }
   }
@@ -78,6 +100,7 @@ data class GaAs(
   override val d: Double,
   val dampingFactor: Double = 0.0, // default value is used for external media initialization in [core.state.Medium.toLayer]
   val g: Double? = null,
+  val epsInf: Double? = null,
   val matrixElement: Double? = null, // TODO temporary passed from front
   val gParam: Double? = null,
   val infraredPermittivity: Double? = null,
@@ -87,6 +110,7 @@ data class GaAs(
   dampingFactor = dampingFactor,
   cAl = 0.0,
   gamma = g,
+  epsInf = epsInf,
   matrixElement = matrixElement,
   gParam = gParam,
   infraredPermittivity = infraredPermittivity,
@@ -98,6 +122,7 @@ data class AlGaAs(
   val dampingFactor: Double?,
   val cAl: Double,
   val g: Double? = null,
+  val epsInf: Double? = null,
   val matrixElement: Double? = null, // TODO temporary passed from front
   val gParam: Double? = null,
   val infraredPermittivity: Double? = null,
@@ -107,6 +132,7 @@ data class AlGaAs(
   dampingFactor = dampingFactor,
   cAl = cAl,
   gamma = g,
+  epsInf = epsInf,
   matrixElement = matrixElement,
   gParam = gParam,
   infraredPermittivity = infraredPermittivity,

@@ -2,9 +2,12 @@ package ui.controllers
 
 import MainApp
 import core.state.activeState
+import core.util.KnownPaths.errorLogPath
+import core.util.sep
 import javafx.application.Platform
 import javafx.fxml.FXML
 import rootController
+import java.io.File
 
 class RootController {
   @FXML

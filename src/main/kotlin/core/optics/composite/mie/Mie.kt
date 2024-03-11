@@ -8,7 +8,8 @@ interface Mie {
     mediumPermittivity: Complex,
     particlePermittivity: Complex,
     f: Double,
-    r: Double
+    r: Double,
+    includeMediumAbsorption: Boolean
   ): Double
 
   fun scatteringCoefficient(
@@ -16,6 +17,6 @@ interface Mie {
     mediumPermittivity: Complex,
     particlePermittivity: Complex,
     f: Double,
-    r: Double
+    r: Double,
   ): Double
 }

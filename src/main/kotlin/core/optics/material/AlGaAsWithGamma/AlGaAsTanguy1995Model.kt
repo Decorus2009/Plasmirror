@@ -2,8 +2,6 @@ package core.optics.material.AlGaAsWithGamma
 
 import core.math.Complex
 import core.math.digamma.Digamma
-import kotlin.math.pow
-import kotlin.math.sqrt
 
 
 /**
@@ -22,7 +20,7 @@ import kotlin.math.sqrt
  * [dipoleMatrixElementSq] is expressed as:
  *   dipoleMatrixElementSq = 2.40002E-19 + 2.59996E-19 * cAl - 5.31303E-19 * cAl^2 + 1.08729E-19 * cAl^3
  */
-class AlGaAsTanguy95Model(
+class AlGaAsTanguy1995Model(
   private val cAl: Double,
   private val G: Double, // Gamma, Г
 ): AbstractAlGaAsTanguyModel(cAl, G) {

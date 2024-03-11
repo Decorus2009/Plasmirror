@@ -10,7 +10,8 @@ data class Mie(
   override val medium: ILayer,
   override val particles: AbstractParticle,
   val f: Double,
-  val orders: Orders
+  val orders: Orders,
+  val includeMediumAbsorption: Boolean = false
 ) : Composite(d, medium, particles) {
 
   private val mieModel = when (orders) {
@@ -20,11 +21,23 @@ data class Mie(
   }
 
   fun scatteringCoefficient(wl: Double, temperature: Double) =
-    mieModel.scatteringCoefficient(wl, mediumPermittivity(wl, temperature), particlePermittivity(wl), f, particles.r!!)
+    mieModel.scatteringCoefficient(
+      wl,
+      mediumPermittivity(wl, temperature),
+      particlePermittivity(wl),
+      f,
+      particles.r!!,
+    )
 
   override fun extinctionCoefficient(wl: Double, temperature: Double) =
-    mieModel.extinctionCoefficient(wl, mediumPermittivity(wl, temperature), particlePermittivity(wl), f, particles.r!!)
-      .also { println("$wl $it") }
+    mieModel.extinctionCoefficient(
+      wl,
+      mediumPermittivity(wl, temperature),
+      particlePermittivity(wl),
+      f,
+      particles.r!!,
+      includeMediumAbsorption
+    )
 }
 
 enum class Orders {

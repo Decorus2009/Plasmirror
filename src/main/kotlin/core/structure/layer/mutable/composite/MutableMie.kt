@@ -13,7 +13,8 @@ data class MutableMie(
   override val medium: AbstractMutableLayer,
   override val particles: AbstractMutableParticle,
   val f: VarParameter<Double>,
-  val orders: Orders
+  val orders: Orders,
+  val includeMediumAbsorption: Boolean = false
 ) : MutableComposite(d, medium, particles) {
 
   private val mieModel = when (orders) {
@@ -25,8 +26,21 @@ data class MutableMie(
   override fun variableParameters() = listOf(d, f) + super.variableParameters()
 
   fun scatteringCoefficient(wl: Double, temperature: Double) =
-    mieModel.scatteringCoefficient(wl, mediumPermittivity(wl, temperature), particlePermittivity(wl), f.requireValue(), particles.r!!.requireValue())
+    mieModel.scatteringCoefficient(
+      wl,
+      mediumPermittivity(wl, temperature),
+      particlePermittivity(wl),
+      f.requireValue(),
+      particles.r!!.requireValue()
+    )
 
   override fun extinctionCoefficient(wl: Double, temperature: Double) =
-    mieModel.extinctionCoefficient(wl, mediumPermittivity(wl, temperature), particlePermittivity(wl), f.requireValue(), particles.r!!.requireValue())
+    mieModel.extinctionCoefficient(
+      wl,
+      mediumPermittivity(wl, temperature),
+      particlePermittivity(wl),
+      f.requireValue(),
+      particles.r!!.requireValue(),
+      includeMediumAbsorption
+    )
 }

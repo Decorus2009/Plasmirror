@@ -4,12 +4,17 @@ interface KnownModel
 
 enum class AlGaAsPermittivityModel : KnownModel {
   ADACHI_SIMPLE,
+  ADACHI_1989,
+  ADACHI_1992,
   ADACHI_T,
   ADACHI_GAUSS,
   ADACHI_MOD_GAUSS,
-  TANGUY_95,
-  TANGUY_99,
-  ADACHI_SIMPLE_TANGUY_95
+  TANGUY_1995,
+  TANGUY_1999,
+  ADACHI_SIMPLE_TANGUY_1995,
+
+  // hidden helper model with matr_el and infraredPermittivity taken from UI, not computed as functions (see TANGUY_1995 model)
+  TANGUY_95_MANUAL
 }
 
 enum class KnownCustomModels {

@@ -45,13 +45,30 @@ fun JsonNode.requireNonNegativeDoubleVarParameter(field: String) = requireDouble
     }
   }
 }
+// TODO remove copy paste
+fun JsonNode.requireNonNegativeDoubleVarParameterOrNull(field: String) = requireDoubleVarParameterOrNull(field)?.also {
+  when (it) {
+    is DoubleRangeParameter -> {
+//      check(it.start > 0.0) { "start value of an range parameter must be positive" }
+//      check(it.end > 0.0) { "end value of an range parameter must be positive" }
+      check(it.step > 0.0) { "step value of an range parameter must be non-negative" }
+      check(it.end - it.start >= 0) { "requirement: end - start >= 0" }
+    }
+
+    is DoubleRandParameter -> {
+      if (!it.isVariable) check(it.meanValue >= 0.0) { "mean value of a var parameter must be non-negative" }
+    }
+
+    is DoubleConstParameter -> {
+      check(it.value >= 0.0) { "value of a const parameter must be non-negative" }
+    }
+  }
+}
 
 fun JsonNode.requirePositiveDoubleOrNull(field: String) = requireDoubleOrNull(field)?.also { it.checkIsPositive(field) }
 fun JsonNode.requirePositiveDoubleVarParameterOrNull(field: String) = requireDoubleVarParameterOrNull(field)?.also {
   when (it) {
     is DoubleRangeParameter -> {
-//      check(it.start > 0.0) { "start value of an range parameter must be positive" }
-//      check(it.end > 0.0) { "end value of an range parameter must be positive" }
       check(it.step > 0.0) { "step value of an range parameter must be positive" }
       check(it.end - it.start >= 0) { "requirement: end - start >= 0" }
     }
@@ -214,6 +231,15 @@ fun JsonNode.requireTextOrNull() = when {
   isTextual -> asText()
   else -> null
 }
+
+fun JsonNode.requireBooleanOrNull(): Boolean? = when {
+  isTextual -> asText().toBooleanStrictOrNull()
+  isBoolean -> asBoolean()
+  else -> null
+}
+
+fun JsonNode.requireBooleanOrNull(field: String): Boolean? =
+  requireNodeOrNull(field)?.requireBooleanOrNull()
 
 fun JsonNode.requireNode(field: String) = requireNodeOrNull(field)
   ?: jsonFail(message = "Absent or null or missing \"$field\" parameter")

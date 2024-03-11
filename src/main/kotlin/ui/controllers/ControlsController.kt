@@ -1,12 +1,14 @@
 package ui.controllers
 
 import core.state.activeState
+import core.util.KnownPaths
 import core.validators.StateException
 import core.validators.StructureDescriptionException
 import javafx.fxml.FXML
 import javafx.scene.control.Button
 import javafx.scene.control.Label
 import javafx.scene.input.*
+import java.io.File
 
 class ControlsController {
   @FXML
@@ -23,6 +25,16 @@ class ControlsController {
           chartController().updateChart()
         }
       } catch (ex: Exception) {
+        val eString = ex.stackTraceToString()
+        val file = File(KnownPaths.errorLogPath)
+        println(eString)
+
+        if (!file.exists()) {
+          file.createNewFile()
+        }
+
+        file.appendText(eString + "\n\n\n\n")
+
         handle(ex)
       }
     }

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode
 import core.optics.ExternalDispersionsContainer
 import core.structure.description.DescriptionParameters
 import core.structure.layer.immutable.composite.*
+import core.structure.layer.immutable.material.KnownCustomModelBasedLayer
 import core.structure.layer.immutable.particles.*
 import core.structure.layer.mutable.*
 import core.structure.layer.mutable.composite.*
@@ -18,6 +19,10 @@ import core.validators.fail
 fun JsonNode.mutableGaAs(d: VarParameter<Double>, layerType: LayerType) = MutableGaAs(
   d = d,
   dampingFactor = requireDoubleVarParameterOrNull(DescriptionParameters.dampingFactor),
+  gamma = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.g),                       // optional parameter for Tanguy models
+  matrixElement = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.matrixElement),   // optional parameter for Tanguy models
+  gParam = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.gParam),                 // optional parameter for Tanguy models
+  infraredPermittivity = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.epsInfra), // optional parameter for Tanguy models
   permittivityModel = requireBasedPermittivityModelFor(layerType)
 )
 
@@ -25,13 +30,17 @@ fun JsonNode.mutableAlGaAs(d: VarParameter<Double>, layerType: LayerType) = Muta
   d = d,
   dampingFactor = requireDoubleVarParameterOrNull(DescriptionParameters.dampingFactor),
   cAl = requireNonNegativeDoubleVarParameter(DescriptionParameters.cAl),
+  gamma = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.g),                       // optional parameter for Tanguy models
+  matrixElement = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.matrixElement),   // optional parameter for Tanguy models
+  gParam = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.gParam),                 // optional parameter for Tanguy models
+  infraredPermittivity = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.epsInfra), // optional parameter for Tanguy models
   permittivityModel = requireBasedPermittivityModelFor(layerType)
 )
 
 fun JsonNode.mutableAlGaAsSb(d: VarParameter<Double>) = MutableAlGaAsSb(
   d = d,
   cAl = requireNonNegativeDoubleVarParameter(DescriptionParameters.cAl),
-  cAs = requireNonNegativeDoubleVarParameter(DescriptionParameters.cAs)
+  cAs = requireNonNegativeDoubleVarParameter(DescriptionParameters.cAs),
 )
 
 fun mutableGaN(d: VarParameter<Double>) = MutableGaN(
@@ -59,7 +68,17 @@ fun JsonNode.mutableCustomLayer(d: VarParameter<Double>): AbstractMutableLayer {
       epsExpr = type.exprText
     )
 
-    is PermittivityType.CustomModel -> TODO()
+    is PermittivityType.CustomModel -> MutableKnownCustomModelBasedLayer(
+      d = d,
+      modelName = type.modelName,
+      m_e = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.m_e),                       // optional parameter for Tanguy models,
+      m_hh = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.m_hh),                     // optional parameter for Tanguy models
+      excitonRydberg = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.excitonRydberg), // optional parameter for Tanguy models
+      Eg = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.Eg),                         // optional parameter for Tanguy models
+      matrixElement = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.matrixElement),   // optional parameter for Tanguy models
+      infraredPermittivity = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.epsInfra),
+      gamma = requirePositiveDoubleVarParameterOrNull(DescriptionParameters.g),
+    )
   }
 }
 
@@ -107,7 +126,8 @@ fun JsonNode.mutableMie(d: VarParameter<Double>, layerType: LayerType) = Mutable
   medium = mutableLayer(requireNode(DescriptionParameters.medium)),
   particles = requireMutableParticles(layerType),
   f = requireNonNegativeDoubleVarParameter(DescriptionParameters.f),
-  orders = requireOrders()
+  orders = requireOrders(),
+  includeMediumAbsorption = requireBooleanOrNull(DescriptionParameters.includeMediumAbsorption) ?: false
 )
 
 fun JsonNode.mutableDrudeParticle(r: VarParameter<Double>?) = MutableDrudeParticle(

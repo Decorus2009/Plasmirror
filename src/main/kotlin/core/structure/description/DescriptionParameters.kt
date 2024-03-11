@@ -40,6 +40,7 @@ object DescriptionParameters {
   const val m_hh = "m_hh"
   const val Eg = "eg"
   const val excitonRydberg = "exciton_rydberg"
+  const val includeMediumAbsorption = "include_medium_absorption"
 
 
   const val valExprKw = "val"
