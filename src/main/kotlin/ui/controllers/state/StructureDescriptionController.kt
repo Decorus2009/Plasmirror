@@ -33,6 +33,7 @@ class StructureDescriptionController {
    * Java style as in the example (to be able to understand what's going on here)
    */
   private fun computeHighlighting(text: String): StyleSpans<Collection<String>> {
+    val QUOTES_PATTERN = "\".*\""
     val COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/"
     val DEF_PATTERN = "def:\\s*"
     val NAME_PATTERN = "name:\\s*"
@@ -64,9 +65,10 @@ class StructureDescriptionController {
     val EXPRESSION_KW_PATTERN = "(\\bval\\b|\\bfun\\b|\\breturn\\b)"   // Regex("(val|fun|return)")
     val VAR_PATTERN = "(\\bvar\\b)"                                    // Regex("var")
     val RANGE_PATTERN = "(\\brange\\b)"                                // Regex("range")
+    val EXTERNAL_FILE_RANGE_PATTERN = "(\\bexternal_file_range\\b)"    // Regex("external_file_range")
 
     val PATTERN = Pattern.compile(
-      "(?<REPEAT>$REPEAT_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<DEF>$DEF_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<EXPRESSION>$EXPRESSION_KW_PATTERN)|(?<VAR>$VAR_PATTERN)|(?<RANGE>$RANGE_PATTERN)",
+      "(?<REPEAT>$REPEAT_PATTERN)|(?<QUOTES>$QUOTES_PATTERN)|(?<COMMENT>$COMMENT_PATTERN)|(?<DEF>$DEF_PATTERN)|(?<PARAM>$PARAM_PATTERN)|(?<MODEL>$MODEL_PATTERN)|(?<LAYER>$LAYER_PATTERN)|(?<EXPRESSION>$EXPRESSION_KW_PATTERN)|(?<VAR>$VAR_PATTERN)|(?<RANGE>$RANGE_PATTERN)|(?<EXTERNALFILERANGE>$EXTERNAL_FILE_RANGE_PATTERN)",
       Pattern.CASE_INSENSITIVE
     )
 
@@ -76,6 +78,7 @@ class StructureDescriptionController {
     while (matcher.find()) {
       val styleClass = (when {
         matcher.group("COMMENT") != null -> "comment"
+        matcher.group("QUOTES") != null -> "quotes"
         matcher.group("DEF") != null -> "def"
         matcher.group("PARAM") != null -> "param"
         matcher.group("REPEAT") != null -> "repeat"
@@ -84,6 +87,7 @@ class StructureDescriptionController {
         matcher.group("EXPRESSION") != null -> "expression"
         matcher.group("VAR") != null -> "var"
         matcher.group("RANGE") != null -> "range"
+        matcher.group("EXTERNALFILERANGE") != null -> "external_file_range"
         else -> null
       })!! /* never happens */
       spansBuilder.add(emptyList(), matcher.start() - lastKwEnd)

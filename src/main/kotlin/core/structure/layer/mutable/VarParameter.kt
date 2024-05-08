@@ -2,15 +2,14 @@ package core.structure.layer.mutable
 
 import core.math.Complex
 
-
 // marker
 interface VarParameter<T> {
-  fun requireValue(): T
-
-  // rand or inc
-  fun variate(variator: () -> T)
-
+  var varValue: T?
   val isVariable: Boolean
+
+  fun requireValue(): T
+  // rand, range, outer file range
+  fun variate(variator: () -> T)
 }
 
 abstract class ComplexVarParameter(

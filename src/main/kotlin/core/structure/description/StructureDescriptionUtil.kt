@@ -41,6 +41,7 @@ fun String.json() = """{"${DescriptionParameters.structure}":[${
     .addThicknessNodeToMedium()
     .parseAndQuoteVarRealParams()
     .parseAndQuoteRangeRealParams()
+    .parseAndQuoteExternalFileRangeParams()
     .quoteExpressions()
 //    .quoteNumbers()
     .quoteRealNumbers()
@@ -151,7 +152,7 @@ private fun String.parseAndQuoteVarRealParams(): String {
 }
 
 private fun String.parseAndQuoteRangeRealParams(): String {
-  val rangeKw = DescriptionParameters.rangeExprKw
+  val rangeKw = DescriptionParameters.rangeKw
   val start = DescriptionParameters.start
   val end = DescriptionParameters.end
   val step = DescriptionParameters.step
@@ -159,6 +160,16 @@ private fun String.parseAndQuoteRangeRealParams(): String {
   return replace(
     Regex("\\b(\\w+)\\b:${rangeKw}\\(($realNumberPattern),($realNumberPattern),($realNumberPattern)\\)"),
     "\"$1\":{\"$rangeKw\":true,\"$start\":\"$2\",\"$end\":\"$4\",\"$step\":\"\$6\"}"
+  )
+}
+
+private fun String.parseAndQuoteExternalFileRangeParams(): String {
+  val externalFileKw = DescriptionParameters.externalFileKw
+  val path = DescriptionParameters.path
+
+  return replace(
+    Regex("\\b(\\w+)\\b:${externalFileKw}\\(\"(.*)\"\\)"), // file name between quotes
+    "\"$1\":{\"$externalFileKw\":true,\"$path\":\"$2\"}"
   )
 }
 

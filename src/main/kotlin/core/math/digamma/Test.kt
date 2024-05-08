@@ -1,7 +1,6 @@
 package core.math.digamma
 
 import core.math.Complex
-import kotlin.math.pow
 import kotlin.system.measureTimeMillis
 
 private class DigammaTest(val n: Int) {
@@ -23,19 +22,26 @@ private class DigammaTest(val n: Int) {
 }
 
 fun main() {
-  val h =     6.62607015E-34                   // [kg * m^2 / s]
-  val q =     1.602176634E-19                  // [C]
-  val eps_0 = 8.85418781762039E-12             // [m^-3 * kg^-1 * s^4 * A^2] or [F / m]
-  val m_0 =   9.1093837015E-31                 // [kg]
 
- val m_e =   0.063 * m_0                      // for Γ-valley
- val m_hh =  0.51 * m_0
- val reduced_mass = m_e * m_hh / (m_e + m_hh) // for heavy hole
 
-  val coefBeforeMatrixEl =
-    h * h * q * q / (2.0 * Math.PI * eps_0 * m_0 * m_0) * (2.0 * reduced_mass / (h * h)).pow(1.5)
+  println(Complex.I.sqrt())
+  println(Complex.of(2.0).sqrt())
+  println(Complex.of(-4.0).sqrt())
 
-  println("coefBeforeMatrixEl: ${coefBeforeMatrixEl}")
+
+//  val h =     6.62607015E-34                   // [kg * m^2 / s]
+//  val q =     1.602176634E-19                  // [C]
+//  val eps_0 = 8.85418781762039E-12             // [m^-3 * kg^-1 * s^4 * A^2] or [F / m]
+//  val m_0 =   9.1093837015E-31                 // [kg]
+//
+// val m_e =   0.063 * m_0                      // for Γ-valley
+// val m_hh =  0.51 * m_0
+// val reduced_mass = m_e * m_hh / (m_e + m_hh) // for heavy hole
+//
+//  val coefBeforeMatrixEl =
+//    h * h * q * q / (2.0 * Math.PI * eps_0 * m_0 * m_0) * (2.0 * reduced_mass / (h * h)).pow(1.5)
+//
+//  println("coefBeforeMatrixEl: ${coefBeforeMatrixEl}")
 
 //  testDigammaFunction()
 //  printDigammaFunctionValues(1000)

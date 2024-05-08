@@ -1,11 +1,11 @@
 package ui.controllers.variable
 
 import core.randomizer.DEBUG_THREAD
+import core.range.GeneralRangeComputer
 import core.util.valueRangeComputationsExportPath
 import core.validators.StateException
 import core.validators.StructureDescriptionValidator
 import core.validators.ValidationException
-import core.value_range.ValueRangeComputer
 import javafx.application.Platform
 import javafx.fxml.FXML
 import javafx.scene.control.Alert
@@ -20,8 +20,17 @@ import ui.controllers.withClockSuspended
 import java.io.File
 import kotlin.concurrent.thread
 
-class ValueRangeController {
+class RangeController : RangeControllerBase() {
+  override fun initComputer() = GeneralRangeComputer(
+    structureDescriptionController.structureDescription().also { StructureDescriptionValidator.validate(it, isMutable = true) },
+    chosenDirectory
+  )
+}
+
+abstract class RangeControllerBase {
   private var parentJob: Job? = null
+
+  abstract fun initComputer(): GeneralRangeComputer
 
   @ExperimentalCoroutinesApi
   @FXML
@@ -31,17 +40,17 @@ class ValueRangeController {
   }
 
   @ExperimentalCoroutinesApi
-  private fun initRunButtonHandler() = runButton.setOnMouseClicked {
+  protected fun initRunButtonHandler() = runButton.setOnMouseClicked {
     try {
       if (chosenDirectory == null) {
-        alert(title = "Warning", header = "Directory not specified", content = "Please select the output directory first", alertType = Alert.AlertType.WARNING)
+        alert(
+          title = "Warning",
+          header = "Directory not specified",
+          content = "Please select the output directory first",
+          alertType = Alert.AlertType.WARNING
+        )
         return@setOnMouseClicked
       }
-
-      val rangeComputer = ValueRangeComputer(
-        structureDescriptionController.structureDescription().also { StructureDescriptionValidator.validate(it, isMutable = true) },
-        chosenDirectory
-      )
 
       resultLabel.text = "Running computations..."
 
@@ -49,7 +58,7 @@ class ValueRangeController {
         runBlocking {
           parentJob = GlobalScope.launch {
             val timeMillis = withClockSuspended {
-              rangeComputer.compute()
+              initComputer().compute()
             }
 
             // the code in the scope is run on JavaFX thread
@@ -72,16 +81,15 @@ class ValueRangeController {
     }
   }
 
-  private fun initDirectoryButtonHandler() = directoryButton.setOnMouseClicked {
+  protected fun initDirectoryButtonHandler() = directoryButton.setOnMouseClicked {
     with(DirectoryChooser()) {
       initialDirectory = chosenDirectory ?: File(valueRangeComputationsExportPath())
       chosenDirectory = showDialog(directoryButton.scene.window)
     }
   }
 
-
   @FXML
-  private lateinit var structureDescriptionController: StructureDescriptionController
+  protected lateinit var structureDescriptionController: StructureDescriptionController
 
   @FXML
   private lateinit var directoryButton: Button
@@ -89,12 +97,11 @@ class ValueRangeController {
   @FXML
   private lateinit var runButton: Button
 
-
   @FXML
   private lateinit var runningTimeLabel: Label
 
   @FXML
   private lateinit var resultLabel: Label
 
-  private var chosenDirectory: File? = null
+  protected var chosenDirectory: File? = null
 }

@@ -21,10 +21,12 @@ fun JsonNode.requirePositiveIntOrNull(field: String) = requireIntOrNull(field)?.
 
 /** -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- **/
 fun JsonNode.requireDouble(field: String) = requireNode(field).requireDouble()
-fun JsonNode.requireDoubleVarParameter(field: String): VarParameter<Double> = requireNode(field).requireDoubleVarParameter()
+fun JsonNode.requireDoubleVarParameter(field: String): VarParameter<Double> =
+  requireNode(field).requireDoubleVarParameter()
 
 fun JsonNode.requireDoubleOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleOrNull()
-fun JsonNode.requireDoubleVarParameterOrNull(field: String) = requireNodeOrNull(field)?.requireDoubleVarParameterOrNull()
+fun JsonNode.requireDoubleVarParameterOrNull(field: String) =
+  requireNodeOrNull(field)?.requireDoubleVarParameterOrNull()
 
 fun JsonNode.requireNonNegativeDouble(field: String) = requireDouble(field).also { it.checkIsNonNegative(field) }
 fun JsonNode.requireNonNegativeDoubleVarParameter(field: String) = requireDoubleVarParameter(field).also {
@@ -45,6 +47,7 @@ fun JsonNode.requireNonNegativeDoubleVarParameter(field: String) = requireDouble
     }
   }
 }
+
 // TODO remove copy paste
 fun JsonNode.requireNonNegativeDoubleVarParameterOrNull(field: String) = requireDoubleVarParameterOrNull(field)?.also {
   when (it) {
@@ -143,6 +146,12 @@ fun JsonNode.requireDoubleVarParameterOrNull(): VarParameter<Double>? = when {
           start = requireDouble(DescriptionParameters.start),
           end = requireDouble(DescriptionParameters.end),
           step = requireDouble(DescriptionParameters.step),
+        )
+      }
+
+      isExternalFileRangeParameter() -> {
+        ExternalFileDoubleRangeParameter.of(
+          filePath = requireText(DescriptionParameters.path)
         )
       }
 
@@ -268,14 +277,17 @@ inline fun <reified T> JsonNode.parse(): T {
 
 
 fun JsonNode.isVarParameter() = has(DescriptionParameters.varExprKw) &&
-  requireDoubleOrNull(DescriptionParameters.mean) != null &&
-  requireDoubleOrNull(DescriptionParameters.deviation) != null
+    requireDoubleOrNull(DescriptionParameters.mean) != null &&
+    requireDoubleOrNull(DescriptionParameters.deviation) != null
 
-fun JsonNode.isRangeParameter() = has(DescriptionParameters.rangeExprKw) &&
-  requireDoubleOrNull(DescriptionParameters.start) != null &&
-  requireDoubleOrNull(DescriptionParameters.end) != null &&
-  requireDoubleOrNull(DescriptionParameters.step) != null
+fun JsonNode.isRangeParameter() = has(DescriptionParameters.rangeKw) &&
+    requireDoubleOrNull(DescriptionParameters.start) != null &&
+    requireDoubleOrNull(DescriptionParameters.end) != null &&
+    requireDoubleOrNull(DescriptionParameters.step) != null
+
+fun JsonNode.isExternalFileRangeParameter() = has(DescriptionParameters.externalFileKw) &&
+    requireTextOrNull(DescriptionParameters.path) != null
 
 fun JsonNode.isComplexNumber() =
   requireDoubleOrNull(DescriptionParameters.real) != null &&
-    requireDoubleOrNull(DescriptionParameters.imag) != null
+      requireDoubleOrNull(DescriptionParameters.imag) != null

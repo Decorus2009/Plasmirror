@@ -36,6 +36,14 @@
   -fx-fill: #6856e1;
 }
 
+.external_file_range {
+  -fx-fill: #6856e1;
+}
+
+.quotes {
+  -fx-fill: #7fa674;
+}
+
 .selection {
   -fx-fill: #e5e5e5;
   -fx-stroke: #e5e5e5;
