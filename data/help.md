@@ -231,11 +231,13 @@ orders: all,
 f: 0.01,
 d: 0,
 medium: { material: AlGaAs, eps: adachi_simple, df: 0.0, cAl: 0.3 },
-particles: { material: Drude, r: 10.6, w: 14.6, G: 0.5, eps_inf: 1.0 };
+particles: { material: Drude, r: 10.6, w: 14.6, G: 0.5, eps_inf: 1.0 },
+include_medium_absorption: true;
 ```
 * `orders` - учитываемые порядки разложения ряда рассеяния. Допустимые значения: `1`, `2`, `all`
 * `particles` - описание сферической наночастицы
     * `r` - радиус частицы `[нм]`
+* `include_medium_absorption` - флаг, учитывать ли поглощение внешней матрицы (значения: `true` или `false`) 
 
 
 # Определение пользовательских материалов и типов
