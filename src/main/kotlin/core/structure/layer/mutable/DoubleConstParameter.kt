@@ -4,12 +4,13 @@ import core.math.Complex
 
 
 data class DoubleConstParameter private constructor(
+  override var varValue: Double? = null,
   val value: Double,
 ) : VarParameter<Double> {
   override val isVariable: Boolean = false
 
   companion object {
-    fun constant(value: Double) = DoubleConstParameter(value)
+    fun constant(value: Double) = DoubleConstParameter(value = value)
 
     val ZERO_CONST = DoubleConstParameter.constant(0.0)
   }
@@ -25,12 +26,16 @@ data class DoubleConstParameter private constructor(
 
 
 data class ComplexConstParameter private constructor(
+  override var varValue: Complex? = null,
   override val realDoubleRandParameter: DoubleConstParameter,
   override val imaginaryDoubleRandParameter: DoubleConstParameter
 ) : ComplexVarParameter(realDoubleRandParameter, imaginaryDoubleRandParameter) {
   companion object {
     fun of(realDoubleRandParameter: DoubleConstParameter, imaginaryDoubleRandParameter: DoubleConstParameter): ComplexVarParameter =
-      ComplexConstParameter(realDoubleRandParameter, imaginaryDoubleRandParameter)
+      ComplexConstParameter(
+        realDoubleRandParameter = realDoubleRandParameter,
+        imaginaryDoubleRandParameter = imaginaryDoubleRandParameter
+      )
 
     fun constant(value: Complex): ComplexVarParameter = of(DoubleConstParameter.constant(value.real), DoubleConstParameter.constant(value.imaginary))
   }

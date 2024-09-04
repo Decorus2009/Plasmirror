@@ -17,7 +17,7 @@ import core.math.Complex
  *   * [some double value] && [isVariable] == false
  */
 data class DoubleRandParameter private constructor(
-  var varValue: Double? = null,
+  override var varValue: Double? = null,
   val meanValue: Double,
   val deviation: Double,
   override var isVariable: Boolean,
@@ -44,12 +44,16 @@ data class DoubleRandParameter private constructor(
 }
 
 data class ComplexRandParameter private constructor(
+  override var varValue: Complex? = null,
   override val realDoubleRandParameter: VarParameter<Double>,
   override val imaginaryDoubleRandParameter: VarParameter<Double>
 ) : ComplexVarParameter(realDoubleRandParameter, imaginaryDoubleRandParameter) {
   companion object {
     fun of(realDoubleRandParameter: VarParameter<Double>, imaginaryDoubleRandParameter: VarParameter<Double>) =
-      ComplexRandParameter(realDoubleRandParameter, imaginaryDoubleRandParameter)
+      ComplexRandParameter(
+        realDoubleRandParameter = realDoubleRandParameter,
+        imaginaryDoubleRandParameter = imaginaryDoubleRandParameter
+      )
   }
 
 //  val meanValue = Complex.of(realDoubleRandParameter.meanValue, imaginaryDoubleRandParameter.meanValue)

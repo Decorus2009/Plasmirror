@@ -2,7 +2,6 @@ package core.optics.composite.mie
 
 import core.math.Complex
 import core.math.toCm
-import core.optics.toEnergy
 import core.optics.toRefractiveIndex
 import java.lang.Math.*
 import kotlin.math.pow
@@ -59,10 +58,9 @@ object MieAll : Mie {
     val Csca = Qsca * common1
     val alphaMedium = if (includeMediumAbsorption) alphaMedium(wl, mediumPermittivity) else 0.0
 
-    val m = Complex.of(4.0 * Math.PI * r.pow(3)) * ( (metalPermittivity - mediumPermittivity) / (metalPermittivity + mediumPermittivity * 2.0) )
-
-      //(metalPermittivity / mediumPermittivity).sqrt()
-    println("${wl.toEnergy()} ${m.real} ${m.imaginary}")
+//    val m = Complex.of(4.0 * Math.PI * r.pow(3)) * ( (metalPermittivity - mediumPermittivity) / (metalPermittivity + mediumPermittivity * 2.0) )
+//    (metalPermittivity / mediumPermittivity).sqrt()
+//    println("${wl.toEnergy()} ${m.real} ${m.imaginary}")
 
     return (common2 * Cext + alphaMedium) to common2 * Csca
   }

@@ -55,8 +55,9 @@ fun mutableLayer(layerNode: JsonNode): AbstractMutableLayer = with(layerNode) {
     is LayerType.Material.Custom -> mutableCustomLayer(d)
     is LayerType.UserDefined -> mutableUserDefinedLayer()
     is LayerType.Composite.Excitonic -> mutableExcitonic(d)
+    is LayerType.Composite.EffectiveMedium -> mutableEffectiveMedium(d, layerType)
+    is LayerType.Composite.SpheresLattice -> mutableSpheresLattice(d, layerType)
     is LayerType.Composite.Mie -> mutableMie(d, layerType)
-
 
     else -> throw IllegalArgumentException("Unsupported layer type: $layerType")
   }

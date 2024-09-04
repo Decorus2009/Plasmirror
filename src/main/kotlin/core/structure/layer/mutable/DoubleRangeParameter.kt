@@ -1,7 +1,7 @@
 package core.structure.layer.mutable
 
 class DoubleRangeParameter private constructor(
-  var varValue: Double? = null,
+  override var varValue: Double? = null,
   val start: Double,
   val end: Double,
   val step: Double,
