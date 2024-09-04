@@ -3,7 +3,7 @@
   <dontWrapJar>false</dontWrapJar>
   <headerType>gui</headerType>
   <jar>C:\Users\Decor\IdeaProjects\Plasmirror\target\Plasmirror-1.0-SNAPSHOT.jar</jar>
-  <outfile>C:\Users\Decor\IdeaProjects\Plasmirror\build\Builds\1.2.3\Plasmirror 1.2.3.exe</outfile>
+  <outfile>C:\Users\Decor\IdeaProjects\Plasmirror\build\Builds\1.2.4\Plasmirror 1.2.4.exe</outfile>
   <errTitle></errTitle>
   <cmdLine></cmdLine>
   <chdir>.</chdir>
