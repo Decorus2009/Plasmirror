@@ -27,6 +27,11 @@ object MieAll : Mie {
     r: Double,
     includeMediumAbsorption: Boolean
   ) = alphaExtAlphaSca(wl, mediumPermittivity, particlePermittivity, f, r, includeMediumAbsorption).first
+    .also {
+      val c = particlePermittivity + mediumPermittivity * 2.0
+      val expr = c.real.pow(2) + c.imaginary.pow(2)
+//      println("${(1239.8 / wl)} ${wl} ${c.real.pow(2)} ${c.imaginary.pow(2)} ${expr}")
+    }
 
   override fun scatteringCoefficient(
     wl: Double,

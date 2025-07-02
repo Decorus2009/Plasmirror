@@ -26,11 +26,11 @@ class MenuController {
     initExportActionCallbacks()
 
     expressionsEvaluatorMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml${sep}expressions${sep}ExpressionsEvaluator.fxml", titleToShow = "Expressions Evaluator")
+      showWindow(fxmlPath = "fxml/expressions/ExpressionsEvaluator.fxml", titleToShow = "Expressions Evaluator")
     }
 
     externalDispersionsMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml${sep}dispersions${sep}ExternalDispersionsManager.fxml", titleToShow = "External Dispersions")
+      showWindow(fxmlPath = "fxml/dispersions/ExternalDispersionsManager.fxml", titleToShow = "External Dispersions")
     }
 
     // NB: path separator is explicitly set as "/" due to an error
@@ -46,11 +46,11 @@ class MenuController {
     }
 
     helpInfoMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml${sep}help${sep}HelpInfo.fxml", titleToShow = "Help Info")
+      showWindow(fxmlPath = "fxml/help/HelpInfo.fxml", titleToShow = "Help Info")
     }
 
     expressionsHelpMenuItem.setOnAction {
-      showWindow(fxmlPath = "fxml${sep}help${sep}ExpressionsHelp.fxml", titleToShow = "Expressions Help")
+      showWindow(fxmlPath = "fxml/help/ExpressionsHelp.fxml", titleToShow = "Expressions Help")
     }
   }
 
