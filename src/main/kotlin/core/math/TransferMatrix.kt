@@ -59,10 +59,37 @@ class TransferMatrix(
     }
   }
 
-  override fun toString() = "Matrix[" +
-    "(0, 0): ${get(0, 0)}, " +
-    "(0, 1): ${get(0, 1)}, " +
-    "(1, 0): ${get(1, 0)}, " +
-    "(1, 1): ${get(1, 1)}, " +
-    "]"
+  override fun toString(): String {
+    // Форматирование одного комплексного числа, например "1.234+5.678i"
+    fun fmt(c: Complex): String {
+      val re = c.real
+      val im = c.imaginary
+      // 3 знака после запятой — подберите свое форматирование
+      return String.format("%.3f%+.3fi", re, im)
+    }
+
+    // Строковые представления элементов
+    val a = fmt(get(0, 0))
+    val b = fmt(get(0, 1))
+    val c = fmt(get(1, 0))
+    val d = fmt(get(1, 1))
+
+    // Вычисляем максимальную ширину по каждой колонке
+    val w0 = maxOf(a.length, c.length)
+    val w1 = maxOf(b.length, d.length)
+
+    return buildString {
+//      appendLine("TransferMatrix:")
+      append("⎡ ")
+      append(a.padStart(w0))
+      append("  ")
+      append(b.padStart(w1))
+      appendLine(" ⎤")
+      append("⎣ ")
+      append(c.padStart(w0))
+      append("  ")
+      append(d.padStart(w1))
+      append(" ⎦")
+    }
+  }
 }
