@@ -24,13 +24,13 @@ import core.structure.layer.immutable.AbstractLayer
 abstract class AlGaAsBase(
   override val d: Double,
   private val dampingFactor: Double?,
-  private val cAl: Double,
+  open val cAl: Double,
   private val gamma: Double? = null,
   private val epsInf: Double? = null,
   private val matrixElement: Double? = null, // TODO temporary passed from front
   private val gParam: Double? = null,
   private val infraredPermittivity: Double? = null,
-  private val permittivityModel: AlGaAsPermittivityModel,
+  open val permittivityModel: AlGaAsPermittivityModel,
 ) : AbstractLayer(d) {
 
   override fun permittivity(wl: Double, temperature: Double): Complex {
@@ -104,7 +104,7 @@ data class GaAs(
   val matrixElement: Double? = null, // TODO temporary passed from front
   val gParam: Double? = null,
   val infraredPermittivity: Double? = null,
-  val permittivityModel: AlGaAsPermittivityModel
+  override val permittivityModel: AlGaAsPermittivityModel
 ) : AlGaAsBase(
   d = d,
   dampingFactor = dampingFactor,
@@ -120,13 +120,13 @@ data class GaAs(
 data class AlGaAs(
   override val d: Double,
   val dampingFactor: Double?,
-  val cAl: Double,
+  override val cAl: Double,
   val g: Double? = null,
   val epsInf: Double? = null,
   val matrixElement: Double? = null, // TODO temporary passed from front
   val gParam: Double? = null,
   val infraredPermittivity: Double? = null,
-  val permittivityModel: AlGaAsPermittivityModel
+  override val permittivityModel: AlGaAsPermittivityModel
 ) : AlGaAsBase(
   d = d,
   dampingFactor = dampingFactor,
