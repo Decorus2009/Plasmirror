@@ -169,19 +169,22 @@ class Mirror(
         else -> n2 / cos2
       }
       setDiagonal((n2e + n1e) / (n2e * 2.0))
+      setAntiDiagonal((n2e - n1e) / (n2e * 2.0))
 
-      /**
-       * При отражении света от среды с бОльшим показателем преломления,
-       * возникает эффект инверсии фазы (Pi/2) относительно фазы падающей волны.
-       * [diff] - это определенный костыль, который позволяет это учесть в коде,
-       * поскольку в оригинальной версии Поддубного/Большакова этого сделано не было.
-       */
-      val diff = if (n2e.real > n1e.real) {
-        n1e - n2e
-      } else {
-        n2e - n1e
-      }
-      setAntiDiagonal(diff / (n2e * 2.0)) //      setAntiDiagonal((n2e - n1e) / (n2e * 2.0))
+
+      // TODO remove this crutch, looks irrelevant
+//      /**
+//       * При отражении света от среды с бОльшим показателем преломления,
+//       * возникает эффект инверсии фазы (Pi/2) относительно фазы падающей волны.
+//       * [diff] - это определенный костыль, который позволяет это учесть в коде,
+//       * поскольку в оригинальной версии Поддубного/Большакова этого сделано не было.
+//       */
+//      val diff = if (n2e.real > n1e.real) {
+//        n1e - n2e
+//      } else {
+//        n2e - n1e
+//      }
+//      setAntiDiagonal(diff / (n2e * 2.0)) //      setAntiDiagonal((n2e - n1e) / (n2e * 2.0))
     }
 
   private val firstLayer get() = structure.blocks.first().layers.first()
