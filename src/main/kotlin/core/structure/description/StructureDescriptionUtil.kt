@@ -1,10 +1,7 @@
 package core.structure.description
 
 import core.state.mapper
-import core.util.complexNumberPattern
-import core.util.realNumberPattern
-import core.util.removeComments
-import core.util.requireNode
+import core.util.*
 
 /**
  * Maps structure string representation to a json object
@@ -72,8 +69,29 @@ private fun String.escapeExpressionKeywords() = replace(
   "${DescriptionParameters.exprLeftKwBoundary}$1${DescriptionParameters.exprRightKwBoundary}"
 )
 
-/** x42 -> repeat:42 */
-private fun String.replaceXWithRepeat() = replace(Regex("([xX])([\\d]+)"), "${DescriptionParameters.repeat}:$2;")
+/**
+ * x42 -> repeat:42
+ * x:range(10,50,5) -> "repeat":{"range":true,"start":"10","end":"50","step":"5"}
+ */
+private fun String.replaceXWithRepeat() = this
+  .replaceXRangeWithRepeat()
+  .replace(Regex("([xX])(\\d+)"), "${DescriptionParameters.repeat}:$2;")
+
+/**
+ * x:range(10,50,5) -> "repeat":{"range":true,"start":"10","end":"50","step":"5"};
+ */
+private fun String.replaceXRangeWithRepeat(): String {
+  val rangeKw = DescriptionParameters.rangeKw
+  val start = DescriptionParameters.start
+  val end = DescriptionParameters.end
+  val step = DescriptionParameters.step
+  val intPattern = "\\d+"
+
+  return replace(
+    Regex("([xX]):${rangeKw}\\(($intPattern),($intPattern),($intPattern)\\)"),
+    "\"${DescriptionParameters.repeat}\":{\"$rangeKw\":true,\"$start\":\"$2\",\"$end\":\"$3\",\"$step\":\"$4\"};"
+  )
+}
 
 /** add artificial d if not specified: medium: { -> medium: { d: 0, */
 private fun String.addThicknessNodeToMedium() = replace(Regex("(${DescriptionParameters.medium}:\\{)"), "$1d:0,")

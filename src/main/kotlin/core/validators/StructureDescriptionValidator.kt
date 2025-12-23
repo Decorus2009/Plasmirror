@@ -11,11 +11,11 @@ object StructureDescriptionValidator {
     try {
       description.json().asArray().preValidate()
 
-      val structureForPostValidation = with(description) {
-        if (isMutable) buildMutableStructure() else buildStructure()
+      if (isMutable) {
+        description.buildMutableStructureWithBlocks().postValidate()
+      } else {
+        description.buildStructure().postValidate()
       }
-
-      structureForPostValidation.postValidate()
     } catch (ex: Exception) {
       println("Structure description error:\n$ex")
       when (ex) {
@@ -40,6 +40,11 @@ fun Structure.postValidate() {
   allBlocksHaveLayers()
 }
 
+fun MutableStructure.postValidate() {
+  nonEmpty()
+  allBlocksHaveLayers()
+}
+
 /** More than 1 consecutive repeat description */
 private fun List<JsonNode>.noConsecutiveRepeatDescriptors() {
   if (hasConsecutiveRepeatDescriptors()) {
@@ -54,6 +59,20 @@ private fun Structure.nonEmpty() {
 }
 
 private fun Structure.allBlocksHaveLayers() {
+  if (blocks.any { it.layers.isEmpty() }) {
+    fail("Each block of layers should have at least one layer")
+  }
+}
+
+private fun MutableStructure.nonEmpty() {
+  if (blocks.isEmpty()) {
+    fail("Empty structure description")
+  }
+  // For MutableStructure with range repeat, we can't check if repeat is 0 at validation time
+  // because the range might have valid values. Zero-repeat blocks are filtered during building.
+}
+
+private fun MutableStructure.allBlocksHaveLayers() {
   if (blocks.any { it.layers.isEmpty() }) {
     fail("Each block of layers should have at least one layer")
   }

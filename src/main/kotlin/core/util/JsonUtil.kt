@@ -2,9 +2,7 @@ package core.util
 
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.readValue
-import core.math.Complex
-import core.math.checkIsNonNegative
-import core.math.checkIsPositive
+import core.math.*
 import core.state.mapper
 import core.structure.description.DescriptionParameters
 import core.structure.layer.mutable.*
@@ -291,3 +289,43 @@ fun JsonNode.isExternalFileRangeParameter() = has(DescriptionParameters.external
 fun JsonNode.isComplexNumber() =
   requireDoubleOrNull(DescriptionParameters.real) != null &&
       requireDoubleOrNull(DescriptionParameters.imag) != null
+
+
+/** -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_- **/
+/** Int VarParameter support for repeat range **/
+
+fun JsonNode.requireIntVarParameter(): VarParameter<Int> = requireIntVarParameterOrNull()
+  ?: jsonFail(message = "Cannot read int or range value in node \"$this\"")
+
+fun JsonNode.requireIntVarParameterOrNull(): VarParameter<Int>? = when {
+  isNumber -> IntConstParameter.constant(asInt())
+  isTextual -> {
+    val text = asText()
+    when {
+      text.toIntOrNull() != null -> IntConstParameter.constant(text.toInt())
+      else -> jsonFail(message = "Cannot read int value in text node \"$this\"")
+    }
+  }
+
+  isContainerNode -> {
+    when {
+      isIntRangeParameter() -> {
+        IntRangeParameter.range(
+          start = requireInt(DescriptionParameters.start),
+          end = requireInt(DescriptionParameters.end),
+          step = requireInt(DescriptionParameters.step),
+        )
+      }
+
+      else -> jsonFail(message = "Cannot parse container node \"$this\" as an int range parameter")
+    }
+  }
+
+  isNullOrMissing -> null
+  else -> jsonFail(message = "Cannot read int or range value in node \"$this\"")
+}
+
+fun JsonNode.isIntRangeParameter() = has(DescriptionParameters.rangeKw) &&
+    requireIntOrNull(DescriptionParameters.start) != null &&
+    requireIntOrNull(DescriptionParameters.end) != null &&
+    requireIntOrNull(DescriptionParameters.step) != null
