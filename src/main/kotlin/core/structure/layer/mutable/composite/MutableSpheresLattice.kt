@@ -29,8 +29,8 @@ data class MutableSpheresLattice(
       particlePermittivity(wl)
     ).let { (r, t) ->
       this@apply[0, 0] = (t * t - r * r) / t
-      this@apply[0, 1] = r / t
-      this@apply[1, 0] = -r / t
+      this@apply[0, 1] = -r / t
+      this@apply[1, 0] = r / t
       this@apply[1, 1] = Complex.ONE / t
     }
   }

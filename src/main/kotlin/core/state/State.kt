@@ -129,8 +129,12 @@ data class State(
    * It's assumed that [computationData().yReal] is empty
    * so that [addAll(...)] call below works correctly
    * */
-  private fun List<Double>.computeReal(computation: (wl: Double) -> Double) {
-    computationData().yReal.addAll(map { computation(it) })
+  private fun List<Double>.computeReal(
+    computation: (wl: Double) -> Double,
+  ) {
+    val values = map { computation(it) }
+    println(values.maxOrNull())
+    computationData().yReal.addAll(values)
   }
 
   /**
