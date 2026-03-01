@@ -13,6 +13,7 @@ import core.validators.StateException
 import ui.controllers.savingConfig
 import java.io.File
 import java.util.*
+import java.util.concurrent.Executors
 
 /**
  * Computes spectra for a range of values of a single variable parameter.
@@ -23,6 +24,7 @@ import java.util.*
 class GeneralRangeComputer(
   private val mutableStructureDescriptionText: String,
   private val chosenDirectory: File? = null,
+  private val parallel: Boolean = true,
 ) {
   private val mutableStructure: MutableStructure
   private val isRepeatRange: Boolean
@@ -68,7 +70,7 @@ class GeneralRangeComputer(
 
   fun compute() {
     if (isRepeatRange) {
-      computeRepeatRange()
+      if (parallel) computeRepeatRangeParallel() else computeRepeatRange()
     } else {
       computeLayerRange()
     }
@@ -103,6 +105,52 @@ class GeneralRangeComputer(
       }
 
       currentValue += step
+    }
+  }
+
+  /**
+   * Parallel version of [computeRepeatRange].
+   * Phase 1 (sequential): prepares all (repeatValue, State, outputFile) tasks.
+   *   rangeParam.varValue mutation + mutableStructure.flatten() must stay sequential
+   *   to avoid a race on the shared [IntRangeParameter].
+   * Phase 2 (parallel): runs compute + file write in a fixed thread pool.
+   *   Each [State] is an independent deep copy, so no shared mutable state.
+   */
+  private fun computeRepeatRangeParallel() {
+    val rangeParam = repeatRangeParam!!
+
+    savingConfig { activeState().prepare() }
+
+    // Phase 1: sequentially prepare all tasks
+    data class ComputeTask(val repeatValue: Int, val state: State, val outputFile: File)
+
+    val tasks = mutableListOf<ComputeTask>()
+    var currentValue = rangeParam.start
+
+    while (currentValue <= rangeParam.end) {
+      rangeParam.varValue = currentValue
+      val flattenedStructure = mutableStructure.flatten()
+      val state = activeState().copyWithComputationDataAndNewStructure(flattenedStructure)
+      val outputFile = File("${chosenDirectory!!.canonicalPath}${core.util.sep}${exportFileNameForRepeat(currentValue)}.txt")
+      tasks.add(ComputeTask(currentValue, state, outputFile))
+      currentValue += rangeParam.step
+    }
+
+    // Phase 2: parallel compute + write
+    val executor = Executors.newFixedThreadPool(PARALLELISM)
+    try {
+      val futures = tasks.map { task ->
+        executor.submit {
+          with(task.state) {
+            clearData()
+            compute()
+            writeComputedDataTo(task.outputFile)
+          }
+        }
+      }
+      futures.forEach { it.get() }
+    } finally {
+      executor.shutdown()
     }
   }
 
@@ -168,6 +216,10 @@ class GeneralRangeComputer(
       }
       append("_${String.format(Locale.US, "%04.1f", temperature())}K")
     }.toString()
+  }
+
+  companion object {
+    private const val PARALLELISM = 8
   }
 }
 
