@@ -21,8 +21,8 @@ data class State(
   var active: Boolean,
 ) {
 
-  fun prepare() {
-    updateFromUI()
+  fun prepare(updateStructure: Boolean = true) {
+    updateFromUI(updateStructure)
     clearData()
   }
 
@@ -96,8 +96,8 @@ data class State(
   /**
    * Reads values from UI via controllers and updates the active state
    */
-  private fun updateFromUI() {
-    computationState.updateFromUI()
+  private fun updateFromUI(updateStructure: Boolean = true) {
+    computationState.updateFromUI(updateStructure)
     viewState.updateFromUI()
     externalData.forEach { it.updateFromUI() }
   }

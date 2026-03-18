@@ -21,13 +21,21 @@ data class ComputationState(
 ) : StateComponent {
 
   override fun updateFromUI() {
+    updateFromUI(updateStructure = true)
+  }
+
+  fun updateFromUI(updateStructure: Boolean) {
     range.updateFromUI()
     opticalParams.updateFromUI()
-    updateStructureDescription(
-      opticalParams.mode.toString(),
-      currentStructureTextDescription().also { StructureDescriptionValidator.validate(it) }
-    )
-    mirror.updateVia(opticalParams, currentStructureTextDescription())
+    if (updateStructure) {
+      updateStructureDescription(
+        opticalParams.mode.toString(),
+        currentStructureTextDescription().also { StructureDescriptionValidator.validate(it) }
+      )
+      mirror.updateVia(opticalParams, currentStructureTextDescription())
+    } else {
+      mirror.updateMedia(opticalParams)
+    }
   }
 
   override fun updateUI() {

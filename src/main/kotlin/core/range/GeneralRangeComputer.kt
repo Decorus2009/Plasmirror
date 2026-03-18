@@ -82,7 +82,7 @@ class GeneralRangeComputer(
   private fun computeRepeatRange() {
     val rangeParam = repeatRangeParam!!
 
-    savingConfig { activeState().prepare() }
+    savingConfig { activeState().prepare(updateStructure = false) }
 
     var currentValue = rangeParam.start
     val to = rangeParam.end
@@ -119,7 +119,7 @@ class GeneralRangeComputer(
   private fun computeRepeatRangeParallel() {
     val rangeParam = repeatRangeParam!!
 
-    savingConfig { activeState().prepare() }
+    savingConfig { activeState().prepare(updateStructure = false) }
 
     // Phase 1: sequentially prepare all tasks
     data class ComputeTask(val repeatValue: Int, val state: State, val outputFile: File)
@@ -235,7 +235,7 @@ private class DoubleValueRangeParticularComputer(
   override fun compute() {
     // when "compute" button is clicked on the UI, the current state is saved.
     // this call simulates that behavior
-    savingConfig { activeState().prepare() }
+    savingConfig { activeState().prepare(updateStructure = false) }
 
     var currentValue = rangeParam.start
     val to = rangeParam.end
@@ -255,7 +255,7 @@ private class ExternalFileRangeParticularComputer(
   private val fixCurrentState: (Double) -> Unit
 ) : RangeParticularComputer {
   override fun compute() {
-    savingConfig { activeState().prepare() }
+    savingConfig { activeState().prepare(updateStructure = false) }
 
     val range = requireDoubleRangeFromFile()
     range.forEachIndexed { index, value ->

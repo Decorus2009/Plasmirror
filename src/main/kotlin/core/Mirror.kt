@@ -31,6 +31,11 @@ class Mirror(
     rightMediumLayer = opticalParams.rightMedium.toLayer()
   }
 
+  fun updateMedia(opticalParams: OpticalParams) {
+    leftMediumLayer = opticalParams.leftMedium.toLayer()
+    rightMediumLayer = opticalParams.rightMedium.toLayer()
+  }
+
   fun copyWithStructure(structure: Structure) = Mirror(structure, leftMediumLayer, rightMediumLayer)
 
   fun reflectance(wl: Double, pol: Polarization, angle: Double, temperature: Double) =
