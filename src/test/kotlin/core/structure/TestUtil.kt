@@ -1,10 +1,10 @@
 package core.structure
 
-import core.optics.AdachiBasedPermittivityModel
+import core.optics.AlGaAsPermittivityModel
 import core.structure.layer.immutable.material.*
 
-val layer1 = GaAs(d = 1.0, dampingFactor = 0.0, permittivityModel = AdachiBasedPermittivityModel.ADACHI_SIMPLE)
-val layer2 = AlGaAs(d = 1.0, dampingFactor = 0.0, cAl = 0.3, permittivityModel = AdachiBasedPermittivityModel.ADACHI_SIMPLE)
+val layer1 = GaAs(d = 1.0, dampingFactor = 0.0, permittivityModel = AlGaAsPermittivityModel.ADACHI_SIMPLE)
+val layer2 = AlGaAs(d = 1.0, dampingFactor = 0.0, cAl = 0.3, permittivityModel = AlGaAsPermittivityModel.ADACHI_SIMPLE)
 val layer3 = GaN(d = 1.0)
 val layer4 = AlGaN(d = 1.0, cAl = 0.3)
 

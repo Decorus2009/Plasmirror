@@ -9,30 +9,6 @@ import kotlin.math.sqrt
 
 enum class Polarization { S, P }
 
-enum class ExternalMediumType {
-  AIR,
-  GAAS_ADACHI,
-  GAAS_GAUSS,
-  GAN,
-  CUSTOM;
-
-  override fun toString() = when (this) {
-    AIR -> ExternalMediumTypes.air
-    GAAS_ADACHI -> ExternalMediumTypes.GaAsAdachi
-    GAAS_GAUSS -> ExternalMediumTypes.GaAsGauss
-    GAN -> ExternalMediumTypes.GaN
-    CUSTOM -> ExternalMediumTypes.custom
-  }
-}
-
-object ExternalMediumTypes {
-  const val air = "Air"
-  const val GaAsAdachi = "GaAs: Adachi"
-  const val GaAsGauss = "GaAs: Gauss"
-  const val GaN = "GaN"
-  const val custom = "Custom"
-}
-
 enum class Mode {
   REFLECTANCE,
   TRANSMITTANCE,

@@ -1,11 +1,13 @@
 package core.structure
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.fasterxml.jackson.databind.node.ObjectNode
 import core.state.mapper
 import core.structure.description.*
 import core.structure.layer.ILayer
 import core.structure.parser.presets.*
 import core.util.*
+import core.validators.fail
 
 fun String.buildStructure() = buildStructure { layersBlockBuilder() }
 
@@ -150,3 +152,36 @@ private fun List<JsonNode>.repeatDescriptorPositions() = this
   .filterNot { it == -1 }
 
 private fun repeatDescriptorNode() = mapper.readTree("""{"repeat":"1"}""")
+
+/**
+ * Parses a single-layer description used for the left/right semi-infinite medium.
+ *
+ * A medium contributes only its refractive index n(wl, T) to the boundary; its
+ * thickness is never used. The layer builder still requires `d` (and `df` for GaAs)
+ * syntactically, so a dummy `d:0` and `df:0` are injected at the JSON-tree level when
+ * absent — they have no physical effect on a semi-infinite medium.
+ *
+ * extractDefinitions() runs (as in buildStructure) so the medium has an ISOLATED
+ * definitions scope and cannot reference def: materials from the Structure Description.
+ *
+ * Rules: exactly one block with repeat == 1 and exactly one layer. A blank string
+ * defaults to air (const eps = 1).
+ */
+fun String.buildMediumLayer(): ILayer {
+  val text = ifBlank { "material: custom, eps: 1.0" }
+  val nodes = text.json().asArray().extractDefinitions()
+
+  if (nodes.isEmpty()) fail("Medium must be described by exactly one layer")
+
+  nodes.forEach { node ->
+    if (node is ObjectNode && !node.isRepeatDescriptor()) {
+      if (!node.has(DescriptionParameters.d)) node.put(DescriptionParameters.d, "0")
+      if (!node.has(DescriptionParameters.dampingFactor)) node.put(DescriptionParameters.dampingFactor, "0")
+    }
+  }
+
+  val blocks = nodes.buildBlocks { layersBlockBuilder() }
+  val block = blocks.singleOrNull() ?: fail("Medium must be described by exactly one layer")
+  if (block.repeat != 1) fail("Medium must be described by exactly one layer (no repeat allowed)")
+  return block.layers.singleOrNull() ?: fail("Medium must be described by exactly one layer")
+}
