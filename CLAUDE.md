@@ -72,6 +72,37 @@ name, or a `{ ... }` expression.
 `buildMediumLayer()`; thickness `d` is ignored (auto-injected). Old configs
 (`{type, epsReal, epsImaginary}`) are migrated on load by `core/state/MediumDeserializer.kt`.
 
+## Optics domain primer (semiconductor permittivity models)
+
+Background for working on `core/optics/material/`. Models return **permittivity** `eps`
+(Complex); the refractive index is `n = sqrt(eps)` (`Complex.toRefractiveIndex()`), and
+`eps = n²`. Photon energy in eV is `1239.8 / wl_nm` (`Double.toEnergy()`); models take
+energy, not wavelength. Temperature `T` is a **global** compute parameter
+(`OpticalParams.temperature`), threaded into `permittivity(wl, T)`, not a per-layer field.
+
+- **Adachi 1985 is the backbone for AlGaAs.** Below the band edge the refractive index
+  follows a Sellmeier-like form `n² = A·[f(χ) + ½·(E0/(E0+Δ0))^1.5·f(χ0)] + B`, with
+  `f(χ) = (2 − √(1+χ) − √(1−χ)) / χ²`, `χ = E/E0`, `χ0 = E/(E0+Δ0)`. Here `E0` is the
+  direct bandgap and `Δ0 ≈ 0.34 eV` the spin-orbit split-off energy. Most AlGaAs models
+  (`adachi_simple`, `adachi_gauss`, `adachi_mod_gauss`, `adachi_langer`) are variants of
+  this; `A(x)`, `B(x)`, `E0(x)` are composition polynomials.
+- **The Adachi form is only valid below the band edge.** For `E > E0`, `χ > 1` and
+  `√(1−χ)` turns imaginary. The real-valued Adachi models therefore **clamp** the energy to
+  `E0` above the edge and supply the imaginary part separately via the **`df` damping
+  convention**: `im(eps) = df · re(eps)`. The absorption is not physical there — it is a
+  modeling stand-in. Models that go complex naturally (Tanguy, the AlGaAsSb `adachi_T`)
+  produce `k` directly instead.
+- **Temperature dependence of `n` near the gap is driven mainly by the bandgap shrinking
+  with `T`.** Three bandgap-vs-temperature laws recur in this domain:
+  - **Varshni:** `Eg(T) = Eg(0) − α·T²/(T + β)` — the standard simple form.
+  - **Vurgaftman:** the same Varshni shape, but `α`, `β` interpolated between GaAs and AlAs
+    by composition (used by `adachi_langer`).
+  - **Paessler:** semi-empirical, more accurate at cryogenic `T < 50 K` where Varshni
+    over-estimates gap narrowing (phonon-freezing); carries an extra fractional exponent.
+- **Anomalous dispersion** near the band edge is why low-temperature `n` cannot be linearly
+  extrapolated from room-temperature `n` — the curve bends sharply as `λ` approaches the
+  edge, and the edge itself moves with `T`.
+
 ## Conventions / gotchas
 
 - When adding a new layer keyword or eps model: update `parser/presets` + the regex in

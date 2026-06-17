@@ -64,6 +64,11 @@ abstract class AlGaAsBase(
       ADACHI_T -> {
         AlGaAsSbAdachiModelWithTemperatureDependence(w, cAl, cAs = 1.0, T = temperature).permittivity()
       }
+      ADACHI_LANGER -> {
+        check(dampingFactor != null) { "Damping factor parameter 'df' is required for AlGaAs or GaAs layer with Adachi based models" }
+
+        AlGaAsAdachiLanger2026Model.permittivityWithScaledImaginaryPart(w, cAl, temperature, dampingFactor)
+      }
 
       TANGUY_1995 -> {
         check(gamma != null) { "Gamma parameter 'G' is required for AlGaAs or GaAs layer with Tanguy models" }

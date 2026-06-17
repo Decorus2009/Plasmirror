@@ -7,6 +7,7 @@ enum class AlGaAsPermittivityModel : KnownModel {
   ADACHI_1989,
   ADACHI_1992,
   ADACHI_T,
+  ADACHI_LANGER,
   ADACHI_GAUSS,
   ADACHI_MOD_GAUSS,
   TANGUY_1995,

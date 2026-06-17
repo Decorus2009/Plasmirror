@@ -1,6 +1,8 @@
 package core.structure
 
 import core.math.Complex
+import core.optics.material.AlGaAs.AlGaAsAdachiLanger2026Model
+import core.optics.toEnergy
 import core.structure.layer.immutable.material.ConstPermittivityLayer
 import core.structure.layer.immutable.material.GaAs
 import core.structure.layer.immutable.material.GaN
@@ -26,6 +28,18 @@ internal class MediumLayerParserTest {
   fun `GaAs adachi_simple maps to a GaAs layer`() {
     val layer = "material: GaAs, eps: adachi_simple".buildMediumLayer()
     assertThat(layer, instanceOf(GaAs::class.java))
+  }
+
+  @Test
+  fun `GaAs adachi_langer parses to a GaAs layer and computes via the model`() {
+    val layer = "material: GaAs, eps: adachi_langer, df: 0.0".buildMediumLayer()
+    assertThat(layer, instanceOf(GaAs::class.java))
+
+    // permittivity(wl_nm, temperature) must match the standalone model at the same point.
+    val eps = layer.permittivity(900.0, 4.0)
+    val expected = AlGaAsAdachiLanger2026Model
+      .permittivityWithScaledImaginaryPart(900.0.toEnergy(), cAl = 0.0, T = 4.0, scalingCoefficient = 0.0)
+    assertThat(eps, equalTo(expected))
   }
 
   @Test

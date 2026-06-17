@@ -3,6 +3,7 @@ package core.structure.layer.mutable.material
 import core.math.Complex
 import core.optics.AlGaAsPermittivityModel
 import core.optics.AlGaAsPermittivityModel.*
+import core.optics.material.AlGaAs.AlGaAsAdachiLanger2026Model
 import core.optics.material.AlGaAs.AlGaAsDjurisic1999Model
 import core.optics.material.AlGaAs.Adachi1985Model
 import core.optics.material.AlGaAs.AlGaAsAdachi1985ModelWithTanguy1995ImaginaryPart
@@ -70,6 +71,17 @@ abstract class MutableAlGaAsBase(
           cAs = 1.0,
           T = temperature
         ).permittivity()
+      }
+
+      ADACHI_LANGER -> {
+        check(dampingFactor != null) { "Damping factor parameter 'df' is required for AlGaAs or GaAs layer with Adachi based models" }
+
+        AlGaAsAdachiLanger2026Model.permittivityWithScaledImaginaryPart(
+          w,
+          cAl.requireValue(),
+          temperature,
+          dampingFactor.requireValue()
+        )
       }
 
       TANGUY_1995 -> {

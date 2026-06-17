@@ -57,6 +57,7 @@ object StructureSyntaxHighlighter {
     val MODEL_PATTERN = "(" +
       "\\badachi_simple\\b|" +
       "\\badachi_T\\b|" +
+      "\\badachi_langer\\b|" +
       "\\badachi_gauss\\b|" +
       "\\badachi_mod_gauss\\b|" +
       "\\btanguy_1995\\b|" +
