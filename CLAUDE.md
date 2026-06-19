@@ -86,12 +86,17 @@ energy, not wavelength. Temperature `T` is a **global** compute parameter
   direct bandgap and `Δ0 ≈ 0.34 eV` the spin-orbit split-off energy. Most AlGaAs models
   (`adachi_simple`, `adachi_gauss`, `adachi_mod_gauss`, `adachi_langer`) are variants of
   this; `A(x)`, `B(x)`, `E0(x)` are composition polynomials.
-- **The Adachi form is only valid below the band edge.** For `E > E0`, `χ > 1` and
-  `√(1−χ)` turns imaginary. The real-valued Adachi models therefore **clamp** the energy to
-  `E0` above the edge and supply the imaginary part separately via the **`df` damping
-  convention**: `im(eps) = df · re(eps)`. The absorption is not physical there — it is a
-  modeling stand-in. Models that go complex naturally (Tanguy, the AlGaAsSb `adachi_T`)
-  produce `k` directly instead.
+- **Above the band edge there are two strategies.** For `E > E0`, `χ > 1` and `√(1−χ)`
+  turns imaginary. Either:
+  - **Clamp + `df`** (`adachi_simple`, `adachi_mod_gauss`): clamp the energy to `E0` above
+    the edge (giving a flat `n` plateau) and supply the imaginary part separately via the
+    **`df` damping convention** `im(eps) = df · re(eps)` — a non-physical modeling
+    stand-in. Beware: the clamp flattens the band-edge cusp.
+  - **Analytic continuation** (`adachi_langer`, Tanguy, the AlGaAsSb `adachi_T`): evaluate
+    `f(χ)` over complex argument, so the permittivity is intrinsically complex — transparent
+    (`k = 0`) below the edge, absorbing (`k > 0`) above it. This reproduces the real
+    band-edge cusp and needs no `df`. Don't reach for the clamp when the reference figure
+    shows the index continuing past the edge.
 - **Temperature dependence of `n` near the gap is driven mainly by the bandgap shrinking
   with `T`.** Three bandgap-vs-temperature laws recur in this domain:
   - **Varshni:** `Eg(T) = Eg(0) − α·T²/(T + β)` — the standard simple form.

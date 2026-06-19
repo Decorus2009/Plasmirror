@@ -2,7 +2,6 @@ package core.optics.material.AlGaAs
 
 import core.math.Complex
 import kotlin.math.pow
-import kotlin.math.sqrt
 
 /**
  * Temperature-dependent refractive index of AlGaAs (Model 3, Eq. 4) from
@@ -15,9 +14,12 @@ import kotlin.math.sqrt
  * and explicit linear + quadratic temperature corrections C0*T + D0*T^2.
  *
  * Valid for x = 0..0.5, T = 4..295 K, wavelengths from the band edge up to 1100 nm.
- * Like [Adachi1985Model], above the band edge (E > E0(x,T)) the photon energy is clamped
- * to E0(x,T); the result is a real permittivity (eps = n^2) and the imaginary part is
- * scaled separately via a damping factor.
+ * Unlike [Adachi1985Model] (which clamps the photon energy to E0 above the band edge,
+ * giving a flat refractive-index plateau), this model uses the **analytic continuation**
+ * of the Adachi lineshape f(chi) into the chi>1 region — exactly as plotted in Fig. 5 of
+ * the paper. There f(chi) becomes complex (sqrt(1-chi) turns imaginary), so the model is
+ * intrinsically complex: below the band edge it is transparent (k = 0); above it the
+ * extinction coefficient k appears naturally. No external damping factor is used.
  *
  * [w] is the photon energy in eV (callers convert wavelength via Double.toEnergy()).
  */
@@ -26,25 +28,33 @@ object AlGaAsAdachiLanger2026Model {
   private const val C0 = -2.618e-6   // K^-1
   private const val D0 = 4.282e-7    // K^-2
 
-  /** Real refractive index n(lambda, x, T), Eq. (4). */
-  fun refractiveIndex(w: Double, cAl: Double, T: Double): Double {
-    val eg = E0(cAl, T)
-    val energy = if (w > eg) eg else w // clamp above the band edge (model undefined there)
-
-    val chi = energy / eg
-    val chi0 = energy / (eg + DELTA_0)
-
-    val nAdachi = sqrt(A0(cAl) * (f(chi) + 0.5 * (eg / (eg + DELTA_0)).pow(1.5) * f(chi0)) + B0(cAl))
-    return nAdachi + C0 * T + D0 * T * T
-  }
-
-  /** Real permittivity eps = n^2. */
+  /**
+   * Complex permittivity eps(lambda, x, T). Real and imaginary parts follow from the
+   * complex refractive index (see [complexRefractiveIndex]); the caller recovers n via
+   * [core.optics.toRefractiveIndex].
+   */
   fun permittivity(w: Double, cAl: Double, T: Double): Complex =
-    refractiveIndex(w, cAl, T).let { n -> Complex(n * n) }
+    complexRefractiveIndex(w, cAl, T).let { n -> n * n }
 
-  /** eps with imaginary part scaled from the real one: im(eps) = [scalingCoefficient] * re(eps). */
-  fun permittivityWithScaledImaginaryPart(w: Double, cAl: Double, T: Double, scalingCoefficient: Double) =
-    permittivity(w, cAl, T).let { eps -> Complex(eps.real, eps.real * scalingCoefficient) }
+  /** Real part of the refractive index n(lambda, x, T), Eq. (4). */
+  fun refractiveIndex(w: Double, cAl: Double, T: Double): Double =
+    complexRefractiveIndex(w, cAl, T).real
+
+  /**
+   * Complex refractive index: the Adachi Sellmeier permittivity (Eq. 3, evaluated by
+   * analytic continuation so it is complex above the band edge) converted to n, with the
+   * additive temperature correction C0*T + D0*T^2 applied to the real part (Eq. 4).
+   */
+  private fun complexRefractiveIndex(w: Double, cAl: Double, T: Double): Complex {
+    val eg = E0(cAl, T)
+    val chi = Complex(w / eg)
+    val chi0 = Complex(w / (eg + DELTA_0))
+
+    val epsAdachi = (f(chi) + f(chi0) * (0.5 * (eg / (eg + DELTA_0)).pow(1.5))) * A0(cAl) + B0(cAl)
+    val n = epsAdachi.sqrt()
+
+    return Complex(n.real + C0 * T + D0 * T * T, n.imaginary)
+  }
 
   /** Temperature-dependent direct bandgap E0(x,T), Vurgaftman/Varshni (Eq. 1). */
   private fun E0(cAl: Double, T: Double): Double {
@@ -57,5 +67,7 @@ object AlGaAsAdachiLanger2026Model {
   private fun A0(cAl: Double) = 6.741 + 2.938 * cAl + 11.686 * cAl * cAl
   private fun B0(cAl: Double) = 9.275 - 2.489 * cAl - 6.940 * cAl * cAl
 
-  private fun f(z: Double) = (2.0 - sqrt(1 + z) - sqrt(1 - z)) / (z * z)
+  /** Adachi lineshape f(chi), analytically continued: complex for chi > 1 (above the gap). */
+  private fun f(z: Complex): Complex =
+    (Complex(2.0) - (Complex.ONE + z).sqrt() - (Complex.ONE - z).sqrt()) / (z * z)
 }

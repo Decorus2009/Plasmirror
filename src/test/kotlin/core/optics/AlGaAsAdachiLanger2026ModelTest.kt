@@ -4,6 +4,7 @@ import core.optics.material.AlGaAs.AlGaAsAdachiLanger2026Model
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import kotlin.math.abs
 
 internal class AlGaAsAdachiLanger2026ModelTest {
   // refractiveIndex takes photon energy (eV); toEnergy() converts nm -> eV (1239.8 / wl).
@@ -28,17 +29,32 @@ internal class AlGaAsAdachiLanger2026ModelTest {
   }
 
   @Test
-  fun `above band edge the energy is clamped and n stays finite`() {
-    val nClamped = n(0.0, 4.0, 700.0) // E ~ 1.771 eV > E0(0, 4K) ~ 1.519 eV
-    assertTrue(nClamped.isFinite())
-    assertEquals(3.7497, nClamped, 1e-3)
+  fun `above the band edge n continues without a flat plateau and peaks at the edge`() {
+    // x=0.5, T=295K: band edge ~592 nm. The refractive index must peak near the edge and
+    // DROP at shorter wavelengths via analytic continuation of f(chi) into chi>1 (the
+    // Fig. 5 cusp), NOT stay constant — a flat plateau was the bug this model had when it
+    // clamped the photon energy to E0.
+    val nEdge = n(0.5, 295.0, 592.0)
+    val nShort = n(0.5, 295.0, 500.0)
+    assertTrue("expected a drop above the gap, got edge=$nEdge short=$nShort", nShort < nEdge)
+    assertEquals(3.7980, nEdge, 2e-3)
+    assertEquals(3.6737, nShort, 1e-3)
   }
 
   @Test
-  fun `damping factor scales the imaginary permittivity`() {
-    val df = 0.05
-    val eps = AlGaAsAdachiLanger2026Model
-      .permittivityWithScaledImaginaryPart(900.0.toEnergy(), 0.0, 4.0, df)
-    assertEquals(eps.real * df, eps.imaginary, 1e-12)
+  fun `above band edge a single shorter wavelength gives lower n than the old clamp plateau`() {
+    // Regression guard against re-introducing the clamp: the old clamped value at this point
+    // was 3.7497 (n frozen at the band edge); the analytic continuation gives ~3.6096.
+    assertEquals(3.6096, n(0.0, 4.0, 700.0), 1e-3)
+  }
+
+  @Test
+  fun `permittivity is transparent below the gap and absorbing above it`() {
+    // Below the gap: real permittivity, no intrinsic absorption (k = 0).
+    val epsBelow = AlGaAsAdachiLanger2026Model.permittivity(900.0.toEnergy(), 0.0, 4.0)
+    assertEquals(0.0, epsBelow.imaginary, 1e-12)
+    // Above the gap: f(chi) goes complex -> intrinsic absorption appears (non-zero Im(eps)).
+    val epsAbove = AlGaAsAdachiLanger2026Model.permittivity(700.0.toEnergy(), 0.0, 4.0)
+    assertTrue("expected non-zero Im(eps) above the gap, got $epsAbove", abs(epsAbove.imaginary) > 1e-3)
   }
 }

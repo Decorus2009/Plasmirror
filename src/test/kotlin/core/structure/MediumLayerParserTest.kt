@@ -3,6 +3,7 @@ package core.structure
 import core.math.Complex
 import core.optics.material.AlGaAs.AlGaAsAdachiLanger2026Model
 import core.optics.toEnergy
+import core.structure.layer.immutable.material.AlGaAs
 import core.structure.layer.immutable.material.ConstPermittivityLayer
 import core.structure.layer.immutable.material.GaAs
 import core.structure.layer.immutable.material.GaN
@@ -31,14 +32,15 @@ internal class MediumLayerParserTest {
   }
 
   @Test
-  fun `GaAs adachi_langer parses to a GaAs layer and computes via the model`() {
-    val layer = "material: GaAs, eps: adachi_langer, df: 0.0".buildMediumLayer()
-    assertThat(layer, instanceOf(GaAs::class.java))
+  fun `AlGaAs adachi_langer parses to an AlGaAs layer and computes via the model`() {
+    // adachi_langer needs no df (the imaginary part is intrinsic), so AlGaAs parses without it.
+    val layer = "material: AlGaAs, eps: adachi_langer, cAl: 0.5".buildMediumLayer()
+    assertThat(layer, instanceOf(AlGaAs::class.java))
 
+    // Above the band edge -> exercises the complex analytic-continuation path through the layer.
     // permittivity(wl_nm, temperature) must match the standalone model at the same point.
-    val eps = layer.permittivity(900.0, 4.0)
-    val expected = AlGaAsAdachiLanger2026Model
-      .permittivityWithScaledImaginaryPart(900.0.toEnergy(), cAl = 0.0, T = 4.0, scalingCoefficient = 0.0)
+    val eps = layer.permittivity(550.0, 295.0)
+    val expected = AlGaAsAdachiLanger2026Model.permittivity(550.0.toEnergy(), cAl = 0.5, T = 295.0)
     assertThat(eps, equalTo(expected))
   }
 

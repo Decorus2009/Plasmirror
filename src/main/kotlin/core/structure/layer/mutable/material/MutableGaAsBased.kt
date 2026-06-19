@@ -74,14 +74,7 @@ abstract class MutableAlGaAsBase(
       }
 
       ADACHI_LANGER -> {
-        check(dampingFactor != null) { "Damping factor parameter 'df' is required for AlGaAs or GaAs layer with Adachi based models" }
-
-        AlGaAsAdachiLanger2026Model.permittivityWithScaledImaginaryPart(
-          w,
-          cAl.requireValue(),
-          temperature,
-          dampingFactor.requireValue()
-        )
+        AlGaAsAdachiLanger2026Model.permittivity(w, cAl.requireValue(), temperature)
       }
 
       TANGUY_1995 -> {
