@@ -26,10 +26,13 @@ private fun jsonValue(v: Any?): String = when (v) {
 
 private fun List<Double>.jsonArray() = joinToString(prefix = "[", postfix = "]", separator = ", ") { jsonNumber(it) }
 
-/** `expect == "ok"` is met by status `ok`; `expect == "error"` by any status except `ok` and `invalid_case`. */
+/**
+ * `expect == "ok"` is met by status `ok`; `expect == "error"` by `error` and `crash` only: `aborted` (a limit of the batch)
+ * and `invalid_case` are not behaviours of the old program.
+ */
 internal fun CaseResult.expectMet(): Boolean = when (case?.expect) {
   "ok" -> status == "ok"
-  "error" -> status != "ok" && status != "invalid_case"
+  "error" -> status == "error" || status == "crash"
   else -> false
 }
 

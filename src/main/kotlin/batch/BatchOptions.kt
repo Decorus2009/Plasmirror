@@ -58,9 +58,9 @@ fun parseArgs(args: Array<String>): BatchOptions {
  * relative path in the out directory. Progress goes to stderr, stdout stays empty.
  * @return 0: all expectations met; 2: some `expect` not met. A timed-out case ends the process with code 3.
  */
-fun runBatch(options: BatchOptions): Int = runBatch(options) { exitProcess(it) }
+fun runBatch(options: BatchOptions): Int = runBatch(options, { c, d, o -> runCase(c, d, o) }) { exitProcess(it) }
 
-internal fun runBatch(options: BatchOptions, exit: (Int) -> Unit): Int {
+internal fun runBatch(options: BatchOptions, caseRunner: (BatchCase, File, BatchOptions) -> CaseResult, exit: (Int) -> Unit): Int {
   BatchEnvironment.install()
   return BatchEnvironment.withSilencedStdout {
     val caseFiles = options.casesDir.walkTopDown()
@@ -76,6 +76,7 @@ internal fun runBatch(options: BatchOptions, exit: (Int) -> Unit): Int {
       val outFile = File(outDir, "result.json")
       if (options.resume && outFile.exists()) {
         System.err.println("$rel: skipped (result exists)")
+        if (!previousExpectationMet(outFile)) unmet = true // an aborted or unmet result must not turn into exit code 0
         continue
       }
 
@@ -105,7 +106,7 @@ internal fun runBatch(options: BatchOptions, exit: (Int) -> Unit): Int {
           System.err.println("$rel: aborted (time limit); the process ends, rerun with --resume")
           exit(3)
         }
-      ) { runCase(case, file.parentFile, options) } ?: return@withSilencedStdout 3
+      ) { caseRunner(case, file.parentFile, options) } ?: return@withSilencedStdout 3
 
       writeResult(outDir, result, recordedBy)
       System.err.println("$rel: ${result.status}")
@@ -132,3 +133,10 @@ private fun recordedBy(options: BatchOptions): Map<String, Any?> = linkedMapOf(
   "cpu" to System.getProperty("os.arch"),
   "processors" to Runtime.getRuntime().availableProcessors()
 )
+
+/** `expect_met` of a result written earlier; an unreadable file counts as unmet. */
+private fun previousExpectationMet(resultFile: File): Boolean = try {
+  com.fasterxml.jackson.databind.ObjectMapper().readTree(resultFile)["expect_met"]?.asBoolean() ?: false
+} catch (ex: Exception) {
+  false
+}

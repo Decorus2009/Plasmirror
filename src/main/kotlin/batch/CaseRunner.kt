@@ -16,6 +16,7 @@ import core.state.validatedMedium
 import core.state.view.AxisSettings
 import core.state.view.ViewState
 import core.structure.Structure
+import core.structure.buildMutableStructure
 import core.structure.buildMutableStructureWithBlocks
 import core.structure.buildStructure
 import core.util.removeComments
@@ -66,7 +67,9 @@ internal class InvalidCaseException(message: String) : Exception(message)
  * Order of checks as in the window: range, temperature, angle, left medium, right medium, structure
  * (`ComputationState.kt:27-39`, `OpticalParams.kt:14-21`, `StructureDescriptionValidator.validate`).
  */
-fun runCase(case: BatchCase, caseDir: File, options: BatchOptions): CaseResult {
+fun runCase(case: BatchCase, caseDir: File, options: BatchOptions): CaseResult = runCase(case, caseDir, options, ::layersDump)
+
+internal fun runCase(case: BatchCase, caseDir: File, options: BatchOptions, dumper: (BatchCase, State) -> String): CaseResult {
   BatchEnvironment.install()
   var stage = "validation"
   var dump: String? = null
@@ -79,7 +82,8 @@ fun runCase(case: BatchCase, caseDir: File, options: BatchOptions): CaseResult {
 
     val state = validateAndBuildState(case)
     StatesManager.add(state)
-    if (options.dumpLayers) dump = layersDump(case, state)
+    // a failing dump must never change the result of the case: the file is just not written
+    if (options.dumpLayers) dump = try { dumper(case, state) } catch (t: Exception) { null }
 
     stage = "compute"
     val series = when (case.kind) {
@@ -141,8 +145,12 @@ private fun failed(case: BatchCase, status: String, error: ErrorInfo, dump: Stri
   CaseResult(case, case.id, status, error, emptyList(), dump)
 
 /** `--dump-layers`: text of the built layer tree (the mutable one for range/randomization) and of both media. */
-private fun layersDump(case: BatchCase, state: State): String {
-  val structure: Any = if (case.kind == CaseKind.SINGLE) state.structure() else case.structure.buildMutableStructureWithBlocks()
+internal fun layersDump(case: BatchCase, state: State): String {
+  val structure: Any = when (case.kind) {
+    CaseKind.SINGLE -> state.structure()
+    CaseKind.RANGE -> case.structure.buildMutableStructureWithBlocks() // as GeneralRangeComputer.kt:39
+    CaseKind.RANDOMIZATION -> case.structure.buildMutableStructure().flatten() // as Randomizer.kt:57
+  }
   return "left medium: ${state.mirror().leftMediumLayer}\nstructure: $structure\nright medium: ${state.mirror().rightMediumLayer}\n"
 }
 
