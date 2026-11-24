@@ -39,6 +39,8 @@ class Randomizer(
   private val iterations: Int,
   private val saveIntermediateResults: Boolean,
   private val chosenDirectory: File? = null,
+  // batch mode (#7), red skeleton: not used yet
+  private val prepare: () -> Unit = { savingConfig { activeState().prepare() } },
 ) {
   private val states = mutableMapOf<Int, State>()
   private val concurrencyLevel = min(Runtime.getRuntime().availableProcessors(), parallelism)
