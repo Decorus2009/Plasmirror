@@ -3,6 +3,9 @@ package batch
 import java.io.File
 import kotlin.system.exitProcess
 
+/** `--timing`: repetitions of every `ok` case (docs/specs/reference-9-golden-set.md 3.1). */
+data class TimingOptions(val warmupRuns: Int = 3, val timedRuns: Int = 5)
+
 /** Options of one batch run. */
 data class BatchOptions(
   val casesDir: File,
@@ -11,10 +14,12 @@ data class BatchOptions(
   val timeoutSec: Long = 300,
   val maxSeries: Int = 10_000,
   val dumpLayers: Boolean = false,
-  val git: String? = null
+  val git: String? = null,
+  val timing: TimingOptions? = null
 )
 
 const val USAGE = "Usage: BatchMain <cases-dir> <out-dir> [--resume] [--timeout-sec N] [--max-series N] [--dump-layers] [--git <sha>]\n" +
+  "                  [--timing] [--warmup-runs N] [--timed-runs N]\n" +
   "       BatchMain --compare-export <result.json> <export.txt>"
 
 /** @throws IllegalArgumentException with the text for stderr */
@@ -25,6 +30,9 @@ fun parseArgs(args: Array<String>): BatchOptions {
   var maxSeries = 10_000
   var dumpLayers = false
   var git: String? = null
+  var timing = false
+  var warmupRuns: Int? = null
+  var timedRuns: Int? = null
 
   var i = 0
   fun value(flag: String): String {
@@ -40,6 +48,11 @@ fun parseArgs(args: Array<String>): BatchOptions {
       "--max-series" -> maxSeries = value(a).toIntOrNull()?.takeIf { it > 0 }
         ?: throw IllegalArgumentException("--max-series must be a positive integer\n$USAGE")
       "--git" -> git = value(a)
+      "--timing" -> timing = true
+      "--warmup-runs" -> warmupRuns = value(a).toIntOrNull()?.takeIf { it > 0 }
+        ?: throw IllegalArgumentException("--warmup-runs must be a positive integer\n$USAGE")
+      "--timed-runs" -> timedRuns = value(a).toIntOrNull()?.takeIf { it > 0 }
+        ?: throw IllegalArgumentException("--timed-runs must be a positive integer\n$USAGE")
       else -> {
         if (a.startsWith("--")) throw IllegalArgumentException("Unknown option: $a\n$USAGE")
         positional += a
@@ -47,10 +60,14 @@ fun parseArgs(args: Array<String>): BatchOptions {
     }
     i++
   }
+  if (!timing && (warmupRuns != null || timedRuns != null)) {
+    throw IllegalArgumentException("--warmup-runs and --timed-runs need --timing\n$USAGE")
+  }
   if (positional.size != 2) throw IllegalArgumentException("Expected <cases-dir> and <out-dir>\n$USAGE")
   val casesDir = File(positional[0])
   if (!casesDir.isDirectory) throw IllegalArgumentException("Cases directory not found: ${casesDir.path}\n$USAGE")
-  return BatchOptions(casesDir, File(positional[1]), resume, timeoutSec, maxSeries, dumpLayers, git)
+  return BatchOptions(casesDir, File(positional[1]), resume, timeoutSec, maxSeries, dumpLayers, git,
+    if (timing) TimingOptions(warmupRuns ?: 3, timedRuns ?: 5) else null)
 }
 
 /**
