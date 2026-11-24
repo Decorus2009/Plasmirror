@@ -75,3 +75,6 @@ fun directCompute(case: BatchCase): Direct {
 }
 
 fun bits(values: List<Double>) = values.map { java.lang.Double.doubleToRawLongBits(it) }
+
+/** The base state that range/randomization start from (empty structure), registered as the only active one. */
+fun buildBaseStateForTest(case: BatchCase) = validateAndBuildState(case)

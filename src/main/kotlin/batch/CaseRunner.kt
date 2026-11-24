@@ -102,7 +102,7 @@ internal fun snapshot(label: String?, param: Double?, data: Data, complex: Boole
   label, param, data.x.toList(), data.yReal.toList(), if (complex) data.yImaginary.toList() else null
 )
 
-private fun validateAndBuildState(case: BatchCase): State {
+internal fun validateAndBuildState(case: BatchCase): State {
   ComputationRangeValidator.validateRange(case.start, case.end, case.step)
   OpticalParamsValidator.validateTemperature(case.temperature)
   OpticalParamsValidator.validateAngle(case.angle)

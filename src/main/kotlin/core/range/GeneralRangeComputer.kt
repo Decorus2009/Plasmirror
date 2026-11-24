@@ -25,6 +25,9 @@ class GeneralRangeComputer(
   private val mutableStructureDescriptionText: String,
   private val chosenDirectory: File? = null,
   private val parallel: Boolean = true,
+  // batch mode (#7), red skeleton: not used yet
+  private val prepare: () -> Unit = { savingConfig { activeState().prepare(updateStructure = false) } },
+  private val seriesSink: ((label: String, param: Double, state: State) -> Unit)? = null,
 ) {
   private val mutableStructure: MutableStructure
   private val isRepeatRange: Boolean
