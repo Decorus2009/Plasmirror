@@ -53,7 +53,8 @@ data class CaseResult(
   val status: String,
   val error: ErrorInfo?,
   val series: List<Series>,
-  val layersDump: String?
+  val layersDump: String?,
+  val timing: Timing? = null
 )
 
 /** The case was stopped by a limit of the batch (series limit, time limit); not a behaviour of the old program. */
@@ -71,73 +72,163 @@ fun runCase(case: BatchCase, caseDir: File, options: BatchOptions): CaseResult =
 
 internal fun runCase(case: BatchCase, caseDir: File, options: BatchOptions, dumper: (BatchCase, State) -> String): CaseResult {
   BatchEnvironment.install()
+  val trace = RunTrace()
+  try {
+    val timing = options.timing
+    if (timing == null) {
+      val cleanup = InputFilesCleanup()
+      try {
+        val series = prepareCase(case, caseDir, options, cleanup, dumper, trace).kernel()
+        return CaseResult(case, case.id, "ok", null, series, trace.dump)
+      } finally {
+        cleanup.run()
+      }
+    }
+    return runTimed(case, caseDir, options, timing, dumper, trace)
+  } catch (ex: InvalidCaseException) {
+    return failed(case, "invalid_case", ErrorInfo(ex.javaClass.name, null, ex.message ?: "Invalid case", null, "validation"), trace.dump)
+  } catch (ex: CaseAbortedException) {
+    return failed(case, "aborted", ErrorInfo(ex.javaClass.name, null, ex.message ?: "Aborted", null, trace.stage), trace.dump)
+  } catch (t: Throwable) {
+    return failed(case, if (t is Exception) "error" else "crash", uiError(case.kind, t, trace.stage), trace.dump)
+  }
+}
+
+/** Where a case is and what it has produced so far: read by the error branches of [runCase]. */
+internal class RunTrace {
   var stage = "validation"
   var dump: String? = null
-  val cleanup = InputFilesCleanup()
-  try {
-    requireExternalFilePathsFromInputFiles(case)
-    BatchEnvironment.resetGlobals()
-    loadDispersions(case, caseDir)
-    cleanup.copyInputFiles(case, caseDir)
+}
 
-    val state = validateAndBuildState(case)
-    StatesManager.add(state)
-    // a failing dump must never change the result of the case: the file is just not written
-    if (options.dumpLayers) dump = try { dumper(case, state) } catch (t: Exception) { null }
+/** A case set up in full; [kernel] is the part of the case under the stopwatch of `--timing` (the table of spec 3.1). */
+internal class PreparedCase(val state: State, val kernel: () -> List<Series>)
 
-    stage = "compute"
-    val series = when (case.kind) {
-      CaseKind.SINGLE -> {
-        state.clearData()
+/**
+ * Everything of one run of the case before the kernel: checks, state, registration, optional dump, and (for `single`)
+ * `clearData()`. Order of checks as in the window: range, temperature, angle, left medium, right medium, structure
+ * (`ComputationState.kt:27-39`, `OpticalParams.kt:14-21`, `StructureDescriptionValidator.validate`).
+ */
+internal fun prepareCase(
+  case: BatchCase,
+  caseDir: File,
+  options: BatchOptions,
+  cleanup: InputFilesCleanup = InputFilesCleanup(),
+  dumper: (BatchCase, State) -> String = ::layersDump,
+  trace: RunTrace = RunTrace()
+): PreparedCase {
+  trace.stage = "validation"
+  requireExternalFilePathsFromInputFiles(case)
+  BatchEnvironment.resetGlobals()
+  loadDispersions(case, caseDir)
+  cleanup.copyInputFiles(case, caseDir)
+
+  val state = validateAndBuildState(case)
+  StatesManager.add(state)
+  // a failing dump must never change the result of the case: the file is just not written
+  if (options.dumpLayers) trace.dump = try { dumper(case, state) } catch (t: Exception) { null }
+
+  val kernel: () -> List<Series> = when (case.kind) {
+    CaseKind.SINGLE -> {
+      trace.stage = "compute"
+      state.clearData()
+      ({
+        trace.stage = "compute"
         state.compute()
         listOf(snapshot(null, null, state.computationData(), case.mode.isComplex()))
-      }
-      CaseKind.RANGE -> {
-        val collected = mutableListOf<Series>()
-        stage = "init"
-        val computer = GeneralRangeComputer(
-          case.structure,
-          chosenDirectory = null,
-          parallel = false, // suspect B-5: the parallel x:range is not recorded
-          prepare = {}, // the window reads the UI and saves the config here; the batch does neither
-          seriesSink = { label, param, st ->
-            if (collected.size >= options.maxSeries) {
-              throw CaseAbortedException("Series limit of ${options.maxSeries} exceeded") // suspect B-6: zero step never ends
-            }
-            // copy at once: range() and external_file_range keep ONE state for all series (GeneralRangeComputer.kt:163-170)
-            collected += snapshot(label, param, st.computationData(), case.mode.isComplex())
+      })
+    }
+    CaseKind.RANGE -> {
+      val collected = mutableListOf<Series>()
+      trace.stage = "init"
+      val computer = GeneralRangeComputer(
+        case.structure,
+        chosenDirectory = null,
+        parallel = false, // suspect B-5: the parallel x:range is not recorded
+        prepare = {}, // the window reads the UI and saves the config here; the batch does neither
+        seriesSink = { label, param, st ->
+          if (collected.size >= options.maxSeries) {
+            throw CaseAbortedException("Series limit of ${options.maxSeries} exceeded") // suspect B-6: zero step never ends
           }
-        )
-        stage = "compute"
+          // copy at once: range() and external_file_range keep ONE state for all series (GeneralRangeComputer.kt:163-170)
+          collected += snapshot(label, param, st.computationData(), case.mode.isComplex())
+        }
+      )
+      ({
+        trace.stage = "compute"
         computer.compute()
         collected
-      }
-      CaseKind.RANDOMIZATION -> {
-        stage = "init"
-        val randomizer = Randomizer(
-          case.structure,
-          case.multi!!.parallelism!!.toInt(),
-          case.multi.iterations!!.toInt(),
-          saveIntermediateResults = false,
-          chosenDirectory = null,
-          prepare = {} // the window reads the UI and saves the config here; the batch does neither
-        )
-        stage = "compute"
+      })
+    }
+    CaseKind.RANDOMIZATION -> {
+      trace.stage = "init"
+      val randomizer = Randomizer(
+        case.structure,
+        case.multi!!.parallelism!!.toInt(),
+        case.multi.iterations!!.toInt(),
+        saveIntermediateResults = false,
+        chosenDirectory = null,
+        prepare = {} // the window reads the UI and saves the config here; the batch does neither
+      )
+      ({
+        trace.stage = "compute"
         // an unbounded channel: nobody listens to the progress, a rendezvous channel would block (Randomizer.kt:187-194)
         runBlocking { randomizer.randomizeAndCompute(Channel(Channel.UNLIMITED)) }
         // the result replaces activeState().computationState.data (Randomizer.kt:109)
         listOf(snapshot(null, null, state.computationData(), case.mode.isComplex()))
-      }
+      })
     }
-    return CaseResult(case, case.id, "ok", null, series, dump)
-  } catch (ex: InvalidCaseException) {
-    return failed(case, "invalid_case", ErrorInfo(ex.javaClass.name, null, ex.message ?: "Invalid case", null, "validation"), dump)
-  } catch (ex: CaseAbortedException) {
-    return failed(case, "aborted", ErrorInfo(ex.javaClass.name, null, ex.message ?: "Aborted", null, stage), dump)
-  } catch (t: Throwable) {
-    return failed(case, if (t is Exception) "error" else "crash", uiError(case.kind, t, stage), dump)
-  } finally {
-    cleanup.run()
+  }
+  return PreparedCase(state, kernel)
+}
+
+/**
+ * `--timing` (spec 3.1): `warmup + timed` full repetitions of the case, only the kernel under the stopwatch; then the
+ * same number of repetitions of the structure parse. The series are those of the last repetition.
+ */
+private fun runTimed(
+  case: BatchCase, caseDir: File, options: BatchOptions, timing: TimingOptions,
+  dumper: (BatchCase, State) -> String, trace: RunTrace
+): CaseResult {
+  val total = timing.warmupRuns + timing.timedRuns
+  val runsNs = mutableListOf<Long>()
+  var first: List<Series>? = null
+  var last: List<Series> = emptyList()
+  var stable = true
+  for (i in 0 until total) {
+    val cleanup = InputFilesCleanup()
+    try {
+      val prepared = prepareCase(case, caseDir, options, cleanup, dumper, trace)
+      val (series, ns) = timedNs { prepared.kernel() }
+      if (first == null) first = series else if (!sameBits(first, series)) stable = false
+      if (i >= timing.warmupRuns) runsNs += ns
+      last = series
+    } finally {
+      cleanup.run()
+    }
+  }
+  val parseRunsNs = mutableListOf<Long>()
+  for (i in 0 until total) {
+    val (_, ns) = timedNs { parseOnce(case) }
+    if (i >= timing.warmupRuns) parseRunsNs += ns
+  }
+  return CaseResult(case, case.id, "ok", null, last, trace.dump, Timing(timing.warmupRuns, runsNs, parseRunsNs, stable))
+}
+
+/** The parse of the structure text as the kernel of this kind does it (`GeneralRangeComputer.kt:39`, `Randomizer.kt:57`). */
+private fun parseOnce(case: BatchCase): Any = when (case.kind) {
+  CaseKind.SINGLE -> case.structure.buildStructure()
+  CaseKind.RANGE -> case.structure.buildMutableStructureWithBlocks()
+  CaseKind.RANDOMIZATION -> case.structure.buildMutableStructure()
+}
+
+private fun sameBits(a: List<Series>, b: List<Series>): Boolean {
+  if (a.size != b.size) return false
+  fun List<Double>?.raw() = this?.map { java.lang.Double.doubleToRawLongBits(it) }
+  return a.indices.all { i ->
+    val p = a[i]
+    val q = b[i]
+    p.label == q.label && p.param?.let { java.lang.Double.doubleToRawLongBits(it) } == q.param?.let { java.lang.Double.doubleToRawLongBits(it) } &&
+      p.x.raw() == q.x.raw() && p.y.raw() == q.y.raw() && p.yIm.raw() == q.yIm.raw()
   }
 }
 
