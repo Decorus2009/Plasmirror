@@ -26,6 +26,13 @@ private fun jsonValue(v: Any?): String = when (v) {
 
 private fun List<Double>.jsonArray() = joinToString(prefix = "[", postfix = "]", separator = ", ") { jsonNumber(it) }
 
+/** `expect == "ok"` is met by status `ok`; `expect == "error"` by any status except `ok` and `invalid_case`. */
+internal fun CaseResult.expectMet(): Boolean = when (case?.expect) {
+  "ok" -> status == "ok"
+  "error" -> status != "ok" && status != "invalid_case"
+  else -> false
+}
+
 /** `result.json` of schema `lamella-result/1` (docs/specs/reference-7-batch-mode.md 3.3). */
 fun CaseResult.toJson(recordedBy: Map<String, Any?>): String {
   val kind = case?.kind?.name?.toLowerCase()
@@ -36,11 +43,7 @@ fun CaseResult.toJson(recordedBy: Map<String, Any?>): String {
     else -> listOf("x", "y")
   }
   val expect = case?.expect
-  val expectMet = when (expect) {
-    "ok" -> status == "ok"
-    "error" -> status != "ok" && status != "invalid_case"
-    else -> false
-  }
+  val expectMet = expectMet()
   val deterministic = !(case?.kind == CaseKind.RANDOMIZATION && (case.multi?.parallelism?.toIntOrNull() ?: 1) > 1)
 
   return buildString {

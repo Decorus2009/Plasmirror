@@ -207,6 +207,17 @@ internal class InputFilesCleanup {
   private val files = mutableListOf<File>()
   private val dirs = mutableListOf<File>()
 
+  init {
+    active += this
+  }
+
+  companion object {
+    private val active = java.util.concurrent.CopyOnWriteArrayList<InputFilesCleanup>()
+
+    /** Called by the time-limit watchdog: the case thread cannot be stopped, its temporary files must go. */
+    fun cleanAllActive() = active.toList().forEach { it.run() }
+  }
+
   fun copyInputFiles(case: BatchCase, caseDir: File) {
     val workDir = File(System.getProperty("user.dir"))
     for (rel in case.inputFiles) {
@@ -225,8 +236,12 @@ internal class InputFilesCleanup {
     }
   }
 
+  @Synchronized
   fun run() {
     files.forEach { it.delete() }
     dirs.forEach { it.delete() }
+    files.clear()
+    dirs.clear()
+    active -= this
   }
 }
