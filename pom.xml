@@ -23,6 +23,7 @@
         <kotlin.compiler.incremental>true</kotlin.compiler.incremental>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <argLine>-Dplasmirror.config=data/internal/state/batch-stub-config.json</argLine>
     </properties>
     <dependencies>
         <!-- https://mvnrepository.com/artifact/org.json/json -->
