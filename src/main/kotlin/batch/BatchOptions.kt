@@ -121,6 +121,7 @@ private fun relativePath(root: File, dir: File): String =
 private fun writeResult(outDir: File, result: CaseResult, recordedBy: Map<String, Any?>) {
   outDir.mkdirs()
   File(outDir, "result.json").writeText(result.toJson(recordedBy))
+  result.layersDump?.let { File(outDir, "layers.txt").writeText(it) }
 }
 
 private fun recordedBy(options: BatchOptions): Map<String, Any?> = linkedMapOf(

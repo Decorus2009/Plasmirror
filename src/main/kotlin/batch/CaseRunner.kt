@@ -16,6 +16,7 @@ import core.state.validatedMedium
 import core.state.view.AxisSettings
 import core.state.view.ViewState
 import core.structure.Structure
+import core.structure.buildMutableStructureWithBlocks
 import core.structure.buildStructure
 import core.util.removeComments
 import core.validators.ComputationRangeValidator
@@ -68,6 +69,7 @@ internal class InvalidCaseException(message: String) : Exception(message)
 fun runCase(case: BatchCase, caseDir: File, options: BatchOptions): CaseResult {
   BatchEnvironment.install()
   var stage = "validation"
+  var dump: String? = null
   val cleanup = InputFilesCleanup()
   try {
     requireExternalFilePathsFromInputFiles(case)
@@ -77,6 +79,7 @@ fun runCase(case: BatchCase, caseDir: File, options: BatchOptions): CaseResult {
 
     val state = validateAndBuildState(case)
     StatesManager.add(state)
+    if (options.dumpLayers) dump = layersDump(case, state)
 
     stage = "compute"
     val series = when (case.kind) {
@@ -122,20 +125,26 @@ fun runCase(case: BatchCase, caseDir: File, options: BatchOptions): CaseResult {
         listOf(snapshot(null, null, state.computationData(), case.mode.isComplex()))
       }
     }
-    return CaseResult(case, case.id, "ok", null, series, null)
+    return CaseResult(case, case.id, "ok", null, series, dump)
   } catch (ex: InvalidCaseException) {
-    return failed(case, "invalid_case", ErrorInfo(ex.javaClass.name, null, ex.message ?: "Invalid case", null, "validation"))
+    return failed(case, "invalid_case", ErrorInfo(ex.javaClass.name, null, ex.message ?: "Invalid case", null, "validation"), dump)
   } catch (ex: CaseAbortedException) {
-    return failed(case, "aborted", ErrorInfo(ex.javaClass.name, null, ex.message ?: "Aborted", null, stage))
+    return failed(case, "aborted", ErrorInfo(ex.javaClass.name, null, ex.message ?: "Aborted", null, stage), dump)
   } catch (t: Throwable) {
-    return failed(case, if (t is Exception) "error" else "crash", uiError(case.kind, t, stage))
+    return failed(case, if (t is Exception) "error" else "crash", uiError(case.kind, t, stage), dump)
   } finally {
     cleanup.run()
   }
 }
 
-private fun failed(case: BatchCase, status: String, error: ErrorInfo) =
-  CaseResult(case, case.id, status, error, emptyList(), null)
+private fun failed(case: BatchCase, status: String, error: ErrorInfo, dump: String?) =
+  CaseResult(case, case.id, status, error, emptyList(), dump)
+
+/** `--dump-layers`: text of the built layer tree (the mutable one for range/randomization) and of both media. */
+private fun layersDump(case: BatchCase, state: State): String {
+  val structure: Any = if (case.kind == CaseKind.SINGLE) state.structure() else case.structure.buildMutableStructureWithBlocks()
+  return "left medium: ${state.mirror().leftMediumLayer}\nstructure: $structure\nright medium: ${state.mirror().rightMediumLayer}\n"
+}
 
 internal fun snapshot(label: String?, param: Double?, data: Data, complex: Boolean) = Series(
   label, param, data.x.toList(), data.yReal.toList(), if (complex) data.yImaginary.toList() else null
