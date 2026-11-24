@@ -6,6 +6,7 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Rule
 import org.junit.Test
 import org.junit.rules.TemporaryFolder
+import core.structure.buildMutableStructure
 import java.io.File
 
 /** Optional part of the task: layers.txt next to result.json (docs/specs/reference-7-batch-mode.md 3.6). */
@@ -55,5 +56,31 @@ internal class LayersDumpTest {
     val dir = runWith("error-structure", dump = true)
     assertThat(File(dir, "result.json").exists(), equalTo(true))
     assertThat(File(dir, "layers.txt").exists(), equalTo(false))
+  }
+
+  @Test
+  fun failing_dump_does_not_change_the_result() {
+    val case = testCase()
+    val plain = runCase(case, tmp.newFolder(), testOptions)
+
+    val dumped = runCase(case, tmp.newFolder(), testOptions.copy(dumpLayers = true)) { _, _ -> throw IllegalStateException("dump broke") }
+
+    assertThat("${dumped.error}", dumped.status, equalTo("ok"))
+    assertThat(dumped.layersDump, equalTo(null as String?))
+    assertThat(bits(dumped.series.single().y), equalTo(bits(plain.series.single().y)))
+  }
+
+  @Test(timeout = 60000)
+  fun dump_of_randomization_case_uses_the_parser_of_the_randomizer() {
+    val structure = "material: GaAs, eps: adachi_simple, d: var(10, 0), df: 0;"
+    val case = testCase(
+      kind = CaseKind.RANDOMIZATION, structure = structure,
+      multi = MultiParams(parallel = null, iterations = "1", parallelism = "1")
+    )
+
+    val r = runCase(case, tmp.newFolder(), testOptions.copy(dumpLayers = true))
+
+    // Randomizer.kt:57: buildMutableStructure().flatten()
+    assertThat(r.layersDump!!, containsString("structure: ${structure.buildMutableStructure().flatten()}"))
   }
 }

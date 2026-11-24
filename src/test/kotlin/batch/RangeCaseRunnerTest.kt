@@ -73,14 +73,17 @@ internal class RangeCaseRunnerTest {
     assertThat(r.series[0].x, not(sameInstance(r.series[2].x)))
 
     // the complex mode: y_im is copied as well
-    val complex = run(rangeCase("material: AlGaAs, eps: adachi_simple, cAl: range(0.25, 0.5, 0.125), d: 100, df: 0;", Mode.REFRACTIVE_INDEX))
+    // df (broadening) changes the imaginary part of the permittivity of GaAs itself, a change of d alone would not
+    val gaas = { df: String -> "material: GaAs, eps: adachi_simple, d: 100, df: $df;" }
+    val complex = run(rangeCase(gaas("range(0.0, 0.2, 0.1)"), Mode.PERMITTIVITY))
     assertThat("${complex.error}", complex.status, equalTo("ok"))
     assertThat(complex.series.size, equalTo(3))
-    listOf("0.25", "0.375", "0.5").forEachIndexed { i, c ->
-      assertSeriesEqualToSingle(complex.series[i], testCase(mode = Mode.REFRACTIVE_INDEX, structure = layer(cAl = c)), complex = true)
+    listOf("0.0", "0.1", "0.2").forEachIndexed { i, df ->
+      assertSeriesEqualToSingle(complex.series[i], testCase(mode = Mode.PERMITTIVITY, structure = gaas(df)), complex = true)
     }
-    assertThat(bits(complex.series[0].y), not(equalTo(bits(complex.series[2].y))))
+    // im(eps) = re(eps) * df (help.md): re is the same, im must differ between the first and the last series
     assertThat(complex.series[0].yIm, not(sameInstance(complex.series[2].yIm)))
+        assertThat(bits(complex.series[0].yIm!!), not(equalTo(bits(complex.series[2].yIm!!))))
   }
 
   @Test
@@ -112,6 +115,17 @@ internal class RangeCaseRunnerTest {
     assertThat(bits(r.series[0].y), not(equalTo(bits(r.series[2].y))))
     // the copied file and the created folder are gone
     assertThat(File(workDir, "batchtestinputs").exists(), equalTo(false))
+  }
+
+  @Test
+  fun commented_out_external_file_range_is_not_an_input_path() {
+    // the path scan sees the text without comments, as the old parser (StructureDescriptionUtil.kt:34)
+    val text = "/* d: external_file_range(\"other/none.txt\") */\n// external_file_range(\"other/none2.txt\")\n${layer("range(10, 20, 10)")}"
+
+    val r = run(rangeCase(text))
+
+    assertThat("${r.error}", r.status, equalTo("ok"))
+    assertThat(r.series.size, equalTo(2))
   }
 
   @Test

@@ -51,7 +51,11 @@ fun directState(case: BatchCase): core.state.State {
   val params = core.state.OpticalParams(
     case.mode, case.temperature.toDouble(), case.angle.toDouble(), case.polarization, left, right
   )
-  val mirror = core.Mirror(case.structure.buildStructure(), left.toLayer(), right.toLayer())
+  // the path of the window: Mirror.updateVia (Mirror.kt:28-32) and ComputationState.updateStructureDescription
+  // (ComputationState.kt:50-54), not the assembly line by line of validateAndBuildState
+  val mirror = core.Mirror(core.structure.Structure.empty(), left.toLayer(), right.toLayer())
+  mirror.updateVia(params, case.structure)
+  val descriptions = mutableMapOf<String, String>()
   val state = core.state.State(
     id = java.util.UUID.randomUUID(),
     computationState = core.state.ComputationState(
@@ -59,8 +63,8 @@ fun directState(case: BatchCase): core.state.State {
       core.state.data.Data(),
       params,
       mirror,
-      mutableMapOf(case.mode.toString().toLowerCase() to case.structure)
-    ),
+      descriptions
+    ).also { it.updateStructureDescription(case.mode.toString(), case.structure) },
     viewState = core.state.view.ViewState(core.state.view.AxisSettings(0.0, 1.0, 0.1), core.state.view.AxisSettings(0.0, 1.0, 0.1)),
     externalData = mutableSetOf(),
     active = true

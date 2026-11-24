@@ -100,6 +100,20 @@ internal class BatchMainTest {
   }
 
   @Test(timeout = 300000)
+  fun resume_after_time_limit_does_not_hide_the_aborted_case() {
+    val cases = tmp.newFolder()
+    write(File(cases, "a"), validCase)
+    val out = tmp.newFolder()
+    val aborted = File(out, "a/result.json").also { it.parentFile.mkdirs() }
+    aborted.writeText("{ \"status\": \"aborted\", \"expect\": \"ok\", \"expect_met\": false }")
+
+    val code = runBatch(BatchOptions(cases, out, resume = true))
+
+    assertThat(code, equalTo(2))
+    assertThat(aborted.readText().contains("aborted"), equalTo(true)) // skipped, not recomputed
+  }
+
+  @Test(timeout = 300000)
   fun unmet_expectation_gives_exit_code_2() {
     val cases = tmp.newFolder()
     write(File(cases, "a"), validCase.replace("\"expect\": \"ok\"", "\"expect\": \"error\""))
@@ -128,6 +142,33 @@ internal class BatchMainTest {
     assertThat(all.getValue("b")["status"].asText(), equalTo("invalid_case"))
     assertThat(all.getValue("a")["status"].asText(), equalTo("ok"))
     assertThat(all.getValue("c")["status"].asText(), equalTo("ok"))
+  }
+
+  @Test(timeout = 60000)
+  fun time_limit_writes_aborted_result_removes_input_files_and_exits_with_3() {
+    val cases = tmp.newFolder()
+    val rel = "batchtesttimeout/f.txt"
+    File(cases, "a/batchtesttimeout").mkdirs()
+    File(cases, "a/$rel").writeText("1\n")
+    write(File(cases, "a"), validCase.replace("\"input_files\": []", "\"input_files\": [\"$rel\"]"))
+    val out = tmp.newFolder()
+    val exits = mutableListOf<Int>()
+    val slowRunner = { case: BatchCase, caseDir: File, _: BatchOptions ->
+      val cleanup = InputFilesCleanup()
+      cleanup.copyInputFiles(case, caseDir)
+      Thread.sleep(4000) // longer than the limit; the batch must not wait for it
+      cleanup.run()
+      throw IllegalStateException("must not be reported")
+    }
+
+    val code = runBatch(BatchOptions(cases, out, timeoutSec = 1), slowRunner) { exits += it }
+
+    assertThat(code, equalTo(3))
+    assertThat(exits, equalTo(listOf(3)))
+    val r = results(out).getValue("a")
+    assertThat(r["status"].asText(), equalTo("aborted"))
+    assertThat(r["expect_met"].asBoolean(), equalTo(false))
+    assertThat(File(File(System.getProperty("user.dir")), "batchtesttimeout").exists(), equalTo(false))
   }
 
   @Test

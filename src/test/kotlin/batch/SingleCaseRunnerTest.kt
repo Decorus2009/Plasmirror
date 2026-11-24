@@ -55,6 +55,21 @@ internal class SingleCaseRunnerTest {
   }
 
   @Test
+  fun only_left_medium_changed_at_nonzero_angle_follows_the_new_medium() {
+    // OpticsUtil.kt:66: the law of Snell reads the left medium of the active state; a stale state of the previous case would leak here
+    val first = testCase(structure = FILM, angle = "30.0", leftMedium = "material: custom, eps: 2.25")
+    val second = first.copy(leftMedium = "material: custom, eps: 1.0")
+
+    val a = run(first)
+    val b = run(second)
+
+    assertThat("${a.error} ${b.error}", a.status + b.status, equalTo("okok"))
+    assertThat(bits(b.only().y), equalTo(bits(directCompute(second).y)))
+    assertThat(bits(a.only().y), equalTo(bits(directCompute(first).y)))
+    assertThat(bits(a.only().y), not(equalTo(bits(b.only().y))))
+  }
+
+  @Test
   fun grid_is_cumulative_sum() {
     val case = testCase(structure = FILM, start = "0.1", end = "1.0", step = "0.1")
     val result = run(case)

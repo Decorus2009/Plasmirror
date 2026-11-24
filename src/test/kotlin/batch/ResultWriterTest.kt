@@ -105,7 +105,7 @@ internal class ResultWriterTest {
     val expectOk = statuses.map { it to json(result(testCase(expect = "ok"), status = it))["expect_met"].asBoolean() }
     assertThat(expectOk, equalTo(listOf("ok" to true, "error" to false, "crash" to false, "aborted" to false, "invalid_case" to false)))
     val expectError = statuses.map { it to json(result(testCase(expect = "error"), status = it))["expect_met"].asBoolean() }
-    assertThat(expectError, equalTo(listOf("ok" to false, "error" to true, "crash" to true, "aborted" to true, "invalid_case" to false)))
+    assertThat(expectError, equalTo(listOf("ok" to false, "error" to true, "crash" to true, "aborted" to false, "invalid_case" to false)))
     assertThat(json(result(testCase(expect = "error"), status = "ok"))["expect"].asText(), equalTo("error"))
   }
 
