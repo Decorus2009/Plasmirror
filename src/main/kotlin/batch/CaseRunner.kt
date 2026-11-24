@@ -2,6 +2,7 @@ package batch
 
 import core.Mirror
 import core.optics.ExternalDispersionsContainer
+import core.randomizer.Randomizer
 import core.range.GeneralRangeComputer
 import core.state.ComputationState
 import core.state.ComputationUnit
@@ -21,6 +22,8 @@ import core.validators.ComputationRangeValidator
 import core.validators.OpticalParamsValidator
 import core.validators.StructureDescriptionValidator
 import core.validators.validatePositiveInt
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.util.UUID
 
@@ -102,7 +105,22 @@ fun runCase(case: BatchCase, caseDir: File, options: BatchOptions): CaseResult {
         computer.compute()
         collected
       }
-      else -> error("kind ${case.kind} is not supported yet")
+      CaseKind.RANDOMIZATION -> {
+        stage = "init"
+        val randomizer = Randomizer(
+          case.structure,
+          case.multi!!.parallelism!!.toInt(),
+          case.multi.iterations!!.toInt(),
+          saveIntermediateResults = false,
+          chosenDirectory = null,
+          prepare = {} // the window reads the UI and saves the config here; the batch does neither
+        )
+        stage = "compute"
+        // an unbounded channel: nobody listens to the progress, a rendezvous channel would block (Randomizer.kt:187-194)
+        runBlocking { randomizer.randomizeAndCompute(Channel(Channel.UNLIMITED)) }
+        // the result replaces activeState().computationState.data (Randomizer.kt:109)
+        listOf(snapshot(null, null, state.computationData(), case.mode.isComplex()))
+      }
     }
     return CaseResult(case, case.id, "ok", null, series, null)
   } catch (ex: InvalidCaseException) {
