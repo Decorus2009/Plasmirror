@@ -2,6 +2,7 @@ package batch
 
 import core.Mirror
 import core.optics.ExternalDispersionsContainer
+import core.range.GeneralRangeComputer
 import core.state.ComputationState
 import core.state.ComputationUnit
 import core.state.Medium
@@ -80,6 +81,26 @@ fun runCase(case: BatchCase, caseDir: File, options: BatchOptions): CaseResult {
         state.clearData()
         state.compute()
         listOf(snapshot(null, null, state.computationData(), case.mode.isComplex()))
+      }
+      CaseKind.RANGE -> {
+        val collected = mutableListOf<Series>()
+        stage = "init"
+        val computer = GeneralRangeComputer(
+          case.structure,
+          chosenDirectory = null,
+          parallel = false, // suspect B-5: the parallel x:range is not recorded
+          prepare = {}, // the window reads the UI and saves the config here; the batch does neither
+          seriesSink = { label, param, st ->
+            if (collected.size >= options.maxSeries) {
+              throw CaseAbortedException("Series limit of ${options.maxSeries} exceeded") // suspect B-6: zero step never ends
+            }
+            // copy at once: range() and external_file_range keep ONE state for all series (GeneralRangeComputer.kt:163-170)
+            collected += snapshot(label, param, st.computationData(), case.mode.isComplex())
+          }
+        )
+        stage = "compute"
+        computer.compute()
+        collected
       }
       else -> error("kind ${case.kind} is not supported yet")
     }
