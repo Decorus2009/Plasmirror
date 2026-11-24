@@ -1,0 +1,28 @@
+{
+  "schema": "lamella-case/1",
+  "id": "randomization-reflectance",
+  "tags": [
+    "demo",
+    "synthetic"
+  ],
+  "kind": "randomization",
+  "mode": "REFLECTANCE",
+  "range": {
+    "start": 700.0,
+    "end": 800.0,
+    "step": 50.0
+  },
+  "angle": 10.0,
+  "polarization": "S",
+  "temperature": 300.0,
+  "left_medium": "material: custom, eps: 1.0",
+  "right_medium": "material: custom, eps: 1.0",
+  "structure": "material: GaAs, eps: adachi_simple, d: var(10, 1), df: 0.0;",
+  "external_dispersions": [],
+  "input_files": [],
+  "multi": {
+    "iterations": 4,
+    "parallelism": 1
+  },
+  "expect": "ok"
+}

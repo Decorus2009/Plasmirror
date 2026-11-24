@@ -25,6 +25,10 @@ class GeneralRangeComputer(
   private val mutableStructureDescriptionText: String,
   private val chosenDirectory: File? = null,
   private val parallel: Boolean = true,
+  // batch mode (#7): the window reads the UI and saves the config in `prepare`; the batch passes an empty lambda.
+  // `seriesSink` receives every computed series instead of a file being written (the file rounds the wavelength).
+  private val prepare: () -> Unit = { savingConfig { activeState().prepare(updateStructure = false) } },
+  private val seriesSink: ((label: String, param: Double, state: State) -> Unit)? = null,
 ) {
   private val mutableStructure: MutableStructure
   private val isRepeatRange: Boolean
@@ -82,7 +86,7 @@ class GeneralRangeComputer(
   private fun computeRepeatRange() {
     val rangeParam = repeatRangeParam!!
 
-    savingConfig { activeState().prepare(updateStructure = false) }
+    prepare()
 
     var currentValue = rangeParam.start
     val to = rangeParam.end
@@ -101,7 +105,11 @@ class GeneralRangeComputer(
       with(state) {
         clearData()
         compute()
-        writeComputedDataTo(File("${chosenDirectory!!.canonicalPath}${core.util.sep}${exportFileNameForRepeat(currentValue)}.txt"))
+        if (seriesSink != null) {
+          seriesSink.invoke("x$currentValue", currentValue.toDouble(), this)
+        } else {
+          writeComputedDataTo(File("${chosenDirectory!!.canonicalPath}${core.util.sep}${exportFileNameForRepeat(currentValue)}.txt"))
+        }
       }
 
       currentValue += step
@@ -119,7 +127,7 @@ class GeneralRangeComputer(
   private fun computeRepeatRangeParallel() {
     val rangeParam = repeatRangeParam!!
 
-    savingConfig { activeState().prepare(updateStructure = false) }
+    prepare()
 
     // Phase 1: sequentially prepare all tasks
     data class ComputeTask(val repeatValue: Int, val state: State, val outputFile: File)
@@ -144,7 +152,11 @@ class GeneralRangeComputer(
           with(task.state) {
             clearData()
             compute()
-            writeComputedDataTo(task.outputFile)
+            if (seriesSink != null) {
+              seriesSink.invoke("x${task.repeatValue}", task.repeatValue.toDouble(), this)
+            } else {
+              writeComputedDataTo(task.outputFile)
+            }
           }
         }
       }
@@ -167,11 +179,15 @@ class GeneralRangeComputer(
         adjustStructure(currentValue)
         clearData()
         compute()
-        writeComputedDataTo(File("${chosenDirectory!!.canonicalPath}${core.util.sep}${exportFileNameForLayer()}.txt"))
+        if (seriesSink != null) {
+          seriesSink.invoke(String.format(Locale.US, "%.8f", rangeParam.varValue), rangeParam.varValue!!, this)
+        } else {
+          writeComputedDataTo(File("${chosenDirectory!!.canonicalPath}${core.util.sep}${exportFileNameForLayer()}.txt"))
+        }
       }
     }
 
-    rangeParam.particularComputer(fixCurrentState).compute()
+    rangeParam.particularComputer(fixCurrentState, prepare).compute()
   }
 
   private fun State.adjustStructure(current: Double) = structure()
@@ -230,12 +246,13 @@ private interface RangeParticularComputer {
 
 private class DoubleValueRangeParticularComputer(
   private val rangeParam: DoubleRangeParameter,
-  private val fixCurrentState: (Double) -> Unit
+  private val fixCurrentState: (Double) -> Unit,
+  private val prepare: () -> Unit
 ) : RangeParticularComputer {
   override fun compute() {
     // when "compute" button is clicked on the UI, the current state is saved.
     // this call simulates that behavior
-    savingConfig { activeState().prepare(updateStructure = false) }
+    prepare()
 
     var currentValue = rangeParam.start
     val to = rangeParam.end
@@ -252,10 +269,11 @@ private class DoubleValueRangeParticularComputer(
 
 private class ExternalFileRangeParticularComputer(
   private val rangeParam: ExternalFileDoubleRangeParameter,
-  private val fixCurrentState: (Double) -> Unit
+  private val fixCurrentState: (Double) -> Unit,
+  private val prepare: () -> Unit
 ) : RangeParticularComputer {
   override fun compute() {
-    savingConfig { activeState().prepare(updateStructure = false) }
+    prepare()
 
     val range = requireDoubleRangeFromFile()
     range.forEachIndexed { index, value ->
@@ -273,10 +291,13 @@ private class ExternalFileRangeParticularComputer(
     .toList()
 }
 
-private fun VarParameter<Double>.particularComputer(fixCurrentState: (Double) -> Unit): RangeParticularComputer =
+private fun VarParameter<Double>.particularComputer(
+  fixCurrentState: (Double) -> Unit,
+  prepare: () -> Unit
+): RangeParticularComputer =
   when (this) {
-    is DoubleRangeParameter -> DoubleValueRangeParticularComputer(this, fixCurrentState)
-    is ExternalFileDoubleRangeParameter -> ExternalFileRangeParticularComputer(this, fixCurrentState)
+    is DoubleRangeParameter -> DoubleValueRangeParticularComputer(this, fixCurrentState, prepare)
+    is ExternalFileDoubleRangeParameter -> ExternalFileRangeParticularComputer(this, fixCurrentState, prepare)
     else -> throw StateException(
       headerMessage = "Unsupported range parameter type",
       contentMessage = "Only DoubleRangeParameter and ExternalFileDoubleRangeParameter are supported"

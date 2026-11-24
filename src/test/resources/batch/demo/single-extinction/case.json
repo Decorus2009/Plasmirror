@@ -1,0 +1,25 @@
+{
+  "schema": "lamella-case/1",
+  "id": "single-extinction",
+  "tags": [
+    "demo",
+    "synthetic"
+  ],
+  "kind": "single",
+  "mode": "EXTINCTION_COEFFICIENT",
+  "range": {
+    "start": 700.0,
+    "end": 800.0,
+    "step": 50.0
+  },
+  "angle": 10.0,
+  "polarization": "S",
+  "temperature": 300.0,
+  "left_medium": "material: custom, eps: 1.0",
+  "right_medium": "material: custom, eps: 1.0",
+  "structure": "type: mie, orders: all, f: 0.01, d: 0, medium: { material: AlGaAs, eps: adachi_simple, df: 0.0, cAl: 0.3 }, particles: { material: Drude, r: 10.6, w: 14.6, G: 0.5, eps_inf: 1.0 }, include_medium_absorption: true;",
+  "external_dispersions": [],
+  "input_files": [],
+  "multi": null,
+  "expect": "ok"
+}

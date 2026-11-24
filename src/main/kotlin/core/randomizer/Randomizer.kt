@@ -39,6 +39,8 @@ class Randomizer(
   private val iterations: Int,
   private val saveIntermediateResults: Boolean,
   private val chosenDirectory: File? = null,
+  // batch mode (#7): the window reads the UI and saves the config here; the batch passes an empty lambda
+  private val prepare: () -> Unit = { savingConfig { activeState().prepare() } },
 ) {
   private val states = mutableMapOf<Int, State>()
   private val concurrencyLevel = min(Runtime.getRuntime().availableProcessors(), parallelism)
@@ -85,9 +87,7 @@ class Randomizer(
     // (because compute button hasn't been clicked which saves the new state)
     //
     // such a "save state" behaviour is simulated here
-    savingConfig {
-      activeState().prepare()
-    }
+    prepare()
 
     // run multiple async computations
     val defs = iterationChunks().mapIndexed { index, iterationsChunk ->

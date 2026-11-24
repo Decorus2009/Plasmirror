@@ -1,0 +1,25 @@
+{
+  "schema": "lamella-case/1",
+  "id": "error-structure",
+  "tags": [
+    "demo",
+    "synthetic"
+  ],
+  "kind": "single",
+  "mode": "REFLECTANCE",
+  "range": {
+    "start": 700.0,
+    "end": 800.0,
+    "step": 50.0
+  },
+  "angle": 10.0,
+  "polarization": "S",
+  "temperature": 300.0,
+  "left_medium": "material: custom, eps: 1.0",
+  "right_medium": "material: custom, eps: 1.0",
+  "structure": "material: unobtainium, d: 10;",
+  "external_dispersions": [],
+  "input_files": [],
+  "multi": null,
+  "expect": "error"
+}

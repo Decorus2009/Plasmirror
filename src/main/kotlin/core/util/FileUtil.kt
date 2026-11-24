@@ -16,7 +16,7 @@ import java.util.*
 object KnownPaths {
   private val internalDir = "data${sep}internal"
 
-  val config = "$internalDir${sep}state${sep}config.json"
+  val config = System.getProperty("plasmirror.config") ?: "$internalDir${sep}state${sep}config.json"
   val permittivitySbCardonaAdachi = "$internalDir${sep}interpolations${sep}eps_Sb_Cardona_Adachi.txt"
   val permittivitySbPallik = "$internalDir${sep}interpolations${sep}eps_Sb_Pallik.txt"
   val permittivitySbAbInitioC05 = "$internalDir${sep}interpolations${sep}eps_Sb_Pallik.txt"
