@@ -26,3 +26,6 @@ data class CaseResult(
   val series: List<Series>,
   val layersDump: String?
 )
+
+/** Red skeleton: the body is written by the code commit of step 5. */
+fun runCase(case: BatchCase, caseDir: java.io.File, options: BatchOptions): CaseResult = TODO("step 5")
