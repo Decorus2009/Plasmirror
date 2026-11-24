@@ -79,10 +79,19 @@ fun CaseResult.toJson(recordedBy: Map<String, Any?>): String {
       append("\"y_im\": ${s.yIm?.jsonArray() ?: "null"}}")
     }
     append(if (series.isEmpty()) "],\n" else "\n  ],\n")
-    append("  \"timing\": null,\n")
+    append("  \"timing\": ${timing?.toJson() ?: "null"},\n")
     append("  \"recorded_by\": {")
     append(recordedBy.entries.joinToString(", ") { "${jsonString(it.key)}: ${jsonValue(it.value)}" })
     append("}\n")
     append("}\n")
   }
 }
+
+private fun List<Long>.msArray() = joinToString(prefix = "[", postfix = "]", separator = ", ") { jsonNumber(it / 1e6) }
+
+/** The `timing` block (docs/specs/reference-9-golden-set.md 3.1); milliseconds are `ns / 1e6`, written like the spectrum. */
+private fun Timing.toJson(): String =
+  "{\"warmup_runs\": $warmupRuns, " +
+    "\"runs_ms\": ${runsNs.msArray()}, \"median_ms\": ${jsonNumber(medianMs(runsNs))}, \"min_ms\": ${jsonNumber(minMs(runsNs))}, " +
+    "\"parse_runs_ms\": ${parseRunsNs.msArray()}, \"parse_median_ms\": ${jsonNumber(medianMs(parseRunsNs))}, " +
+    "\"parse_min_ms\": ${jsonNumber(minMs(parseRunsNs))}, \"stable\": $stable}"

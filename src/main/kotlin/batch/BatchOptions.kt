@@ -88,6 +88,34 @@ internal fun runBatch(options: BatchOptions, caseRunner: (BatchCase, File, Batch
     val recordedBy = recordedBy(options)
     var unmet = false
 
+    if (options.timing != null) {
+      // the idle pass (spec 3.1): every case once, nothing written, to warm the JVM, the Sb/Bi tables and mXparser
+      val idleOptions = options.copy(timing = null)
+      for ((file, rel) in caseFiles) {
+        val outDir = if (rel.isEmpty()) options.outDir else File(options.outDir, rel)
+        val outFile = File(outDir, "result.json")
+        if (options.resume && outFile.exists() && previousStatus(outFile) == "aborted") {
+          System.err.println("$rel: warm-up skipped (aborted)")
+          continue
+        }
+        val case = try {
+          readCase(file)
+        } catch (ex: CaseFormatException) {
+          continue // the second pass writes its invalid_case
+        }
+        System.err.println("$rel: warm-up")
+        withTimeLimit(
+          options.timeoutSec * 1000,
+          onTimeout = {
+            InputFilesCleanup.cleanAllActive()
+            writeResult(outDir, abortedResult(case, options), recordedBy)
+            System.err.println("$rel: aborted (time limit); the process ends, rerun with --resume")
+            exit(3)
+          }
+        ) { caseRunner(case, file.parentFile, idleOptions) } ?: return@withSilencedStdout 3
+      }
+    }
+
     for ((file, rel) in caseFiles) {
       val outDir = if (rel.isEmpty()) options.outDir else File(options.outDir, rel)
       val outFile = File(outDir, "result.json")
@@ -114,12 +142,7 @@ internal fun runBatch(options: BatchOptions, caseRunner: (BatchCase, File, Batch
         options.timeoutSec * 1000,
         onTimeout = {
           InputFilesCleanup.cleanAllActive()
-          val aborted = CaseResult(
-            case, case.id, "aborted",
-            ErrorInfo(CaseAbortedException::class.java.name, null, "Time limit of ${options.timeoutSec} s exceeded", null, "compute"),
-            emptyList(), null
-          )
-          writeResult(outDir, aborted, recordedBy)
+          writeResult(outDir, abortedResult(case, options), recordedBy)
           System.err.println("$rel: aborted (time limit); the process ends, rerun with --resume")
           exit(3)
         }
@@ -132,6 +155,12 @@ internal fun runBatch(options: BatchOptions, caseRunner: (BatchCase, File, Batch
     if (unmet) 2 else 0
   }
 }
+
+private fun abortedResult(case: BatchCase, options: BatchOptions) = CaseResult(
+  case, case.id, "aborted",
+  ErrorInfo(CaseAbortedException::class.java.name, null, "Time limit of ${options.timeoutSec} s exceeded", null, "compute"),
+  emptyList(), null
+)
 
 private fun relativePath(root: File, dir: File): String =
   dir.relativeTo(root).path.replace(File.separatorChar, '/')
@@ -156,6 +185,13 @@ private fun recordedBy(options: BatchOptions): Map<String, Any?> = linkedMapOf(
   "cpu" to System.getProperty("os.arch"),
   "processors" to Runtime.getRuntime().availableProcessors()
 )
+
+/** `status` of a result written earlier; `null` for an unreadable file. */
+private fun previousStatus(resultFile: File): String? = try {
+  com.fasterxml.jackson.databind.ObjectMapper().readTree(resultFile)["status"]?.asText()
+} catch (ex: Exception) {
+  null
+}
 
 /** `expect_met` of a result written earlier; an unreadable file counts as unmet. */
 private fun previousExpectationMet(resultFile: File): Boolean = try {
