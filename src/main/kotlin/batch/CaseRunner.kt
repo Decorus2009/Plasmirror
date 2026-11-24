@@ -210,12 +210,20 @@ private fun requireExternalFilePathsFromInputFiles(case: BatchCase) {
   val text = case.structure.toLowerCase().removeComments()
     .replace(Regex("\\s+"), "")
     .replace(Regex("[\\x00-\\x1F\\x7F]"), "")
-  if (!text.contains("external_file_range(")) return
+  // every mention of the keyword must be the quoted form the old parser rewrites (`name:external_file_range("path")`);
+  // the object form of the parameter would reach the old code unchecked
+  val mentions = Regex("external_file_range").findAll(text).count()
+  if (mentions == 0) return
 
-  val path = externalFileRangeRegex.find(text)?.groupValues?.get(2)
-    ?: throw InvalidCaseException("Cannot read the path of external_file_range(...) in the structure text")
-  if (path !in case.inputFiles || !safePathRegex.matches(path) || path.split('/').any { it == ".." }) {
-    throw InvalidCaseException("external_file_range path \"$path\" is not listed in input_files")
+  val matches = externalFileRangeRegex.findAll(text).toList()
+  if (matches.isEmpty() || matches.size != mentions) {
+    throw InvalidCaseException("Cannot read the path of external_file_range(...) in the structure text")
+  }
+  for (m in matches) {
+    val path = m.groupValues[2]
+    if (path !in case.inputFiles || !safePathRegex.matches(path) || path.split('/').any { it == ".." }) {
+      throw InvalidCaseException("external_file_range path \"$path\" is not listed in input_files")
+    }
   }
 }
 
@@ -248,8 +256,13 @@ internal class InputFilesCleanup {
       }
       target.parentFile.mkdirs()
       dirs += missing // deepest first
-      File(caseDir, rel).copyTo(target)
-      files += target
+      val source = File(caseDir, rel)
+      // a symbolic link inside the case folder must not lead the copy out of it
+      if (!source.canonicalFile.toPath().startsWith(caseDir.canonicalFile.toPath())) {
+        throw InvalidCaseException("Input file $rel leads out of the case folder")
+      }
+      files += target // registered before the copy: a time limit in the middle of it must find the partial file
+      source.copyTo(target)
     }
   }
 

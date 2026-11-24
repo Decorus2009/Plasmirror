@@ -121,8 +121,14 @@ private fun relativePath(root: File, dir: File): String =
 
 private fun writeResult(outDir: File, result: CaseResult, recordedBy: Map<String, Any?>) {
   outDir.mkdirs()
-  File(outDir, "result.json").writeText(result.toJson(recordedBy))
   result.layersDump?.let { File(outDir, "layers.txt").writeText(it) }
+  // result.json goes last and whole: --resume treats an existing result.json as done, a torn file must never appear
+  val tmp = File(outDir, "result.json.tmp")
+  tmp.writeText(result.toJson(recordedBy))
+  java.nio.file.Files.move(
+    tmp.toPath(), File(outDir, "result.json").toPath(),
+    java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.ATOMIC_MOVE
+  )
 }
 
 private fun recordedBy(options: BatchOptions): Map<String, Any?> = linkedMapOf(
