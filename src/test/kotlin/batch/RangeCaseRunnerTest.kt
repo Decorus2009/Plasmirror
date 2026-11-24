@@ -185,8 +185,9 @@ internal class RangeCaseRunnerTest {
   @Test
   fun zero_step_is_stopped_by_series_limit() {
     // suspect B-6: the old program hangs here (docs/port/suspects.md#b-6 of Lamella); the batch stops at the limit
-    val r = run(rangeCase(layer("range(10, 30, 0)")), options = testOptions.copy(maxSeries = 5))
-    assertThat(r.status, equalTo("aborted"))
+    // d: range(10, 30, 0) is refused by the old parser (JsonUtil.kt:35); x:range and unchecked fields (df) are not
+    val r = run(rangeCase("x:range(1, 3, 0)\n${layer("10")}"), options = testOptions.copy(maxSeries = 5))
+    assertThat("${r.error}", r.status, equalTo("aborted"))
     assertThat(r.series.size, equalTo(0))
     assertThat(r.error!!.stage, equalTo("compute"))
   }
