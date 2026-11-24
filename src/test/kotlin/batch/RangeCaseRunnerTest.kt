@@ -24,7 +24,12 @@ internal class RangeCaseRunnerTest {
   val tmp = TemporaryFolder()
 
   private val workDir = File(System.getProperty("user.dir"))
-  private val inputDirs = listOf("batchtestinputs", "batchtestexisting", "batchtestprepare")
+  // folder names unique per test: the cleanup below removes only what this test created, never foreign data
+  private val uniq = java.lang.Long.toString(System.nanoTime(), 36)
+  private val inputsDir = "batchtestinputs$uniq"
+  private val existingDir = "batchtestexisting$uniq"
+  private val prepareDir = "batchtestprepare$uniq"
+  private val inputDirs = listOf(inputsDir, existingDir, prepareDir)
 
   @After
   fun removeTestFolders() {
@@ -101,9 +106,9 @@ internal class RangeCaseRunnerTest {
   @Test
   fun external_file_range_uses_input_file_and_cleans_up() {
     val dir = tmp.newFolder()
-    File(dir, "batchtestinputs").mkdirs()
-    File(dir, "batchtestinputs/dvalues.txt").writeText("10\n20\n30.5\n")
-    val case = rangeCase(layer("external_file_range(\"batchtestinputs/dvalues.txt\")"), inputFiles = listOf("batchtestinputs/dvalues.txt"))
+    File(dir, inputsDir).mkdirs()
+    File(dir, "$inputsDir/dvalues.txt").writeText("10\n20\n30.5\n")
+    val case = rangeCase(layer("external_file_range(\"$inputsDir/dvalues.txt\")"), inputFiles = listOf("$inputsDir/dvalues.txt"))
 
     val r = run(case, dir)
 
@@ -114,7 +119,7 @@ internal class RangeCaseRunnerTest {
     assertSeriesEqualToSingle(r.series[2], testCase(structure = layer("30.5")), complex = false)
     assertThat(bits(r.series[0].y), not(equalTo(bits(r.series[2].y))))
     // the copied file and the created folder are gone
-    assertThat(File(workDir, "batchtestinputs").exists(), equalTo(false))
+    assertThat(File(workDir, inputsDir).exists(), equalTo(false))
   }
 
   @Test
@@ -131,15 +136,15 @@ internal class RangeCaseRunnerTest {
   @Test
   fun external_file_path_outside_input_files_is_rejected() {
     val dir = tmp.newFolder()
-    File(dir, "batchtestinputs").mkdirs()
-    File(dir, "batchtestinputs/dvalues.txt").writeText("10\n")
+    File(dir, inputsDir).mkdirs()
+    File(dir, "$inputsDir/dvalues.txt").writeText("10\n")
     val decoy = File(tmp.newFolder(), "decoy.txt").also { it.writeText("99\n") }
-    val listed = listOf("batchtestinputs/dvalues.txt")
+    val listed = listOf("$inputsDir/dvalues.txt")
 
     listOf(
-      "batchtestinputs/other.txt",
+      "$inputsDir/other.txt",
       decoy.absolutePath,
-      "../batchtestinputs/dvalues.txt"
+      "../$inputsDir/dvalues.txt"
     ).forEach { path ->
       val r = run(rangeCase(layer("external_file_range(\"$path\")"), inputFiles = listed), dir)
       assertThat("$path", r.status, equalTo("invalid_case"))
@@ -152,15 +157,40 @@ internal class RangeCaseRunnerTest {
   }
 
   @Test
-  fun existing_file_at_input_path_is_not_overwritten() {
-    File(workDir, "batchtestexisting").mkdirs()
-    val existing = File(workDir, "batchtestexisting/vals.txt").also { it.writeText("keep\n") }
+  fun symlink_in_case_dir_pointing_outside_is_rejected() {
+    val outside = tmp.newFolder()
+    File(outside, "secret.txt").writeText("10\n")
     val dir = tmp.newFolder()
-    File(dir, "batchtestexisting").mkdirs()
-    File(dir, "batchtestexisting/vals.txt").writeText("10\n")
+    File(dir, inputsDir).mkdirs()
+    java.nio.file.Files.createSymbolicLink(File(dir, "$inputsDir/dvalues.txt").toPath(), File(outside, "secret.txt").toPath())
+
+    val r = run(rangeCase(layer("external_file_range(\"$inputsDir/dvalues.txt\")"), inputFiles = listOf("$inputsDir/dvalues.txt")), dir)
+
+    assertThat("${r.error}", r.status, equalTo("invalid_case"))
+    assertThat(File(workDir, inputsDir).exists(), equalTo(false))
+  }
+
+  @Test
+  fun object_form_of_external_file_range_cannot_read_unlisted_path() {
+    val outside = tmp.newFolder()
+    val secret = File(outside, "secret.txt").also { it.writeText("10\n") }
+    val text = "material: GaAs, eps: adachi_simple, d: {\"external_file_range\": true, \"path\": \"${secret.path}\"}, df: 0;"
+
+    val r = run(rangeCase(text))
+
+    assertThat("${r.error}", r.status, equalTo("invalid_case"))
+  }
+
+  @Test
+  fun existing_file_at_input_path_is_not_overwritten() {
+    File(workDir, existingDir).mkdirs()
+    val existing = File(workDir, "$existingDir/vals.txt").also { it.writeText("keep\n") }
+    val dir = tmp.newFolder()
+    File(dir, existingDir).mkdirs()
+    File(dir, "$existingDir/vals.txt").writeText("10\n")
 
     val r = run(
-      rangeCase(layer("external_file_range(\"batchtestexisting/vals.txt\")"), inputFiles = listOf("batchtestexisting/vals.txt")),
+      rangeCase(layer("external_file_range(\"$existingDir/vals.txt\")"), inputFiles = listOf("$existingDir/vals.txt")),
       dir
     )
 
@@ -172,13 +202,13 @@ internal class RangeCaseRunnerTest {
   fun prepare_is_called_before_first_series_and_never_saves() {
     assertThat(KnownPaths.config.endsWith("batch-stub-config.json"), equalTo(true))
     val stubBefore = File(KnownPaths.config).readBytes().toList()
-    File(workDir, "batchtestprepare").mkdirs()
-    File(workDir, "batchtestprepare/vals.txt").writeText("10\n20\n")
+    File(workDir, prepareDir).mkdirs()
+    File(workDir, "$prepareDir/vals.txt").writeText("10\n20\n")
 
     listOf(
       "x:range(1, 2, 1)\n${layer("10")}",
       layer("range(10, 20, 10)"),
-      layer("external_file_range(\"batchtestprepare/vals.txt\")")
+      layer("external_file_range(\"$prepareDir/vals.txt\")")
     ).forEach { text ->
       BatchEnvironment.resetGlobals()
       StatesManager.add(buildBaseStateForTest(rangeCase(text)))

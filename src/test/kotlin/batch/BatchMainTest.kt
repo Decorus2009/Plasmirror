@@ -171,6 +171,21 @@ internal class BatchMainTest {
     assertThat(File(File(System.getProperty("user.dir")), "batchtesttimeout").exists(), equalTo(false))
   }
 
+  @Test(timeout = 60000)
+  fun failed_write_keeps_the_previous_result_json_whole() {
+    val cases = tmp.newFolder()
+    write(File(cases, "a"), validCase)
+    val out = tmp.newFolder()
+    File(out, "a").mkdirs()
+    File(out, "a/result.json").writeText("previous")
+    File(out, "a/result.json.tmp").mkdirs() // the temporary file cannot be created: the write fails
+    val runner = { case: BatchCase, caseDir: File, o: BatchOptions -> runCase(case, caseDir, o) }
+
+    runCatching { runBatch(BatchOptions(cases, out), runner) { } }
+
+    assertThat(File(out, "a/result.json").readText(), equalTo("previous"))
+  }
+
   @Test
   fun parse_args_rejects_missing_dirs() {
     val e = assertFailsWith<IllegalArgumentException> { parseArgs(emptyArray()) }
