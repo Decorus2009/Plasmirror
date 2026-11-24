@@ -71,7 +71,7 @@ internal class SingleCaseRunnerTest {
     var case = testCase(
       start = "-1", temperature = "-5", angle = "90",
       leftMedium = "material: unobtainium", rightMedium = "material: unobtainium",
-      structure = "x0\nmaterial: GaAs, eps: adachi_simple, d: 5;"
+      structure = "x0"
     )
     assertThat(run(case).error!!.header, equalTo("Computation range error"))
 
@@ -118,7 +118,7 @@ internal class SingleCaseRunnerTest {
     check(testCase(temperature = "-1"), "Optical parameters error", "Incorrect temperature. Allowed value should be > 0")
     check(testCase(angle = "90"), "Optical parameters error", "Incorrect angle. Allowed range: 0..90 (exclusive)")
     check(
-      testCase(structure = "x0\nmaterial: GaAs, eps: adachi_simple, d: 5;"),
+      testCase(structure = "x0"),
       "Structure description error", "Empty structure description"
     )
   }
