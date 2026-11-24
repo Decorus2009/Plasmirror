@@ -2,7 +2,7 @@ package batch
 
 import java.io.File
 
-/** Options of one batch run. `parseArgs` and `runBatch` are added in step 9. */
+/** Options of one batch run. */
 data class BatchOptions(
   val casesDir: File,
   val outDir: File,
@@ -12,3 +12,8 @@ data class BatchOptions(
   val dumpLayers: Boolean = false,
   val git: String? = null
 )
+
+/** Red skeleton: bodies are written by the code commit of step 9. */
+fun parseArgs(args: Array<String>): BatchOptions = TODO("step 9")
+
+fun runBatch(options: BatchOptions): Int = TODO("step 9")

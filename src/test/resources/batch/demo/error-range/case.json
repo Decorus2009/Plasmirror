@@ -1,0 +1,25 @@
+{
+  "schema": "lamella-case/1",
+  "id": "error-range",
+  "tags": [
+    "demo",
+    "synthetic"
+  ],
+  "kind": "single",
+  "mode": "TRANSMITTANCE",
+  "range": {
+    "start": 800.0,
+    "end": 700.0,
+    "step": 50.0
+  },
+  "angle": 10.0,
+  "polarization": "S",
+  "temperature": 300.0,
+  "left_medium": "material: custom, eps: 1.0",
+  "right_medium": "material: custom, eps: 1.0",
+  "structure": "material: GaAs, eps: adachi_simple, d: 90, df: 0.0;",
+  "external_dispersions": [],
+  "input_files": [],
+  "multi": null,
+  "expect": "error"
+}

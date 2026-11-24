@@ -43,7 +43,8 @@ const val MIE_LAYER = "type: mie, orders: all, f: 0.01, d: 0, " +
 /** What the old code gives for the same case without the batch layer: `State.kt:29-39` called directly. */
 data class Direct(val x: List<Double>, val y: List<Double>, val yIm: List<Double>)
 
-fun directCompute(case: BatchCase): Direct {
+/** The old state assembled by hand and computed by the old code: State.kt:29-39. */
+fun directState(case: BatchCase): core.state.State {
   BatchEnvironment.resetGlobals()
   val left = core.state.Medium(case.leftMedium)
   val right = core.state.Medium(case.rightMedium)
@@ -67,6 +68,11 @@ fun directCompute(case: BatchCase): Direct {
   core.state.StatesManager.add(state)
   state.clearData()
   state.compute()
+  return state
+}
+
+fun directCompute(case: BatchCase): Direct {
+  val state = directState(case)
   return Direct(
     state.computationData().x.toList(),
     state.computationData().yReal.toList(),
