@@ -1,5 +1,28 @@
 package batch
 
+import core.Mirror
+import core.optics.ExternalDispersionsContainer
+import core.state.ComputationState
+import core.state.ComputationUnit
+import core.state.Medium
+import core.state.OpticalParams
+import core.state.Range
+import core.state.State
+import core.state.StatesManager
+import core.state.data.Data
+import core.state.validatedMedium
+import core.state.view.AxisSettings
+import core.state.view.ViewState
+import core.structure.Structure
+import core.structure.buildStructure
+import core.util.removeComments
+import core.validators.ComputationRangeValidator
+import core.validators.OpticalParamsValidator
+import core.validators.StructureDescriptionValidator
+import core.validators.validatePositiveInt
+import java.io.File
+import java.util.UUID
+
 /** One recorded series: for `single` and `randomization` the only one, for `range` one per parameter value. */
 data class Series(
   val label: String?,
@@ -27,5 +50,144 @@ data class CaseResult(
   val layersDump: String?
 )
 
-/** Red skeleton: the body is written by the code commit of step 5. */
-fun runCase(case: BatchCase, caseDir: java.io.File, options: BatchOptions): CaseResult = TODO("step 5")
+/** The case was stopped by a limit of the batch (series limit, time limit); not a behaviour of the old program. */
+class CaseAbortedException(message: String) : RuntimeException(message)
+
+/** The case file itself is unusable (not an error of the old program). */
+internal class InvalidCaseException(message: String) : Exception(message)
+
+/**
+ * Runs one case through the code of the old program and records what it did. Never throws.
+ * Order of checks as in the window: range, temperature, angle, left medium, right medium, structure
+ * (`ComputationState.kt:27-39`, `OpticalParams.kt:14-21`, `StructureDescriptionValidator.validate`).
+ */
+fun runCase(case: BatchCase, caseDir: File, options: BatchOptions): CaseResult {
+  BatchEnvironment.install()
+  var stage = "validation"
+  val cleanup = InputFilesCleanup()
+  try {
+    requireExternalFilePathsFromInputFiles(case)
+    BatchEnvironment.resetGlobals()
+    loadDispersions(case, caseDir)
+    cleanup.copyInputFiles(case, caseDir)
+
+    val state = validateAndBuildState(case)
+    StatesManager.add(state)
+
+    stage = "compute"
+    val series = when (case.kind) {
+      CaseKind.SINGLE -> {
+        state.clearData()
+        state.compute()
+        listOf(snapshot(null, null, state.computationData(), case.mode.isComplex()))
+      }
+      else -> error("kind ${case.kind} is not supported yet")
+    }
+    return CaseResult(case, case.id, "ok", null, series, null)
+  } catch (ex: InvalidCaseException) {
+    return failed(case, "invalid_case", ErrorInfo(ex.javaClass.name, null, ex.message ?: "Invalid case", null, "validation"))
+  } catch (ex: CaseAbortedException) {
+    return failed(case, "aborted", ErrorInfo(ex.javaClass.name, null, ex.message ?: "Aborted", null, stage))
+  } catch (t: Throwable) {
+    return failed(case, if (t is Exception) "error" else "crash", uiError(case.kind, t, stage))
+  } finally {
+    cleanup.run()
+  }
+}
+
+private fun failed(case: BatchCase, status: String, error: ErrorInfo) =
+  CaseResult(case, case.id, status, error, emptyList(), null)
+
+internal fun snapshot(label: String?, param: Double?, data: Data, complex: Boolean) = Series(
+  label, param, data.x.toList(), data.yReal.toList(), if (complex) data.yImaginary.toList() else null
+)
+
+private fun validateAndBuildState(case: BatchCase): State {
+  ComputationRangeValidator.validateRange(case.start, case.end, case.step)
+  OpticalParamsValidator.validateTemperature(case.temperature)
+  OpticalParamsValidator.validateAngle(case.angle)
+  val left = validatedMedium(case.leftMedium, "Left medium")
+  val right = validatedMedium(case.rightMedium, "Right medium")
+  if (case.kind == CaseKind.RANDOMIZATION) {
+    validatePositiveInt(case.multi!!.iterations!!, "iterations")
+    validatePositiveInt(case.multi.parallelism!!, "parallelism")
+  }
+  StructureDescriptionValidator.validate(case.structure, isMutable = case.kind != CaseKind.SINGLE)
+
+  // docs/port/B_dsl_state.md 3.3 item 3: Mirror(text.buildStructure(), left.toLayer(), right.toLayer()),
+  // the same as Mirror.updateVia (Mirror.kt:28-32). range/randomization start from an empty structure.
+  val structure = if (case.kind == CaseKind.SINGLE) case.structure.buildStructure() else Structure.empty()
+  return State(
+    id = UUID.randomUUID(),
+    computationState = ComputationState(
+      Range(ComputationUnit.NM, case.start.toDouble(), case.end.toDouble(), case.step.toDouble()),
+      Data(),
+      OpticalParams(case.mode, case.temperature.toDouble(), case.angle.toDouble(), case.polarization, left, right),
+      Mirror(structure, left.toLayer(), right.toLayer()),
+      mutableMapOf(case.mode.toString().toLowerCase() to case.structure)
+    ),
+    viewState = ViewState(AxisSettings(0.0, 1.0, 0.1), AxisSettings(0.0, 1.0, 0.1)),
+    externalData = mutableSetOf(),
+    active = true
+  )
+}
+
+private fun loadDispersions(case: BatchCase, caseDir: File) {
+  for (d in case.externalDispersions) {
+    try {
+      with(ExternalDispersionsContainer) { File(caseDir, d.file).interpolateExternalDispersion(d.name, d.isPermittivity) }
+    } catch (ex: Exception) {
+      throw InvalidCaseException("Cannot read dispersion file ${d.file}: ${ex.message}")
+    }
+  }
+}
+
+private val externalFileRangeRegex = Regex("\\b(\\w+)\\b:external_file_range\\(\"(.*)\"\\)")
+private val safePathRegex = Regex("^[a-z0-9_][a-z0-9_.\\-/]*$")
+
+/**
+ * The old code opens the path written in the structure text (`GeneralRangeComputer.kt:269-272`), so a case could read
+ * any file of the machine. Before any old code runs, the path is compared with `input_files` (the text is normalized
+ * the same way as the old parser does: lower case, no comments, no spaces).
+ */
+private fun requireExternalFilePathsFromInputFiles(case: BatchCase) {
+  val text = case.structure.toLowerCase().removeComments()
+    .replace(Regex("\\s+"), "")
+    .replace(Regex("[\\x00-\\x1F\\x7F]"), "")
+  if (!text.contains("external_file_range(")) return
+
+  val path = externalFileRangeRegex.find(text)?.groupValues?.get(2)
+    ?: throw InvalidCaseException("Cannot read the path of external_file_range(...) in the structure text")
+  if (path !in case.inputFiles || !safePathRegex.matches(path) || path.split('/').any { it == ".." }) {
+    throw InvalidCaseException("external_file_range path \"$path\" is not listed in input_files")
+  }
+}
+
+/** Copies `input_files` into the working directory for the time of one case; removes them (and created folders) after. */
+internal class InputFilesCleanup {
+  private val files = mutableListOf<File>()
+  private val dirs = mutableListOf<File>()
+
+  fun copyInputFiles(case: BatchCase, caseDir: File) {
+    val workDir = File(System.getProperty("user.dir"))
+    for (rel in case.inputFiles) {
+      val target = File(workDir, rel)
+      if (target.exists()) throw InvalidCaseException("File $rel already exists in the working directory")
+      var dir = target.parentFile
+      val missing = mutableListOf<File>()
+      while (dir != null && !dir.exists()) {
+        missing += dir
+        dir = dir.parentFile
+      }
+      target.parentFile.mkdirs()
+      dirs += missing // deepest first
+      File(caseDir, rel).copyTo(target)
+      files += target
+    }
+  }
+
+  fun run() {
+    files.forEach { it.delete() }
+    dirs.forEach { it.delete() }
+  }
+}
