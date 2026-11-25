@@ -3,6 +3,9 @@ package batch
 import java.io.File
 import kotlin.system.exitProcess
 
+/** `--timing`: repetitions of every `ok` case (docs/specs/reference-9-golden-set.md 3.1). */
+data class TimingOptions(val warmupRuns: Int = 3, val timedRuns: Int = 5)
+
 /** Options of one batch run. */
 data class BatchOptions(
   val casesDir: File,
@@ -11,10 +14,12 @@ data class BatchOptions(
   val timeoutSec: Long = 300,
   val maxSeries: Int = 10_000,
   val dumpLayers: Boolean = false,
-  val git: String? = null
+  val git: String? = null,
+  val timing: TimingOptions? = null
 )
 
 const val USAGE = "Usage: BatchMain <cases-dir> <out-dir> [--resume] [--timeout-sec N] [--max-series N] [--dump-layers] [--git <sha>]\n" +
+  "                  [--timing] [--warmup-runs N] [--timed-runs N]\n" +
   "       BatchMain --compare-export <result.json> <export.txt>"
 
 /** @throws IllegalArgumentException with the text for stderr */
@@ -25,6 +30,9 @@ fun parseArgs(args: Array<String>): BatchOptions {
   var maxSeries = 10_000
   var dumpLayers = false
   var git: String? = null
+  var timing = false
+  var warmupRuns: Int? = null
+  var timedRuns: Int? = null
 
   var i = 0
   fun value(flag: String): String {
@@ -40,6 +48,11 @@ fun parseArgs(args: Array<String>): BatchOptions {
       "--max-series" -> maxSeries = value(a).toIntOrNull()?.takeIf { it > 0 }
         ?: throw IllegalArgumentException("--max-series must be a positive integer\n$USAGE")
       "--git" -> git = value(a)
+      "--timing" -> timing = true
+      "--warmup-runs" -> warmupRuns = value(a).toIntOrNull()?.takeIf { it > 0 }
+        ?: throw IllegalArgumentException("--warmup-runs must be a positive integer\n$USAGE")
+      "--timed-runs" -> timedRuns = value(a).toIntOrNull()?.takeIf { it > 0 }
+        ?: throw IllegalArgumentException("--timed-runs must be a positive integer\n$USAGE")
       else -> {
         if (a.startsWith("--")) throw IllegalArgumentException("Unknown option: $a\n$USAGE")
         positional += a
@@ -47,10 +60,14 @@ fun parseArgs(args: Array<String>): BatchOptions {
     }
     i++
   }
+  if (!timing && (warmupRuns != null || timedRuns != null)) {
+    throw IllegalArgumentException("--warmup-runs and --timed-runs need --timing\n$USAGE")
+  }
   if (positional.size != 2) throw IllegalArgumentException("Expected <cases-dir> and <out-dir>\n$USAGE")
   val casesDir = File(positional[0])
   if (!casesDir.isDirectory) throw IllegalArgumentException("Cases directory not found: ${casesDir.path}\n$USAGE")
-  return BatchOptions(casesDir, File(positional[1]), resume, timeoutSec, maxSeries, dumpLayers, git)
+  return BatchOptions(casesDir, File(positional[1]), resume, timeoutSec, maxSeries, dumpLayers, git,
+    if (timing) TimingOptions(warmupRuns ?: 3, timedRuns ?: 5) else null)
 }
 
 /**
@@ -70,6 +87,34 @@ internal fun runBatch(options: BatchOptions, caseRunner: (BatchCase, File, Batch
       .toList()
     val recordedBy = recordedBy(options)
     var unmet = false
+
+    if (options.timing != null) {
+      // the idle pass (spec 3.1): every case once, nothing written, to warm the JVM, the Sb/Bi tables and mXparser
+      val idleOptions = options.copy(timing = null)
+      for ((file, rel) in caseFiles) {
+        val outDir = if (rel.isEmpty()) options.outDir else File(options.outDir, rel)
+        val outFile = File(outDir, "result.json")
+        if (options.resume && outFile.exists() && previousStatus(outFile) == "aborted") {
+          System.err.println("$rel: warm-up skipped (aborted)")
+          continue
+        }
+        val case = try {
+          readCase(file)
+        } catch (ex: CaseFormatException) {
+          continue // the second pass writes its invalid_case
+        }
+        System.err.println("$rel: warm-up")
+        withTimeLimit(
+          options.timeoutSec * 1000,
+          onTimeout = {
+            InputFilesCleanup.cleanAllActive()
+            writeResult(outDir, abortedResult(case, options), recordedBy)
+            System.err.println("$rel: aborted (time limit); the process ends, rerun with --resume")
+            exit(3)
+          }
+        ) { caseRunner(case, file.parentFile, idleOptions) } ?: return@withSilencedStdout 3
+      }
+    }
 
     for ((file, rel) in caseFiles) {
       val outDir = if (rel.isEmpty()) options.outDir else File(options.outDir, rel)
@@ -97,12 +142,7 @@ internal fun runBatch(options: BatchOptions, caseRunner: (BatchCase, File, Batch
         options.timeoutSec * 1000,
         onTimeout = {
           InputFilesCleanup.cleanAllActive()
-          val aborted = CaseResult(
-            case, case.id, "aborted",
-            ErrorInfo(CaseAbortedException::class.java.name, null, "Time limit of ${options.timeoutSec} s exceeded", null, "compute"),
-            emptyList(), null
-          )
-          writeResult(outDir, aborted, recordedBy)
+          writeResult(outDir, abortedResult(case, options), recordedBy)
           System.err.println("$rel: aborted (time limit); the process ends, rerun with --resume")
           exit(3)
         }
@@ -115,6 +155,12 @@ internal fun runBatch(options: BatchOptions, caseRunner: (BatchCase, File, Batch
     if (unmet) 2 else 0
   }
 }
+
+private fun abortedResult(case: BatchCase, options: BatchOptions) = CaseResult(
+  case, case.id, "aborted",
+  ErrorInfo(CaseAbortedException::class.java.name, null, "Time limit of ${options.timeoutSec} s exceeded", null, "compute"),
+  emptyList(), null
+)
 
 private fun relativePath(root: File, dir: File): String =
   dir.relativeTo(root).path.replace(File.separatorChar, '/')
@@ -139,6 +185,13 @@ private fun recordedBy(options: BatchOptions): Map<String, Any?> = linkedMapOf(
   "cpu" to System.getProperty("os.arch"),
   "processors" to Runtime.getRuntime().availableProcessors()
 )
+
+/** `status` of a result written earlier; `null` for an unreadable file. */
+private fun previousStatus(resultFile: File): String? = try {
+  com.fasterxml.jackson.databind.ObjectMapper().readTree(resultFile)["status"]?.asText()
+} catch (ex: Exception) {
+  null
+}
 
 /** `expect_met` of a result written earlier; an unreadable file counts as unmet. */
 private fun previousExpectationMet(resultFile: File): Boolean = try {
