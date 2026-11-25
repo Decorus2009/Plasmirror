@@ -106,6 +106,29 @@ internal class TimingCaseRunnerTest {
     assertThat(run(testCase(structure = layer()), timed).timing!!.stable, equalTo(true))
   }
 
+  /** `sameBits` is private in `CaseRunner.kt` (the recorded build must not change), so the test reaches it by reflection. */
+  private fun sameBits(a: List<Series>, b: List<Series>): Boolean {
+    val m = Class.forName("batch.CaseRunnerKt").getDeclaredMethod("sameBits", List::class.java, List::class.java)
+    m.isAccessible = true
+    return m.invoke(null, a, b) as Boolean
+  }
+
+  @Test(timeout = 120000)
+  fun same_bits_tells_a_changed_repetition_from_an_equal_one() {
+    val base = Series("l", 1.0, listOf(500.0, 600.0), listOf(0.1, 0.2), listOf(0.3, 0.4))
+    assertThat(sameBits(listOf(base), listOf(base.copy())), equalTo(true))
+    val oneBit = java.lang.Double.longBitsToDouble(java.lang.Double.doubleToRawLongBits(0.2) + 1)
+    assertThat(sameBits(listOf(base), listOf(base.copy(y = listOf(0.1, oneBit)))), equalTo(false))
+    assertThat(sameBits(listOf(base), listOf(base.copy(yIm = listOf(0.3, oneBit)))), equalTo(false))
+    assertThat(sameBits(listOf(base), listOf(base.copy(yIm = null))), equalTo(false))
+    assertThat(sameBits(listOf(base), listOf(base.copy(x = listOf(500.0, 601.0)))), equalTo(false))
+    assertThat(sameBits(listOf(base), listOf(base.copy(param = 2.0))), equalTo(false))
+    assertThat(sameBits(listOf(base), listOf(base.copy(label = "m"))), equalTo(false))
+    assertThat(sameBits(listOf(base), listOf(base, base)), equalTo(false))
+    // 0.0 and -0.0 are equal as numbers but not as bits
+    assertThat(sameBits(listOf(base.copy(y = listOf(0.0, 0.2))), listOf(base.copy(y = listOf(-0.0, 0.2)))), equalTo(false))
+  }
+
   @Test(timeout = 120000)
   fun error_case_has_no_timing() {
     val r = run(testCase(structure = "this is not a structure"), timed)
